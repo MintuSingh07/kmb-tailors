@@ -1,0 +1,56 @@
+import mongoose, { Schema } from 'mongoose';
+
+const ClientSchema = new Schema(
+  {
+    clientNo: {
+      type: String,
+      required: [true, 'Please provide a client number'],
+      unique: true,
+      trim: true,
+    },
+    name: {
+      type: String,
+      required: [true, 'Please provide a client name'],
+      trim: true,
+    },
+    contactNo: {
+      type: String,
+      required: [true, 'Please provide a contact number'],
+      trim: true,
+    },
+    alternativeNo: {
+      type: String,
+      trim: true,
+    },
+    category: {
+      type: String,
+      required: [true, 'Please select a category'],
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: [true, 'Please provide a price in Rupees'],
+      min: [0, 'Price cannot be negative'],
+      default: 0,
+    },
+    images: {
+      type: [String], // Array of Base64 strings or image urls
+      default: [],
+    },
+    measurementDrawing: {
+      type: String, // Base64 canvas data url
+      default: '',
+    },
+    strokes: {
+      type: Array, // Array of Stroke objects for rebuilding canvas
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Client = mongoose.models.Client || mongoose.model('Client', ClientSchema);
+
+export default Client;
