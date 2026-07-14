@@ -5,11 +5,19 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { v2 as cloudinary } from 'cloudinary';
 import dbConnect from './src/lib/db';
 import User from './src/models/User';
 import Client from './src/models/Client';
 
 dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -17,6 +25,28 @@ const handle = app.getRequestHandler();
 
 const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+
+// Helper to upload base64 image strings to Cloudinary
+const uploadToCloudinary = async (base64Str: string): Promise<string> => {
+  if (!base64Str || !base64Str.startsWith('data:image/')) {
+    return base64Str; // Already a URL or empty
+  }
+
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.warn('Cloudinary credentials missing in .env. Falling back to local MongoDB base64 storage.');
+    return base64Str;
+  }
+
+  try {
+    const uploadResponse = await cloudinary.uploader.upload(base64Str, {
+      folder: 'kmb-tailor',
+    });
+    return uploadResponse.secure_url;
+  } catch (error) {
+    console.error('Error uploading image to Cloudinary:', error);
+    return base64Str; // Fallback to base64 on failure
+  }
+};
 
 // Connect to MongoDB
 dbConnect().catch((err) => {
@@ -234,6 +264,25 @@ app.prepare().then(() => {
 
       await dbConnect();
 
+      // Upload base64 strings to Cloudinary (or fallback to base64 if not configured)
+      const uploadedImages: string[] = [];
+      if (images && Array.isArray(images)) {
+        for (const img of images) {
+          const url = await uploadToCloudinary(img);
+          uploadedImages.push(url);
+        }
+      }
+
+      const uploadedMeasurementDrawing = await uploadToCloudinary(measurementDrawing);
+
+      const uploadedMeasurementDrawings: string[] = [];
+      if (measurementDrawings && Array.isArray(measurementDrawings)) {
+        for (const img of measurementDrawings) {
+          const url = await uploadToCloudinary(img);
+          uploadedMeasurementDrawings.push(url);
+        }
+      }
+
       // Check if client exists
       const existingClient = await Client.findOne({ clientNo });
       if (existingClient) {
@@ -242,9 +291,9 @@ app.prepare().then(() => {
         existingClient.contactNo = contactNo;
         existingClient.alternativeNo = alternativeNo;
         existingClient.category = category;
-        existingClient.images = images || [];
-        existingClient.measurementDrawing = measurementDrawing || '';
-        existingClient.measurementDrawings = measurementDrawings || [];
+        existingClient.images = uploadedImages;
+        existingClient.measurementDrawing = uploadedMeasurementDrawing;
+        existingClient.measurementDrawings = uploadedMeasurementDrawings;
         existingClient.strokes = strokes || [];
         existingClient.price = parsedPrice;
         await existingClient.save();
@@ -259,9 +308,9 @@ app.prepare().then(() => {
         contactNo,
         alternativeNo,
         category,
-        images: images || [],
-        measurementDrawing: measurementDrawing || '',
-        measurementDrawings: measurementDrawings || [],
+        images: uploadedImages,
+        measurementDrawing: uploadedMeasurementDrawing,
+        measurementDrawings: uploadedMeasurementDrawings,
         strokes: strokes || [],
         price: parsedPrice,
       });
