@@ -273,6 +273,54 @@ app.prepare().then(() => {
     }
   });
 
+  // Clients: Update Suit Status Endpoint
+  server.post('/api/clients/status', async (req: Request, res: Response) => {
+    try {
+      // Validate JWT
+      const token = req.cookies?.token;
+      if (!token) {
+        res.status(401).json({ error: 'Unauthorized: No session token found' });
+        return;
+      }
+
+      try {
+        jwt.verify(token, JWT_SECRET);
+      } catch (err) {
+        res.status(401).json({ error: 'Unauthorized: Invalid session token' });
+        return;
+      }
+
+      const { clientNo, status } = req.body;
+
+      if (!clientNo || !status) {
+        res.status(400).json({ error: 'Client Number and Status are required' });
+        return;
+      }
+
+      const validStatuses = ['Pending', 'Prepared but not handovered', 'Completed and handovered'];
+      if (!validStatuses.includes(status)) {
+        res.status(400).json({ error: 'Invalid status value' });
+        return;
+      }
+
+      await dbConnect();
+
+      const client = await Client.findOne({ clientNo });
+      if (!client) {
+        res.status(404).json({ error: 'Client not found' });
+        return;
+      }
+
+      client.suitStatus = status;
+      await client.save();
+
+      res.status(200).json({ success: true, message: `Status updated to ${status} successfully`, client });
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      res.status(500).json({ error: 'Internal server error while updating status' });
+    }
+  });
+
   // Let Next.js handle all other requests
   server.all(/.*/, (req: Request, res: Response) => {
     return handle(req, res);

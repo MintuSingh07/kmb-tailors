@@ -33,6 +33,11 @@ const ClientSchema = new Schema(
       min: [0, 'Price cannot be negative'],
       default: 0,
     },
+    suitStatus: {
+      type: String,
+      enum: ['Pending', 'Prepared but not handovered', 'Completed and handovered'],
+      default: 'Pending',
+    },
     images: {
       type: [String], // Array of Base64 strings or image urls
       default: [],

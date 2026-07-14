@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '../../../lib/db';
 import Client from '../../../models/Client';
 import LogoutButton from '../LogoutButton';
-import PendingSuitsList from './PendingSuitsList';
+import PendingSuitsList from '../pending/PendingSuitsList';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -15,7 +15,7 @@ interface DecodedToken {
   username: string;
 }
 
-export default async function PendingSuitsPage() {
+export default async function CompletedSuitsPage() {
   const cookieStore = await cookies();
   const tokenCookie = cookieStore.get('token');
   const token = tokenCookie?.value;
@@ -33,11 +33,11 @@ export default async function PendingSuitsPage() {
     redirect('/login');
   }
 
-  // Connect to database and fetch all pending suits
+  // Connect to database and fetch all completed and handovered suits
   await dbConnect();
-  const pendingSuits = await Client.find({
+  const completedSuits = await Client.find({
     category: 'Suit',
-    $or: [{ suitStatus: 'Pending' }, { suitStatus: { $exists: false } }, { suitStatus: null }]
+    suitStatus: 'Completed and handovered'
   }).sort({ updatedAt: -1 });
 
   return (
@@ -60,7 +60,7 @@ export default async function PendingSuitsPage() {
             />
           </div>
           <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-[#1A1A1A]">
-            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Pending Queue</span>
+            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Delivered Queue</span>
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -84,39 +84,39 @@ export default async function PendingSuitsPage() {
             </svg>
             Back to Dashboard
           </Link>
-          <span className="bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
-            {pendingSuits.length} {pendingSuits.length === 1 ? 'Suit' : 'Suits'} Pending
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
+            {completedSuits.length} {completedSuits.length === 1 ? 'Suit' : 'Suits'} Handovered
           </span>
         </div>
 
         <div className="mb-10">
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#1A1A1A] mb-2">
-            Pending Suits
+            Completed & Handovered
           </h1>
-          <p className="text-slate-500 text-lg sm:text-xl leading-relaxed">
-            Tailoring queue for Three-Piece Suits. Click on a file to view or edit customer details.
+          <p className="text-slate-500 text-base sm:text-lg font-semibold">
+            History of all delivered orders. Click on any file to view details or revert status.
           </p>
         </div>
 
         {/* Dynamic Queue Grid */}
-        {pendingSuits.length === 0 ? (
+        {completedSuits.length === 0 ? (
           <div className="rounded-3xl border border-[#E6DFD3] bg-[#FCFAF5] p-12 text-center shadow-xl shadow-slate-200/30 flex flex-col items-center justify-center max-w-2xl mx-auto">
             <div className="p-5 bg-white rounded-full border border-slate-200/60 shadow-sm mb-4">
               <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Queue is Clear</h2>
-            <p className="text-slate-500 font-semibold mb-6">No pending suits in the tailoring queue. Create a new measurement file to begin.</p>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Delivered History is Empty</h2>
+            <p className="text-slate-500 font-semibold mb-6">No suits completed and delivered yet.</p>
             <Link
-              href="/admin/new"
+              href="/admin/pending"
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white font-extrabold text-sm sm:text-base shadow-md shadow-[#9E7D3B]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              Create Suit File
+              View Pending Suits
             </Link>
           </div>
         ) : (
-          <PendingSuitsList initialSuits={JSON.parse(JSON.stringify(pendingSuits))} />
+          <PendingSuitsList initialSuits={JSON.parse(JSON.stringify(completedSuits))} />
         )}
       </main>
     </div>

@@ -61,7 +61,18 @@ export default async function AdminPage() {
     }
   });
 
-  const pendingSuitsCount = allClients.filter((c: any) => c.category === 'Suit').length;
+  const pendingSuitsCount = allClients.filter(
+    (c: any) => c.category === 'Suit' && (c.suitStatus === 'Pending' || !c.suitStatus)
+  ).length;
+
+  const preparedSuitsCount = allClients.filter(
+    (c: any) => c.category === 'Suit' && c.suitStatus === 'Prepared but not handovered'
+  ).length;
+
+  const completedSuitsCount = allClients.filter(
+    (c: any) => c.category === 'Suit' && c.suitStatus === 'Completed and handovered'
+  ).length;
+
   const totalPhotosCount = allClients.reduce((sum: number, c: any) => sum + (c.images?.length || 0), 0);
   const clientHistoryCount = allClients.length;
 
@@ -114,7 +125,7 @@ export default async function AdminPage() {
     {
       id: 'completed-suits',
       title: 'Completed Suits',
-      value: '0',
+      value: `${completedSuitsCount}`,
       description: 'Successfully stitched & completed',
       icon: (
         <svg className="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -144,7 +155,7 @@ export default async function AdminPage() {
     {
       id: 'prepared-not-handovered',
       title: 'Prepared but not handovered',
-      value: '0 Suits',
+      value: `${preparedSuitsCount}`,
       description: 'Awaiting client pickup',
       icon: (
         <svg className="h-8 w-8 text-rose-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -245,11 +256,28 @@ export default async function AdminPage() {
 
             const cardClasses = `rounded-2xl border p-6 sm:p-8 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between ${stat.cardClass}`;
 
-            return stat.id === 'pending-suits' ? (
-              <Link key={stat.id} href="/admin/pending" className={cardClasses}>
-                {cardContent}
-              </Link>
-            ) : (
+            if (stat.id === 'pending-suits') {
+              return (
+                <Link key={stat.id} href="/admin/pending" className={cardClasses}>
+                  {cardContent}
+                </Link>
+              );
+            }
+            if (stat.id === 'prepared-not-handovered') {
+              return (
+                <Link key={stat.id} href="/admin/prepared" className={cardClasses}>
+                  {cardContent}
+                </Link>
+              );
+            }
+            if (stat.id === 'completed-suits') {
+              return (
+                <Link key={stat.id} href="/admin/completed" className={cardClasses}>
+                  {cardContent}
+                </Link>
+              );
+            }
+            return (
               <div key={stat.id} className={cardClasses}>
                 {cardContent}
               </div>

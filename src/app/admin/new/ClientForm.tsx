@@ -49,8 +49,13 @@ export default function ClientForm() {
     // 1. Check if there is a 'code' query parameter in the URL
     const params = new URLSearchParams(window.location.search);
     const queryCode = params.get('code');
+    const autoDraw = params.get('draw') === 'true';
+    
     if (queryCode) {
       handleSelectClient(queryCode);
+      if (autoDraw) {
+        setIsDrawingOpen(true);
+      }
       return;
     }
 
@@ -209,10 +214,41 @@ export default function ClientForm() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear
+    // 1. Create an offscreen canvas to isolate drawing strokes and erasures
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvas.width;
+    offscreen.height = canvas.height;
+    const offCtx = offscreen.getContext('2d');
+    if (!offCtx) return;
+
+    // Draw saved strokes onto the offscreen canvas
+    offCtx.lineCap = 'round';
+    offCtx.lineJoin = 'round';
+
+    strokes.forEach((stroke) => {
+      if (stroke.points.length === 0) return;
+      offCtx.beginPath();
+      offCtx.strokeStyle = stroke.color;
+      offCtx.lineWidth = stroke.width;
+
+      // Use destination-out blend mode for erasers to clear drawing pixels to transparent
+      if (stroke.color === '#FFFFFF') {
+        offCtx.globalCompositeOperation = 'destination-out';
+      } else {
+        offCtx.globalCompositeOperation = 'source-over';
+      }
+
+      offCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (let i = 1; i < stroke.points.length; i++) {
+        offCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      }
+      offCtx.stroke();
+    });
+
+    // 2. Clear the visible canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw notebook guidelines (Google Keep style grid)
+    // 3. Draw the notebook guidelines (Google Keep style grid) on the visible canvas
     ctx.strokeStyle = '#F0E7D5';
     ctx.lineWidth = 1.5;
     for (let y = 40; y < canvas.height; y += 40) {
@@ -222,19 +258,8 @@ export default function ClientForm() {
       ctx.stroke();
     }
 
-    // Draw saved strokes
-    strokes.forEach((stroke) => {
-      if (stroke.points.length === 0) return;
-      ctx.beginPath();
-      ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.width;
-      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-
-      for (let i = 1; i < stroke.points.length; i++) {
-        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
-      }
-      ctx.stroke();
-    });
+    // 4. Draw the strokes layer on top of guidelines (erased parts are transparent, drawing lines are opaque)
+    ctx.drawImage(offscreen, 0, 0);
   };
 
   // Canvas interaction (Pointer Events supporting Touch, Mouse, Stylus/S-Pen)
@@ -258,10 +283,11 @@ export default function ClientForm() {
     setIsDrawing(true);
     const coords = getCanvasCoords(e);
     
-    // Create new stroke
+    // Create new stroke (multiply width by 4 for eraser to make it efficient)
+    const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
     const newStroke: Stroke = {
       color: currentColor,
-      width: currentWidth,
+      width: actualWidth,
       points: [coords],
     };
     
@@ -751,6 +777,27 @@ export default function ClientForm() {
                     title={c.name}
                   />
                 ))}
+
+                {/* Divider */}
+                <div className="w-[1px] h-8 bg-slate-200 mx-1 select-none" />
+
+                {/* Eraser Button */}
+                <button
+                  type="button"
+                  onClick={() => setCurrentColor('#FFFFFF')}
+                  className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
+                    currentColor === '#FFFFFF'
+                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B] bg-slate-50'
+                      : 'hover:scale-105 active:scale-95'
+                  }`}
+                  title="Eraser"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+                    <path d="m22 21H7" />
+                    <path d="m5 11 9 9" />
+                  </svg>
+                </button>
               </div>
             </div>
 
