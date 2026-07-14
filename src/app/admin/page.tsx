@@ -217,11 +217,11 @@ export default async function AdminPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
-        <div className="mb-8">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#1A1A1A] mb-2">
+        <div className="mb-6 select-none">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A] mb-1.5">
             Workspace
           </h1>
-          <p className="text-slate-500 text-lg sm:text-xl leading-relaxed">
+          <p className="text-slate-500 text-xs sm:text-sm font-semibold">
             Tailoring operation metrics and business insights.
           </p>
         </div>
@@ -273,6 +273,13 @@ export default async function AdminPage() {
             if (stat.id === 'completed-suits') {
               return (
                 <Link key={stat.id} href="/admin/completed" className={cardClasses}>
+                  {cardContent}
+                </Link>
+              );
+            }
+            if (stat.id === 'client-history') {
+              return (
+                <Link key={stat.id} href="/admin/history" className={cardClasses}>
                   {cardContent}
                 </Link>
               );

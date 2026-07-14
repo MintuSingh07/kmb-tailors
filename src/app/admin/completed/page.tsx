@@ -89,12 +89,12 @@ export default async function CompletedSuitsPage() {
           </span>
         </div>
 
-        <div className="mb-10">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#1A1A1A] mb-2">
+        <div className="mb-6 select-none">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A] mb-1.5">
             Completed & Handovered
           </h1>
-          <p className="text-slate-500 text-base sm:text-lg font-semibold">
-            History of all delivered orders. Click on any file to view details or revert status.
+          <p className="text-slate-500 text-xs sm:text-sm font-semibold">
+            History of all delivered orders. Click card to edit profile details or select Measurement to view sketches.
           </p>
         </div>
 
