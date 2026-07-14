@@ -223,7 +223,7 @@ app.prepare().then(() => {
         return;
       }
 
-      const { clientNo, name, contactNo, alternativeNo, category, images, measurementDrawing, strokes, price } = req.body;
+      const { clientNo, name, contactNo, alternativeNo, category, images, measurementDrawing, measurementDrawings, strokes, price } = req.body;
 
       if (!clientNo || !name || !contactNo || !category) {
         res.status(400).json({ error: 'Client No, Name, Contact No, and Category are required' });
@@ -244,6 +244,7 @@ app.prepare().then(() => {
         existingClient.category = category;
         existingClient.images = images || [];
         existingClient.measurementDrawing = measurementDrawing || '';
+        existingClient.measurementDrawings = measurementDrawings || [];
         existingClient.strokes = strokes || [];
         existingClient.price = parsedPrice;
         await existingClient.save();
@@ -260,6 +261,7 @@ app.prepare().then(() => {
         category,
         images: images || [],
         measurementDrawing: measurementDrawing || '',
+        measurementDrawings: measurementDrawings || [],
         strokes: strokes || [],
         price: parsedPrice,
       });

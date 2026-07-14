@@ -9,6 +9,7 @@ interface Stroke {
   color: string;
   width: number;
   points: { x: number; y: number }[];
+  page?: number; // Optional page identifier
 }
 
 export default function ClientForm() {
@@ -22,7 +23,10 @@ export default function ClientForm() {
   const [category, setCategory] = useState('Suit');
   const [price, setPrice] = useState('');
   const [images, setImages] = useState<string[]>([]); // Base64 data URLs
-  const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL
+  const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
+  const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   // UI states
   const [loading, setLoading] = useState(false);
@@ -71,6 +75,9 @@ export default function ClientForm() {
         if (draft.price) setPrice(draft.price);
         if (draft.images) setImages(draft.images);
         if (draft.measurementDrawing) setMeasurementDrawing(draft.measurementDrawing);
+        if (draft.measurementDrawings) setMeasurementDrawings(draft.measurementDrawings);
+        if (draft.totalPages) setTotalPages(draft.totalPages);
+        if (draft.currentPage) setCurrentPage(draft.currentPage);
         if (draft.strokes) setStrokes(draft.strokes);
       } catch (e) {
         console.error('Error loading draft:', e);
@@ -90,11 +97,14 @@ export default function ClientForm() {
         price,
         images,
         measurementDrawing,
+        measurementDrawings,
+        totalPages,
+        currentPage,
         strokes,
       };
       localStorage.setItem('kmb_client_draft', JSON.stringify(draft));
     }
-  }, [name, clientNo, contactNo, alternativeNo, category, price, images, measurementDrawing, strokes]);
+  }, [name, clientNo, contactNo, alternativeNo, category, price, images, measurementDrawing, measurementDrawings, totalPages, currentPage, strokes]);
 
   // Hide suggestions when clicking outside
   useEffect(() => {
@@ -159,7 +169,10 @@ export default function ClientForm() {
       setPrice(client.price !== undefined ? String(client.price) : '');
       setImages(client.images || []);
       setMeasurementDrawing(client.measurementDrawing || '');
+      setMeasurementDrawings(client.measurementDrawings || [client.measurementDrawing || '']);
       setStrokes(client.strokes || []);
+      setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
+      setCurrentPage(1);
       
       setJustSelected(true);
       setClientNo(client.clientNo);
@@ -206,7 +219,7 @@ export default function ClientForm() {
       }
       redrawCanvas();
     }
-  }, [isDrawingOpen, strokes]);
+  }, [isDrawingOpen, strokes, currentPage]);
 
   const redrawCanvas = () => {
     const canvas = canvasRef.current;
@@ -225,7 +238,11 @@ export default function ClientForm() {
     offCtx.lineCap = 'round';
     offCtx.lineJoin = 'round';
 
-    strokes.forEach((stroke) => {
+    const activeStrokes = strokes.filter(
+      (stroke) => stroke.page === currentPage || (!stroke.page && currentPage === 1)
+    );
+
+    activeStrokes.forEach((stroke) => {
       if (stroke.points.length === 0) return;
       offCtx.beginPath();
       offCtx.strokeStyle = stroke.color;
@@ -289,6 +306,7 @@ export default function ClientForm() {
       color: currentColor,
       width: actualWidth,
       points: [coords],
+      page: currentPage,
     };
     
     setStrokes((prev) => [...prev, newStroke]);
@@ -326,22 +344,77 @@ export default function ClientForm() {
 
   // Whiteboard controls
   const handleUndo = () => {
-    setStrokes((prev) => prev.slice(0, -1));
+    const pageStrokeIndices: number[] = [];
+    strokes.forEach((s, idx) => {
+      if (s.page === currentPage || (!s.page && currentPage === 1)) {
+        pageStrokeIndices.push(idx);
+      }
+    });
+    if (pageStrokeIndices.length > 0) {
+      const lastIdx = pageStrokeIndices[pageStrokeIndices.length - 1];
+      setStrokes((prev) => prev.filter((_, idx) => idx !== lastIdx));
+    }
   };
 
   const handleClear = () => {
-    if (confirm('Clear the entire canvas?')) {
-      setStrokes([]);
+    if (confirm(`Clear all drawings on page ${currentPage}?`)) {
+      setStrokes((prev) =>
+        prev.filter((s) => s.page !== currentPage && (s.page !== undefined || currentPage !== 1))
+      );
     }
+  };
+
+  // Page shifting helpers
+  const savePageDataUrl = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    setMeasurementDrawings((prev) => {
+      const next = [...prev];
+      next[currentPage - 1] = dataUrl;
+      return next;
+    });
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      savePageDataUrl();
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      savePageDataUrl();
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handleAddPage = () => {
+    savePageDataUrl();
+    const newPageNum = totalPages + 1;
+    setTotalPages(newPageNum);
+    setCurrentPage(newPageNum);
   };
 
   const handleSaveDrawing = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Generate data URL
+    // Generate data URL of active page
     const dataUrl = canvas.toDataURL('image/png');
-    setMeasurementDrawing(dataUrl);
+    
+    setMeasurementDrawings((prev) => {
+      const next = [...prev];
+      next[currentPage - 1] = dataUrl;
+      
+      // Fallback for first page to compatibility measurementDrawing
+      const firstPage = next[0] || dataUrl;
+      setMeasurementDrawing(firstPage);
+      
+      return next;
+    });
+    
     setIsDrawingOpen(false);
   };
 
@@ -368,6 +441,7 @@ export default function ClientForm() {
           category,
           images,
           measurementDrawing,
+          measurementDrawings,
           strokes,
           price: price ? Number(price) : 0,
         }),
@@ -678,11 +752,54 @@ export default function ClientForm() {
       {isDrawingOpen && (
         <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md">
           {/* Top Panel: Action Controls */}
-          <div className="bg-white border-b border-[#E6DFD3] px-4 pt-10 pb-3 sm:pt-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white border-b border-[#E6DFD3] px-4 pt-10 pb-3 sm:pt-4 flex flex-col min-[600px]:flex-row gap-3 items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <span className="font-extrabold text-slate-800 text-lg sm:text-xl">Measurement Board</span>
             </div>
-            
+
+            {/* Page Navigation Controls */}
+            <div className="flex items-center gap-3 bg-slate-100 p-1 rounded-full border border-slate-200 shadow-inner select-none">
+              <button
+                type="button"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                title="Previous Page"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <span className="text-xs font-black text-slate-700 min-w-[72px] text-center">
+                Page {currentPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                title="Next Page"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Plus Sign Button to Add Page */}
+              <button
+                type="button"
+                onClick={handleAddPage}
+                className="p-1.5 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                title="Add Another Page"
+              >
+                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"

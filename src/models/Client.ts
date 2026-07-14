@@ -43,8 +43,12 @@ const ClientSchema = new Schema(
       default: [],
     },
     measurementDrawing: {
-      type: String, // Base64 canvas data url
+      type: String, // Base64 string of drawing
       default: '',
+    },
+    measurementDrawings: {
+      type: [String], // Array of Base64 strings for multi-page drawings
+      default: [],
     },
     strokes: {
       type: Array, // Array of Stroke objects for rebuilding canvas

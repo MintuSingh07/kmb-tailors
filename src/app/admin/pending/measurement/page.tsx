@@ -7,6 +7,7 @@ import dbConnect from '../../../../lib/db';
 import Client from '../../../../models/Client';
 import LogoutButton from '../../LogoutButton';
 import StatusActions from './StatusActions';
+import MeasurementViewer from './MeasurementViewer';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -102,35 +103,12 @@ export default async function MeasurementPage(props: PageProps) {
               Whiteboard Sketch Notes (Click to Edit)
             </span>
             
-            <Link
-              href={`/admin/new?code=${encodeURIComponent(client.clientNo)}&draw=true`}
-              className="group block relative aspect-[4/3] w-full rounded-3xl bg-white border border-[#E6DFD3] hover:border-[#9E7D3B] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 p-3 select-none"
-              title="Click to edit drawing notes"
-            >
-              {client.measurementDrawing ? (
-                <Image
-                  src={client.measurementDrawing}
-                  alt={`${client.name} Measurements`}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 650px"
-                  className="object-contain transition-transform group-hover:scale-[1.01]"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
-                  <svg className="h-12 w-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                  <p className="font-black text-sm">No sketch drawing notes saved.</p>
-                  <span className="text-xs text-slate-400 mt-1 font-semibold">Click to create sketch board</span>
-                </div>
-              )}
-              
-              {/* Floating Hover Indicator Badge */}
-              <div className="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur-sm px-3.5 py-1.5 rounded-xl border border-white/20 text-white text-[11px] font-black tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md">
-                Click to Edit Sketch
-              </div>
-            </Link>
+            <MeasurementViewer
+              clientNo={client.clientNo}
+              clientName={client.name}
+              primaryDrawing={client.measurementDrawing || ''}
+              drawings={client.measurementDrawings || []}
+            />
           </div>
 
           {/* Right Side: Customer identity and status controller */}
