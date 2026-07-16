@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '../../../lib/db';
 import Client from '../../../models/Client';
 import LogoutButton from '../LogoutButton';
-import PendingSuitsList from '../pending/PendingSuitsList';
+import CompletedGallery from './CompletedGallery';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -46,7 +46,7 @@ export default async function CompletedSuitsPage() {
       <div className="absolute bottom-1/4 right-1/4 -z-10 h-96 w-96 translate-x-1/2 rounded-full bg-[#DFD3C3]/35 blur-[150px] pointer-events-none"></div>
 
       {/* Header */}
-      <header className="border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
+      <header className="border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 select-none">
             <Image
@@ -78,13 +78,13 @@ export default async function CompletedSuitsPage() {
             href="/admin"
             className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
           <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
-            {completedSuits.length} {completedSuits.length === 1 ? 'Suit' : 'Suits'} Handovered
+            {completedSuits.filter(s => s.images && s.images.length > 0).length} {completedSuits.filter(s => s.images && s.images.length > 0).length === 1 ? 'Suit' : 'Suits'} Handovered
           </span>
         </div>
 
@@ -93,16 +93,18 @@ export default async function CompletedSuitsPage() {
             Completed & Handovered
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            History of all delivered orders. Click card to edit profile details or select Measurement to view sketches.
+            History of all delivered orders. Click cards to view details or select Measurement to view sketches.
           </p>
         </div>
 
         {/* Dynamic Queue Grid */}
-        {completedSuits.length === 0 ? (
+        {completedSuits.filter(s => s.images && s.images.length > 0).length === 0 ? (
           <div className="rounded-3xl border border-[#E6DFD3] bg-[#FCFAF5] p-12 text-center shadow-xl shadow-slate-200/30 flex flex-col items-center justify-center max-w-2xl mx-auto">
             <div className="p-5 bg-white rounded-full border border-slate-200/60 shadow-sm mb-4">
-              <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                <circle cx="9" cy="9" r="2" />
               </svg>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Delivered History is Empty</h2>
@@ -115,7 +117,7 @@ export default async function CompletedSuitsPage() {
             </Link>
           </div>
         ) : (
-          <PendingSuitsList initialSuits={JSON.parse(JSON.stringify(completedSuits))} />
+          <CompletedGallery initialSuits={JSON.parse(JSON.stringify(completedSuits))} />
         )}
       </main>
     </div>
