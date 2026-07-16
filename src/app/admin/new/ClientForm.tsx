@@ -11,6 +11,7 @@ interface Stroke {
   width: number;
   points: { x: number; y: number }[];
   page?: number; // Optional page identifier
+  text?: string;
 }
 
 export default function ClientForm() {
@@ -24,6 +25,7 @@ export default function ClientForm() {
   const [category, setCategory] = useState('Punjabi Suit');
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [suitStatus, setSuitStatus] = useState<'Pending' | 'Prepared but not handovered' | 'Completed and handovered'>('Pending');
   const [price, setPrice] = useState('');
   const [images, setImages] = useState<string[]>([]); // Base64 data URLs
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
@@ -50,6 +52,7 @@ export default function ClientForm() {
   const [currentWidth, setCurrentWidth] = useState(4);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<'draw' | 'text'>('draw');
 
   // Load draft or query parameter on mount
   useEffect(() => {
@@ -176,6 +179,7 @@ export default function ClientForm() {
       setStrokes(client.strokes || []);
       setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
       setCurrentPage(1);
+      setSuitStatus(client.suitStatus || 'Pending');
       
       setJustSelected(true);
       setClientNo(client.clientNo);
@@ -246,23 +250,31 @@ export default function ClientForm() {
     );
 
     activeStrokes.forEach((stroke) => {
-      if (stroke.points.length === 0) return;
-      offCtx.beginPath();
-      offCtx.strokeStyle = stroke.color;
-      offCtx.lineWidth = stroke.width;
-
-      // Use destination-out blend mode for erasers to clear drawing pixels to transparent
-      if (stroke.color === '#FFFFFF') {
-        offCtx.globalCompositeOperation = 'destination-out';
-      } else {
+      if (stroke.text) {
+        offCtx.beginPath();
+        offCtx.fillStyle = stroke.color;
         offCtx.globalCompositeOperation = 'source-over';
-      }
+        const fontSize = Math.max(16, stroke.width * 6);
+        offCtx.font = `bold ${fontSize}px sans-serif`;
+        offCtx.fillText(stroke.text, stroke.points[0].x, stroke.points[0].y);
+      } else {
+        if (stroke.points.length === 0) return;
+        offCtx.beginPath();
+        offCtx.strokeStyle = stroke.color;
+        offCtx.lineWidth = stroke.width;
 
-      offCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
-      for (let i = 1; i < stroke.points.length; i++) {
-        offCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        if (stroke.color === '#FFFFFF') {
+          offCtx.globalCompositeOperation = 'destination-out';
+        } else {
+          offCtx.globalCompositeOperation = 'source-over';
+        }
+
+        offCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+          offCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+        offCtx.stroke();
       }
-      offCtx.stroke();
     });
 
     // 2. Clear the visible canvas
@@ -298,10 +310,26 @@ export default function ClientForm() {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.setPointerCapture(e.pointerId);
     
-    setIsDrawing(true);
     const coords = getCanvasCoords(e);
+
+    if (drawMode === 'text') {
+      const text = prompt('Enter text to add to the sketch:');
+      if (text && text.trim()) {
+        const textStroke: Stroke = {
+          color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+          width: currentWidth,
+          points: [coords],
+          page: currentPage,
+          text: text.trim(),
+        };
+        setStrokes((prev) => [...prev, textStroke]);
+      }
+      return;
+    }
+
+    canvas.setPointerCapture(e.pointerId);
+    setIsDrawing(true);
     
     // Create new stroke (multiply width by 4 for eraser to make it efficient)
     const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
@@ -316,7 +344,7 @@ export default function ClientForm() {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || strokes.length === 0) return;
+    if (drawMode === 'text' || !isDrawing || strokes.length === 0) return;
     e.preventDefault();
     
     const coords = getCanvasCoords(e);
@@ -336,7 +364,7 @@ export default function ClientForm() {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (drawMode === 'text' || !isDrawing) return;
     e.preventDefault();
     const canvas = canvasRef.current;
     if (canvas) {
@@ -447,6 +475,7 @@ export default function ClientForm() {
           measurementDrawings,
           strokes,
           price: price ? Number(price) : 0,
+          suitStatus,
         }),
       });
 
@@ -606,12 +635,13 @@ export default function ClientForm() {
                   className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer"
                 >
                   <span className="truncate">{category || 'Select Category'}</span>
-                  <span className="flex items-center gap-1">
-                    <svg className="h-4.5 w-4.5 text-slate-400 hover:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
                     </svg>
-                    <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m6 9 6 6 6-6" />
                     </svg>
                   </span>
                 </button>
@@ -637,6 +667,97 @@ export default function ClientForm() {
               </div>
             </div>
 
+            {isEditMode && (
+              <div className="pt-6 border-t border-[#E6DFD3]/60 space-y-4">
+                <label className="block text-base sm:text-lg font-bold text-slate-700">
+                  Update Suit Status
+                </label>
+                <p className="text-xs sm:text-sm text-slate-500 font-semibold mb-3">
+                  Select where this suit order belongs. Updating will transfer the record to the selected queue.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Option 1: Prepared but not handovered */}
+                  <button
+                    type="button"
+                    onClick={() => setSuitStatus(suitStatus === 'Prepared but not handovered' ? 'Pending' : 'Prepared but not handovered')}
+                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                      suitStatus === 'Prepared but not handovered'
+                        ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
+                        : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
+                    }`}
+                  >
+                    <div className="p-3 bg-amber-100/50 rounded-full mb-3 text-amber-700">
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                      </svg>
+                    </div>
+                    <span className="text-sm sm:text-base font-black text-slate-800">Prepared but not handovered</span>
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Ready for Delivery</span>
+                  </button>
+
+                  {/* Option 2: Completed and handovered */}
+                  <button
+                    type="button"
+                    onClick={() => setSuitStatus(suitStatus === 'Completed and handovered' ? 'Pending' : 'Completed and handovered')}
+                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                      suitStatus === 'Completed and handovered'
+                        ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
+                        : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
+                    }`}
+                  >
+                    <div className="p-3 bg-emerald-100/50 rounded-full mb-3 text-emerald-700">
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </div>
+                    <span className="text-sm sm:text-base font-black text-slate-800">Completed and handovered</span>
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Completed & Delivered</span>
+                  </button>
+                </div>
+                
+                {/* Current State indicator */}
+                <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">
+                  Current State: <span className="text-[#9E7D3B] font-extrabold">{suitStatus === 'Pending' ? 'PENDING (IN QUEUE)' : suitStatus.toUpperCase()}</span>
+                </div>
+
+                {suitStatus === 'Completed and handovered' && (
+                  <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
+                    <label className="block text-sm sm:text-base font-bold text-slate-700">
+                      Add Handover Photos (Optional)
+                    </label>
+                    <p className="text-xs text-slate-400 font-semibold mb-2">
+                      Snap or upload photos of the completed suit before giving it to the client.
+                    </p>
+                    
+                    <div className="relative">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        id="handover-image-file"
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="handover-image-file"
+                        className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
+                      >
+                        <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                          <circle cx="9" cy="9" r="2" />
+                          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                        </svg>
+                        <span className="text-sm font-bold text-slate-700">Add Photos</span>
+                        <span className="text-[10px] text-slate-400 mt-0.5">Select from library or tap camera</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Column: Uploaders and Sketch previews */}
@@ -865,7 +986,9 @@ export default function ClientForm() {
                 ref={canvasRef}
                 width={1000}
                 height={750}
-                className="w-full h-full cursor-crosshair touch-none bg-white"
+                className={`w-full h-full touch-none bg-white ${
+                  drawMode === 'text' ? 'cursor-text' : 'cursor-crosshair'
+                }`}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
@@ -890,9 +1013,12 @@ export default function ClientForm() {
                   <button
                     key={c.hex}
                     type="button"
-                    onClick={() => setCurrentColor(c.hex)}
+                    onClick={() => {
+                      setCurrentColor(c.hex);
+                      setDrawMode('draw');
+                    }}
                     className={`h-11 w-11 sm:h-12 sm:w-12 rounded-full border border-slate-200 transition-all duration-200 ${
-                      currentColor === c.hex
+                      currentColor === c.hex && drawMode === 'draw'
                         ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
                         : 'hover:scale-105 active:scale-95'
                     }`}
@@ -907,10 +1033,13 @@ export default function ClientForm() {
                 {/* Eraser Button */}
                 <button
                   type="button"
-                  onClick={() => setCurrentColor('#FFFFFF')}
+                  onClick={() => {
+                    setCurrentColor('#FFFFFF');
+                    setDrawMode('draw');
+                  }}
                   className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
-                    currentColor === '#FFFFFF'
-                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B] bg-slate-50'
+                    currentColor === '#FFFFFF' && drawMode === 'draw'
+                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
                       : 'hover:scale-105 active:scale-95'
                   }`}
                   title="Eraser"
@@ -919,6 +1048,27 @@ export default function ClientForm() {
                     <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                     <path d="m22 21H7" />
                     <path d="m5 11 9 9" />
+                  </svg>
+                </button>
+
+                {/* Text Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDrawMode(drawMode === 'text' ? 'draw' : 'text');
+                    if (currentColor === '#FFFFFF') {
+                      setCurrentColor('#1A1A1A'); // Reset from eraser to black for text placement
+                    }
+                  }}
+                  className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
+                    drawMode === 'text'
+                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B] bg-slate-50'
+                      : 'hover:scale-105 active:scale-95'
+                  }`}
+                  title="Add Text"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 7V4h16v3M9 20h6M12 4v16" />
                   </svg>
                 </button>
               </div>
@@ -968,8 +1118,8 @@ export default function ClientForm() {
                 }}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -978,8 +1128,9 @@ export default function ClientForm() {
             <div className="px-6 py-3 border-b border-slate-100 bg-[#FCFAF5]/50">
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
                   </svg>
                 </span>
                 <input
@@ -996,8 +1147,8 @@ export default function ClientForm() {
                     onClick={() => setCategorySearchQuery('')}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
                   </button>
                 )}
@@ -1053,8 +1204,8 @@ export default function ClientForm() {
                             >
                               <span className="truncate">{opt}</span>
                               {isSelected && (
-                                <svg className="h-4.5 w-4.5 text-white flex-shrink-0 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                <svg className="h-4 w-4 text-white flex-shrink-0 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M20 6 9 17l-5-5" />
                                 </svg>
                               )}
                             </button>

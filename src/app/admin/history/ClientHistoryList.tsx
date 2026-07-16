@@ -19,22 +19,45 @@ interface ClientRecord {
 }
 
 export default function ClientHistoryList({ initialClients }: { initialClients: ClientRecord[] }) {
+  const [clients, setClients] = useState(initialClients);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const handleDelete = async (clientNo: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to delete all records for "${clientName}" (${clientNo})? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/clients/${encodeURIComponent(clientNo)}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to delete client');
+      }
+
+      setClients((prev) => prev.filter((c) => c.clientNo !== clientNo));
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert(error.message || 'An error occurred while deleting the client');
+    }
+  };
 
   // Available category groups
   const categories = ['All', 'Suits', 'Sarees', 'Dresses', 'Kurtis & Kurtas', 'Lehengas', 'Blouses', 'Bottom Wear'];
 
   // Count items per category group dynamically
   const categoryCounts = useMemo(() => {
-    const counts: { [key: string]: number } = { All: initialClients.length };
+    const counts: { [key: string]: number } = { All: clients.length };
     categories.forEach((cat) => {
       if (cat !== 'All') {
-        counts[cat] = initialClients.filter((c) => getGroupForCategory(c.category) === cat).length;
+        counts[cat] = clients.filter((c) => getGroupForCategory(c.category) === cat).length;
       }
     });
     return counts;
-  }, [initialClients]);
+  }, [clients]);
 
   // Color coding styles helper
   const getCategoryStyles = (category: string) => {
@@ -60,7 +83,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
   };
 
   const filteredClients = useMemo(() => {
-    return initialClients.filter((client) => {
+    return clients.filter((client) => {
       const matchesCategory = selectedCategory === 'All' || getGroupForCategory(client.category) === selectedCategory;
       const cleanQuery = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -72,7 +95,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
 
       return matchesCategory && matchesSearch;
     });
-  }, [initialClients, selectedCategory, searchQuery]);
+  }, [clients, selectedCategory, searchQuery]);
 
   return (
     <div className="space-y-8">
@@ -82,8 +105,9 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
         {/* Real-time search */}
         <div className="relative flex-1 max-w-lg w-full">
           <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
             </svg>
           </span>
           <input
@@ -98,8 +122,8 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
               onClick={() => setSearchQuery('')}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
           )}
@@ -226,21 +250,38 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                       {/* Phone - Larger & More visible */}
                       <td className="py-5.5 px-6 font-extrabold text-slate-700 hover:text-[#9E7D3B] text-base transition-colors">
                         <a href={`tel:${client.contactNo}`} className="inline-flex items-center gap-2 hover:underline">
-                          <svg className="h-4.5 w-4.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          <svg className="h-4.5 w-4.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                           </svg>
                           {client.contactNo}
                         </a>
                       </td>
 
-                      {/* Measurement button */}
+                      {/* Actions */}
                       <td className="py-5.5 px-6 text-right select-none">
-                        <Link
-                          href={`/admin/pending/measurement?code=${encodeURIComponent(client.clientNo)}`}
-                          className="px-5 py-2 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-xs font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] select-none text-center cursor-pointer inline-block tracking-wider"
-                        >
-                          Measurement
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/pending/measurement?code=${encodeURIComponent(client.clientNo)}`}
+                            className="px-5 py-2 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-xs font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] select-none text-center cursor-pointer inline-block tracking-wider"
+                          >
+                            Measurement
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(client.clientNo, client.name);
+                            }}
+                            className="p-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] cursor-pointer inline-flex items-center justify-center"
+                            title="Delete Client"
+                          >
+                            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" />
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -309,9 +350,21 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                     >
                       Measurement
                     </Link>
-                    <span className="text-xs text-slate-400 font-black uppercase tracking-wider">
-                      Tap card to edit &rarr;
-                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(client.clientNo, client.name);
+                      }}
+                      className="px-4 py-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 text-xs font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                      Delete
+                    </button>
                   </div>
                 </div>
               );

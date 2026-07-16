@@ -38,3 +38,37 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error while fetching client details' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ clientNo: string }> }
+) {
+  try {
+    const token = request.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized: No session token found' }, { status: 401 });
+    }
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
+    }
+
+    const params = await props.params;
+    const clientNo = params.clientNo;
+    if (!clientNo) {
+      return NextResponse.json({ error: 'Client Number is required' }, { status: 400 });
+    }
+
+    await dbConnect();
+    const result = await Client.findOneAndDelete({ clientNo });
+    if (!result) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Client deleted successfully' });
+  } catch (error: any) {
+    console.error('Error deleting client:', error);
+    return NextResponse.json({ error: 'Internal server error while deleting client' }, { status: 500 });
+  }
+}
