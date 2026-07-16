@@ -37,6 +37,11 @@ export default function StatusActions({ clientNo, currentStatus }: StatusActions
   };
 
   const handleUpdateStatus = async (newStatus: string) => {
+    if (newStatus === 'Completed and handovered' && (!images || images.length === 0)) {
+      setError('Please upload at least one handover photo before marking as Completed.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -139,10 +144,10 @@ export default function StatusActions({ clientNo, currentStatus }: StatusActions
           {selectedStatus === 'Completed and handovered' && (
             <div className="space-y-3">
               <label className="block text-sm sm:text-base font-bold text-slate-700">
-                Add Handover Photos (Optional)
+                Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
               </label>
-              <p className="text-xs text-slate-400 font-semibold mb-2">
-                Snap or upload photos of the completed suit before giving it to the client.
+              <p className="text-xs text-rose-500/80 font-bold mb-2">
+                You must snap or upload at least one photo of the completed suit before giving it to the client.
               </p>
               
               <div className="relative">

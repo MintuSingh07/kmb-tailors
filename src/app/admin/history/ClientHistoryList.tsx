@@ -22,14 +22,22 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
   const [clients, setClients] = useState(initialClients);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ clientNo: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
-  const handleDelete = async (clientNo: string, clientName: string) => {
-    if (!confirm(`Are you sure you want to delete all records for "${clientName}" (${clientNo})? This action cannot be undone.`)) {
-      return;
-    }
+  const triggerDeleteConfirm = (clientNo: string, clientName: string) => {
+    setDeleteError('');
+    setDeleteConfirm({ clientNo, name: clientName });
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    setDeleteError('');
 
     try {
-      const response = await fetch(`/api/clients/${encodeURIComponent(clientNo)}`, {
+      const response = await fetch(`/api/clients/${encodeURIComponent(deleteConfirm.clientNo)}`, {
         method: 'DELETE',
       });
 
@@ -38,10 +46,13 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
         throw new Error(err.error || 'Failed to delete client');
       }
 
-      setClients((prev) => prev.filter((c) => c.clientNo !== clientNo));
+      setClients((prev) => prev.filter((c) => c.clientNo !== deleteConfirm.clientNo));
+      setDeleteConfirm(null);
     } catch (error: any) {
       console.error('Delete error:', error);
-      alert(error.message || 'An error occurred while deleting the client');
+      setDeleteError(error.message || 'An error occurred while deleting');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -266,15 +277,15 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                           >
                             Measurement
                           </Link>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(client.clientNo, client.name);
-                            }}
-                            className="p-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] cursor-pointer inline-flex items-center justify-center"
-                            title="Delete Client"
-                          >
+                           <button
+                             type="button"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               triggerDeleteConfirm(client.clientNo, client.name);
+                             }}
+                             className="p-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] cursor-pointer inline-flex items-center justify-center"
+                             title="Delete Client"
+                           >
                             <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18" />
                               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
@@ -350,14 +361,14 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                     >
                       Measurement
                     </Link>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(client.clientNo, client.name);
-                      }}
-                      className="px-4 py-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 text-xs font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer inline-flex items-center gap-1.5"
-                    >
+                     <button
+                       type="button"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         triggerDeleteConfirm(client.clientNo, client.name);
+                       }}
+                       className="px-4 py-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 text-xs font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer inline-flex items-center gap-1.5"
+                     >
                       <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 6h18" />
                         <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
@@ -371,6 +382,61 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
             })}
           </div>
         </>
+      )}
+
+      {/* Custom Modern Confirm Delete Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#E6DFD3] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-6">
+            
+            {/* Modal Header/Icon */}
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-800">Delete Customer Profile</h3>
+                <p className="text-xs text-[#9E7D3B] font-bold uppercase tracking-wider">Warning: Permanent Action</p>
+              </div>
+            </div>
+
+            {/* Error messaging */}
+            {deleteError && (
+              <div className="p-3 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-100">
+                {deleteError}
+              </div>
+            )}
+
+            {/* Body copy */}
+            <p className="text-sm font-semibold text-[#1A1A1A] leading-relaxed">
+              Are you sure you want to delete all records for <strong className="text-[#1A1A1A] font-black">"{deleteConfirm.name}" ({deleteConfirm.clientNo})</strong>? This action cannot be undone and will delete all measurements.
+            </p>
+
+            {/* Modal Action Controls */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={executeDelete}
+                className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white text-sm font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-rose-200/50"
+              >
+                {deleting ? 'Deleting...' : 'Delete Profile'}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setDeleteConfirm(null)}
+                className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-black rounded-xl border border-slate-200 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

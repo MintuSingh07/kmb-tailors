@@ -456,6 +456,12 @@ export default function ClientForm() {
   // Submit client form details to server API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (suitStatus === 'Completed and handovered' && (!images || images.length === 0)) {
+      setError('Please upload at least one handover photo before marking as Completed.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -726,10 +732,10 @@ export default function ClientForm() {
                 {suitStatus === 'Completed and handovered' && (
                   <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
                     <label className="block text-sm sm:text-base font-bold text-slate-700">
-                      Add Handover Photos (Optional)
+                      Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
                     </label>
-                    <p className="text-xs text-slate-400 font-semibold mb-2">
-                      Snap or upload photos of the completed suit before giving it to the client.
+                    <p className="text-xs text-rose-500/80 font-bold mb-2">
+                      You must snap or upload at least one photo of the completed suit before giving it to the client.
                     </p>
                     
                     <div className="relative">
