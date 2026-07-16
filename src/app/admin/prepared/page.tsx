@@ -36,7 +36,6 @@ export default async function PreparedSuitsPage() {
   // Connect to database and fetch all prepared but not handovered suits
   await dbConnect();
   const preparedSuits = await Client.find({
-    category: 'Suit',
     suitStatus: 'Prepared but not handovered'
   }).sort({ updatedAt: -1 });
 

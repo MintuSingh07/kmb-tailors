@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getGroupForCategory } from '../../../lib/categories';
 
 interface ClientRecord {
   _id: string;
@@ -21,15 +22,15 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Available categories
-  const categories = ['All', 'Suit', 'Sherwani', 'Kurta', 'Coat', 'Pants', 'Shirt'];
+  // Available category groups
+  const categories = ['All', 'Suits', 'Sarees', 'Dresses', 'Kurtis & Kurtas', 'Lehengas', 'Blouses', 'Bottom Wear'];
 
-  // Count items per category dynamically
+  // Count items per category group dynamically
   const categoryCounts = useMemo(() => {
     const counts: { [key: string]: number } = { All: initialClients.length };
     categories.forEach((cat) => {
       if (cat !== 'All') {
-        counts[cat] = initialClients.filter((c) => c.category === cat).length;
+        counts[cat] = initialClients.filter((c) => getGroupForCategory(c.category) === cat).length;
       }
     });
     return counts;
@@ -37,30 +38,30 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
 
   // Color coding styles helper
   const getCategoryStyles = (category: string) => {
-    switch (category) {
-      case 'Suit':
+    const group = getGroupForCategory(category);
+    switch (group) {
+      case 'Suits':
         return 'text-[#9E7D3B] bg-[#9E7D3B]/10 border-[#E6DFD3]';
-      case 'Sherwani':
+      case 'Sarees':
         return 'text-rose-700 bg-rose-50 border-rose-200/60';
-      case 'Kurta':
+      case 'Dresses':
         return 'text-emerald-700 bg-emerald-50 border-emerald-200/60';
-      case 'Waistcoat':
-      case 'Coat':
+      case 'Kurtis & Kurtas':
+        return 'text-indigo-700 bg-indigo-50 border-indigo-200/60';
+      case 'Lehengas':
         return 'text-violet-700 bg-violet-50 border-violet-200/60';
-      case 'Trouser':
-      case 'Pants':
-        return 'text-amber-700 bg-amber-50 border-amber-200/60';
-      case 'Shirt':
+      case 'Blouses':
         return 'text-blue-700 bg-blue-50 border-blue-200/60';
+      case 'Bottom Wear':
+        return 'text-amber-700 bg-amber-50 border-amber-200/60';
       default:
         return 'text-slate-700 bg-slate-50 border-slate-200';
     }
   };
 
-  // Filter client data on client side dynamically
   const filteredClients = useMemo(() => {
     return initialClients.filter((client) => {
-      const matchesCategory = selectedCategory === 'All' || client.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'All' || getGroupForCategory(client.category) === selectedCategory;
       const cleanQuery = searchQuery.toLowerCase().trim();
       const matchesSearch =
         cleanQuery === '' ||

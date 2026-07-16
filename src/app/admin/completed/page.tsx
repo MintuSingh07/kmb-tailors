@@ -36,7 +36,6 @@ export default async function CompletedSuitsPage() {
   // Connect to database and fetch all completed and handovered suits
   await dbConnect();
   const completedSuits = await Client.find({
-    category: 'Suit',
     suitStatus: 'Completed and handovered'
   }).sort({ updatedAt: -1 });
 

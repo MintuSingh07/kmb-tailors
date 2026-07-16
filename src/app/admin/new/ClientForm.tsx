@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { CATEGORY_GROUPS } from '../../../lib/categories';
 
 interface Stroke {
   color: string;
@@ -20,7 +21,9 @@ export default function ClientForm() {
   const [name, setName] = useState('');
   const [contactNo, setContactNo] = useState('');
   const [alternativeNo, setAlternativeNo] = useState('');
-  const [category, setCategory] = useState('Suit');
+  const [category, setCategory] = useState('Punjabi Suit');
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [price, setPrice] = useState('');
   const [images, setImages] = useState<string[]>([]); // Base64 data URLs
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
@@ -165,7 +168,7 @@ export default function ClientForm() {
       setName(client.name || '');
       setContactNo(client.contactNo || '');
       setAlternativeNo(client.alternativeNo || '');
-      setCategory(client.category || 'Suit');
+      setCategory(client.category || 'Punjabi Suit');
       setPrice(client.price !== undefined ? String(client.price) : '');
       setImages(client.images || []);
       setMeasurementDrawing(client.measurementDrawing || '');
@@ -597,18 +600,21 @@ export default function ClientForm() {
                 <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
                   Suit Category
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:text-lg font-semibold text-slate-800 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer"
                 >
-                  <option value="Suit">Three-Piece Suit</option>
-                  <option value="Sherwani">Sherwani</option>
-                  <option value="Kurta">Kurta / Pyjama</option>
-                  <option value="Coat">Waistcoat / Blazer</option>
-                  <option value="Pants">Trousers / Pants</option>
-                  <option value="Shirt">Shirt</option>
-                </select>
+                  <span className="truncate">{category || 'Select Category'}</span>
+                  <span className="flex items-center gap-1">
+                    <svg className="h-4.5 w-4.5 text-slate-400 hover:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
               </div>
 
               <div>
@@ -943,6 +949,122 @@ export default function ClientForm() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Category Search Modal */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#E6DFD3] shadow-2xl w-full max-w-lg max-h-[80vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-lg font-extrabold text-slate-800">Select Category</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCategoryModalOpen(false);
+                  setCategorySearchQuery('');
+                }}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Search Input Bar */}
+            <div className="px-6 py-3 border-b border-slate-100 bg-[#FCFAF5]/50">
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search categories (e.g. Punjabi, Saree, Dress)..."
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#C5A85C] focus:ring-2 focus:ring-[#C5A85C]/10 shadow-sm transition-all"
+                  autoFocus
+                />
+                {categorySearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setCategorySearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Grouped Category Options List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {(() => {
+                const searchLower = categorySearchQuery.toLowerCase().trim();
+                let hasResults = false;
+
+                const filteredGroups = Object.entries(CATEGORY_GROUPS).map(([groupName, options]) => {
+                  const filteredOptions = options.filter(opt => 
+                    opt.toLowerCase().includes(searchLower)
+                  );
+                  if (filteredOptions.length > 0) hasResults = true;
+                  return { groupName, filteredOptions };
+                });
+
+                if (!hasResults) {
+                  return (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400 font-medium">No matching categories found.</p>
+                    </div>
+                  );
+                }
+
+                return filteredGroups.map(({ groupName, filteredOptions }) => {
+                  if (filteredOptions.length === 0) return null;
+                  return (
+                    <div key={groupName} className="space-y-2">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-[#9E7D3B] px-1 border-b border-[#E6DFD3]/40 pb-1.5">
+                        {groupName}
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {filteredOptions.map((opt) => {
+                          const isSelected = category === opt;
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => {
+                                setCategory(opt);
+                                setIsCategoryModalOpen(false);
+                                setCategorySearchQuery('');
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-sm font-bold transition-all flex items-center justify-between cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#9E7D3B] border-[#9E7D3B] text-white shadow-md shadow-[#9E7D3B]/10'
+                                  : 'bg-white border-slate-100 hover:border-slate-300 text-slate-700 hover:bg-slate-50'
+                              }`}
+                            >
+                              <span className="truncate">{opt}</span>
+                              {isSelected && (
+                                <svg className="h-4.5 w-4.5 text-white flex-shrink-0 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>

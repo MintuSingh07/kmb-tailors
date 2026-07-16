@@ -36,7 +36,6 @@ export default async function PendingSuitsPage() {
   // Connect to database and fetch all pending suits
   await dbConnect();
   const pendingSuits = await Client.find({
-    category: 'Suit',
     $or: [{ suitStatus: 'Pending' }, { suitStatus: { $exists: false } }, { suitStatus: null }]
   }).sort({ updatedAt: -1 });
 

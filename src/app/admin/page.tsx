@@ -62,15 +62,15 @@ export default async function AdminPage() {
   });
 
   const pendingSuitsCount = allClients.filter(
-    (c: any) => c.category === 'Suit' && (c.suitStatus === 'Pending' || !c.suitStatus)
+    (c: any) => c.suitStatus === 'Pending' || !c.suitStatus
   ).length;
 
   const preparedSuitsCount = allClients.filter(
-    (c: any) => c.category === 'Suit' && c.suitStatus === 'Prepared but not handovered'
+    (c: any) => c.suitStatus === 'Prepared but not handovered'
   ).length;
 
   const completedSuitsCount = allClients.filter(
-    (c: any) => c.category === 'Suit' && c.suitStatus === 'Completed and handovered'
+    (c: any) => c.suitStatus === 'Completed and handovered'
   ).length;
 
   const totalPhotosCount = allClients.reduce((sum: number, c: any) => sum + (c.images?.length || 0), 0);
