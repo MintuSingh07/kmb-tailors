@@ -138,7 +138,7 @@ app.prepare().then(() => {
       const token = jwt.sign(
         { userId: user._id, username: user.username },
         JWT_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: '30d' }
       );
 
       // Set cookie
