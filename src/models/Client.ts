@@ -39,7 +39,11 @@ const ClientSchema = new Schema(
       default: 'Pending',
     },
     images: {
-      type: [String], // Array of Base64 strings or image urls
+      type: [String], // Array of Base64 strings or fabric image urls
+      default: [],
+    },
+    handoverImages: {
+      type: [String], // Array of Base64 strings or handover image urls
       default: [],
     },
     measurementDrawing: {
@@ -59,6 +63,11 @@ const ClientSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Delete cached model in development to prevent schema caching issues on hot reload
+if (process.env.NODE_ENV === 'development' && mongoose.models.Client) {
+  delete mongoose.models.Client;
+}
 
 const Client = mongoose.models.Client || mongoose.model('Client', ClientSchema);
 

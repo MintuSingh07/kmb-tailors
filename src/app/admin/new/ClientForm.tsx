@@ -27,7 +27,8 @@ export default function ClientForm() {
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [suitStatus, setSuitStatus] = useState<'Pending' | 'Prepared but not handovered' | 'Completed and handovered'>('Pending');
   const [price, setPrice] = useState('');
-  const [images, setImages] = useState<string[]>([]); // Base64 data URLs
+  const [images, setImages] = useState<string[]>([]); // Base64 fabric data URLs
+  const [handoverImages, setHandoverImages] = useState<string[]>([]); // Base64 handover data URLs
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
   const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +54,27 @@ export default function ClientForm() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawMode, setDrawMode] = useState<'draw' | 'text'>('draw');
+
+  // Text editor overlay state
+  const [activeTextEditor, setActiveTextEditor] = useState<{
+    x: number;
+    y: number;
+    canvasX: number;
+    canvasY: number;
+    text: string;
+    fontSize: number;
+  } | null>(null);
+
+  // Draggable text states
+  const [draggingText, setDraggingText] = useState<{
+    strokeIndex: number;
+    startX: number;
+    startY: number;
+    pointerStartX: number;
+    pointerStartY: number;
+  } | null>(null);
+  const [hasDraggedText, setHasDraggedText] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Load draft or query parameter on mount
   useEffect(() => {
@@ -80,6 +102,7 @@ export default function ClientForm() {
         if (draft.category) setCategory(draft.category);
         if (draft.price) setPrice(draft.price);
         if (draft.images) setImages(draft.images);
+        if (draft.handoverImages) setHandoverImages(draft.handoverImages);
         if (draft.measurementDrawing) setMeasurementDrawing(draft.measurementDrawing);
         if (draft.measurementDrawings) setMeasurementDrawings(draft.measurementDrawings);
         if (draft.totalPages) setTotalPages(draft.totalPages);
@@ -102,6 +125,7 @@ export default function ClientForm() {
         category,
         price,
         images,
+        handoverImages,
         measurementDrawing,
         measurementDrawings,
         totalPages,
@@ -110,7 +134,7 @@ export default function ClientForm() {
       };
       localStorage.setItem('kmb_client_draft', JSON.stringify(draft));
     }
-  }, [name, clientNo, contactNo, alternativeNo, category, price, images, measurementDrawing, measurementDrawings, totalPages, currentPage, strokes]);
+  }, [name, clientNo, contactNo, alternativeNo, category, price, images, handoverImages, measurementDrawing, measurementDrawings, totalPages, currentPage, strokes]);
 
   // Hide suggestions when clicking outside
   useEffect(() => {
@@ -174,6 +198,7 @@ export default function ClientForm() {
       setCategory(client.category || 'Punjabi Suit');
       setPrice(client.price !== undefined ? String(client.price) : '');
       setImages(client.images || []);
+      setHandoverImages(client.handoverImages || []);
       setMeasurementDrawing(client.measurementDrawing || '');
       setMeasurementDrawings(client.measurementDrawings || [client.measurementDrawing || '']);
       setStrokes(client.strokes || []);
@@ -215,10 +240,95 @@ export default function ClientForm() {
     setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  // Drawing board: initialize and redraw
+  // Handover image uploader handler
+  const handleHandoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setHandoverImages((prev) => [...prev, reader.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Remove handover image preview chip
+  const removeHandoverImage = (indexToRemove: number) => {
+    setHandoverImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Commit text overlays onto the sketch canvas
+  const commitText = (editor = activeTextEditor) => {
+    if (!editor) return;
+    if (editor.text.trim()) {
+      // Back-calculate stroke.width from editor.fontSize
+      // Canvas fontSize = Math.max(16, stroke.width * 6), so stroke.width = fontSize / 6
+      const calculatedWidth = editor.fontSize / 6;
+
+      const textStroke: Stroke = {
+        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+        width: calculatedWidth,
+        points: [{ x: editor.canvasX, y: editor.canvasY }],
+        page: currentPage,
+        text: editor.text.trim(),
+      };
+      setStrokes((prev) => [...prev, textStroke]);
+    }
+    setActiveTextEditor(null);
+    setDrawMode('draw');
+  };
+
+  // Drag to resize reference and pointer handlers
+  const resizeStartRef = useRef<{ startX: number; startFontSize: number } | null>(null);
+
+  const handleResizePointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!activeTextEditor) return;
+    
+    e.currentTarget.setPointerCapture((e as any).pointerId);
+    resizeStartRef.current = {
+      startX: e.clientX,
+      startFontSize: activeTextEditor.fontSize,
+    };
+  };
+
+  const handleResizePointerMove = (e: React.PointerEvent) => {
+    if (!resizeStartRef.current || !activeTextEditor) return;
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const deltaX = e.clientX - resizeStartRef.current.startX;
+    // Limit font size between 12px and 120px
+    const newFontSize = Math.min(120, Math.max(12, resizeStartRef.current.startFontSize + deltaX * 0.4));
+    
+    setActiveTextEditor(prev => prev ? { ...prev, fontSize: newFontSize } : null);
+  };
+
+  const handleResizePointerUp = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (resizeStartRef.current) {
+      e.currentTarget.releasePointerCapture((e as any).pointerId);
+      resizeStartRef.current = null;
+    }
+  };
+
+  // Drawing board: initialize, resize, and redraw
   useEffect(() => {
     if (isDrawingOpen && canvasRef.current) {
       const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Prevent upscaling and stretching by aligning canvas backing store size with DPR physical pixels
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.lineCap = 'round';
@@ -228,20 +338,47 @@ export default function ClientForm() {
     }
   }, [isDrawingOpen, strokes, currentPage]);
 
+  // Handle window resizing / tablet rotation to keep drawings razor sharp
+  useEffect(() => {
+    const handleResize = () => {
+      if (isDrawingOpen && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        redrawCanvas();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isDrawingOpen, strokes, currentPage]);
+
   const redrawCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 1. Create an offscreen canvas to isolate drawing strokes and erasures
+    const dpr = window.devicePixelRatio || 1;
+    // Calculate CSS pixels from physical dimensions
+    const cssWidth = canvas.width / dpr;
+    const cssHeight = canvas.height / dpr;
+
+    // Calculate scale factors from 1000x750 logical space to CSS pixel size
+    const scaleX = cssWidth / 1000;
+    const scaleY = cssHeight / 750;
+
+    // 1. Create an offscreen canvas matching the current physical high-DPI size
     const offscreen = document.createElement('canvas');
     offscreen.width = canvas.width;
     offscreen.height = canvas.height;
     const offCtx = offscreen.getContext('2d');
     if (!offCtx) return;
 
-    // Draw saved strokes onto the offscreen canvas
+    // Scale offCtx by dpr so we can draw vector elements in CSS units
+    offCtx.scale(dpr, dpr);
     offCtx.lineCap = 'round';
     offCtx.lineJoin = 'round';
 
@@ -254,14 +391,22 @@ export default function ClientForm() {
         offCtx.beginPath();
         offCtx.fillStyle = stroke.color;
         offCtx.globalCompositeOperation = 'source-over';
-        const fontSize = Math.max(16, stroke.width * 6);
+        
+        // Scale font size and coordinates proportionally in CSS coordinates
+        const baseFontSize = Math.max(16, stroke.width * 6);
+        const fontSize = baseFontSize * scaleX;
         offCtx.font = `bold ${fontSize}px sans-serif`;
-        offCtx.fillText(stroke.text, stroke.points[0].x, stroke.points[0].y);
+        
+        const renderX = stroke.points[0].x * scaleX;
+        const renderY = stroke.points[0].y * scaleY;
+        offCtx.fillText(stroke.text, renderX, renderY);
       } else {
         if (stroke.points.length === 0) return;
         offCtx.beginPath();
         offCtx.strokeStyle = stroke.color;
-        offCtx.lineWidth = stroke.width;
+        
+        // Scale line width proportionally in CSS coordinates
+        offCtx.lineWidth = stroke.width * scaleX;
 
         if (stroke.color === '#FFFFFF') {
           offCtx.globalCompositeOperation = 'destination-out';
@@ -269,29 +414,36 @@ export default function ClientForm() {
           offCtx.globalCompositeOperation = 'source-over';
         }
 
-        offCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        offCtx.moveTo(stroke.points[0].x * scaleX, stroke.points[0].y * scaleY);
         for (let i = 1; i < stroke.points.length; i++) {
-          offCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+          offCtx.lineTo(stroke.points[i].x * scaleX, stroke.points[i].y * scaleY);
         }
         offCtx.stroke();
       }
     });
 
-    // 2. Clear the visible canvas
+    // 2. Clear the visible canvas in absolute physical pixels
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform to clear physical pixels
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Draw the notebook guidelines (Google Keep style grid) on the visible canvas
+    // 3. Draw visible canvas components (guidelines) in CSS scale
+    ctx.scale(dpr, dpr);
+
     ctx.strokeStyle = '#F0E7D5';
     ctx.lineWidth = 1.5;
-    for (let y = 40; y < canvas.height; y += 40) {
+    for (let y = 40 * scaleY; y < cssHeight; y += 40 * scaleY) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
+      ctx.lineTo(cssWidth, y);
       ctx.stroke();
     }
 
-    // 4. Draw the strokes layer on top of guidelines (erased parts are transparent, drawing lines are opaque)
+    // 4. Draw offscreen canvas 1:1 onto visible canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to copy physical buffer 1-to-1
     ctx.drawImage(offscreen, 0, 0);
+    
+    ctx.restore(); // Restore context state
   };
 
   // Canvas interaction (Pointer Events supporting Touch, Mouse, Stylus/S-Pen)
@@ -300,9 +452,9 @@ export default function ClientForm() {
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     
-    // Convert relative client click to relative logical coordinate inside 1000x750 canvas
-    const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-    const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    // Normalize coordinates to the database grid of 1000x750
+    const x = ((e.clientX - rect.left) / rect.width) * 1000;
+    const y = ((e.clientY - rect.top) / rect.height) * 750;
     return { x, y };
   };
 
@@ -313,18 +465,75 @@ export default function ClientForm() {
     
     const coords = getCanvasCoords(e);
 
-    if (drawMode === 'text') {
-      const text = prompt('Enter text to add to the sketch:');
-      if (text && text.trim()) {
-        const textStroke: Stroke = {
-          color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
-          width: currentWidth,
-          points: [coords],
-          page: currentPage,
-          text: text.trim(),
-        };
-        setStrokes((prev) => [...prev, textStroke]);
+    // If there's an active text editor open, commit it first (supports click-outside-to-save on mobile/tablet)
+    if (activeTextEditor) {
+      commitText(activeTextEditor);
+      return; // Return early so the click that commits does not trigger accidental new strokes/text inputs
+    }
+
+    // 1. ALWAYS check hit-test for existing text strokes first (even in draw mode!)
+    const activeStrokes = strokes.filter(
+      (stroke) => stroke.page === currentPage || (!stroke.page && currentPage === 1)
+    );
+
+    let matchedStroke = null;
+    let matchedStrokeIndex = -1;
+    for (let i = 0; i < strokes.length; i++) {
+      const stroke = strokes[i];
+      const isCurrentPage = stroke.page === currentPage || (!stroke.page && currentPage === 1);
+      if (isCurrentPage && stroke.text) {
+        const fontSize = Math.max(16, stroke.width * 6);
+        const textWidth = stroke.text.length * (fontSize * 0.65);
+        const margin = 20; // tap tolerance margin
+
+        if (
+          coords.x >= stroke.points[0].x - margin &&
+          coords.x <= stroke.points[0].x + textWidth + margin &&
+          coords.y >= stroke.points[0].y - fontSize - margin &&
+          coords.y <= stroke.points[0].y + margin
+        ) {
+          matchedStroke = stroke;
+          matchedStrokeIndex = i;
+          break;
+        }
       }
+    }
+
+    if (matchedStroke) {
+      // Start dragging text stroke
+      setDraggingText({
+        strokeIndex: matchedStrokeIndex,
+        startX: matchedStroke.points[0].x,
+        startY: matchedStroke.points[0].y,
+        pointerStartX: coords.x,
+        pointerStartY: coords.y,
+      });
+      setHasDraggedText(false);
+      canvas.setPointerCapture(e.pointerId);
+      setIsDrawing(true);
+      return;
+    }
+
+    // 2. If no matched stroke and in text mode, create a new text editor overlay
+    if (drawMode === 'text') {
+      if (activeTextEditor) {
+        commitText(activeTextEditor);
+      }
+      
+      const rect = canvas.getBoundingClientRect();
+      const percentX = ((e.clientX - rect.left) / rect.width) * 100;
+      const percentY = ((e.clientY - rect.top) / rect.height) * 100;
+
+      // Create new text editor
+      const initialFontSize = Math.max(16, currentWidth * 6);
+      setActiveTextEditor({
+        x: percentX,
+        y: percentY,
+        canvasX: coords.x,
+        canvasY: coords.y,
+        text: '',
+        fontSize: initialFontSize,
+      });
       return;
     }
 
@@ -344,10 +553,34 @@ export default function ClientForm() {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (drawMode === 'text' || !isDrawing || strokes.length === 0) return;
+    if (!isDrawing) return;
     e.preventDefault();
     
     const coords = getCanvasCoords(e);
+
+    if (draggingText) {
+      const dx = coords.x - draggingText.pointerStartX;
+      const dy = coords.y - draggingText.pointerStartY;
+      
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        setHasDraggedText(true);
+      }
+
+      setStrokes((prev) => {
+        const copy = [...prev];
+        const stroke = copy[draggingText.strokeIndex];
+        if (stroke) {
+          stroke.points = [{
+            x: draggingText.startX + dx,
+            y: draggingText.startY + dy,
+          }];
+        }
+        return copy;
+      });
+      return;
+    }
+
+    if (drawMode === 'text' || strokes.length === 0) return;
     
     // Update the active stroke (last element)
     setStrokes((prev) => {
@@ -364,13 +597,43 @@ export default function ClientForm() {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (drawMode === 'text' || !isDrawing) return;
+    if (!isDrawing) return;
     e.preventDefault();
     const canvas = canvasRef.current;
     if (canvas) {
       canvas.releasePointerCapture(e.pointerId);
     }
     setIsDrawing(false);
+
+    if (draggingText) {
+      if (!hasDraggedText) {
+        // User clicked text without dragging: enter text editor
+        const strokeToEdit = strokes[draggingText.strokeIndex];
+        if (strokeToEdit && canvas) {
+          const strokeX = (strokeToEdit.points[0].x / 1000) * 100;
+          const strokeY = (strokeToEdit.points[0].y / 750) * 100;
+          const strokeFontSize = Math.max(16, strokeToEdit.width * 6);
+
+          // Remove from list so it doesn't double-render during typing
+          setStrokes((prev) => prev.filter((_, idx) => idx !== draggingText.strokeIndex));
+
+          setActiveTextEditor({
+            x: strokeX,
+            y: strokeY,
+            canvasX: strokeToEdit.points[0].x,
+            canvasY: strokeToEdit.points[0].y,
+            text: strokeToEdit.text || '',
+            fontSize: strokeFontSize,
+          });
+        }
+      } else {
+        // User dragged text: toggle text option off back to draw
+        setDrawMode('draw');
+      }
+      setDraggingText(null);
+      setHasDraggedText(false);
+      return;
+    }
   };
 
   // Whiteboard controls
@@ -388,11 +651,14 @@ export default function ClientForm() {
   };
 
   const handleClear = () => {
-    if (confirm(`Clear all drawings on page ${currentPage}?`)) {
-      setStrokes((prev) =>
-        prev.filter((s) => s.page !== currentPage && (s.page !== undefined || currentPage !== 1))
-      );
-    }
+    setShowClearConfirm(true);
+  };
+
+  const executeClear = () => {
+    setStrokes((prev) =>
+      prev.filter((s) => s.page !== currentPage && (s.page !== undefined || currentPage !== 1))
+    );
+    setShowClearConfirm(false);
   };
 
   // Page shifting helpers
@@ -457,7 +723,7 @@ export default function ClientForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (suitStatus === 'Completed and handovered' && (!images || images.length === 0)) {
+    if (suitStatus === 'Completed and handovered' && (!handoverImages || handoverImages.length === 0)) {
       setError('Please upload at least one handover photo before marking as Completed.');
       return;
     }
@@ -477,6 +743,7 @@ export default function ClientForm() {
           alternativeNo,
           category,
           images,
+          handoverImages,
           measurementDrawing,
           measurementDrawings,
           strokes,
@@ -743,7 +1010,7 @@ export default function ClientForm() {
                         type="file"
                         multiple
                         accept="image/*"
-                        onChange={handleImageChange}
+                        onChange={handleHandoverImageChange}
                         id="handover-image-file"
                         className="hidden"
                       />
@@ -760,6 +1027,35 @@ export default function ClientForm() {
                         <span className="text-[10px] text-slate-400 mt-0.5">Select from library or tap camera</span>
                       </label>
                     </div>
+
+                    {/* Handover Photos Previews Grid */}
+                    {handoverImages.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                        {handoverImages.map((imgData, index) => (
+                          <div
+                            key={index}
+                            className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100 animate-in zoom-in-95 duration-150"
+                          >
+                            <Image
+                              src={imgData}
+                              alt={`Handover Preview ${index + 1}`}
+                              fill
+                              sizes="(max-width: 640px) 33vw, 25vw"
+                              className="object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeHandoverImage(index)}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
+                            >
+                              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 6 6 18M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -771,7 +1067,7 @@ export default function ClientForm() {
             {/* Gallery/Camera Uploads */}
             <div>
               <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                Style Catalog / Customer Photos
+                Fabric / Custom Style Photos
               </label>
               <div className="relative">
                 <input
@@ -786,11 +1082,13 @@ export default function ClientForm() {
                   htmlFor="image-file"
                   className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
                 >
-                  <svg className="h-10 w-10 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
                   </svg>
-                  <span className="text-base font-bold text-slate-700">Add Photos</span>
-                  <span className="text-xs text-slate-400 mt-1">Select from library or tap camera</span>
+                  <span className="text-sm font-bold text-slate-700">Add Fabric / Design Photos</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">Upload fabric cloth photo or design references</span>
                 </label>
               </div>
 
@@ -982,11 +1280,10 @@ export default function ClientForm() {
           <div className="flex-1 w-full flex items-center justify-center p-3 sm:p-4">
             <div 
               style={{
-                maxHeight: 'calc(100vh - 190px)',
-                width: 'calc((100vh - 190px) * 4 / 3)',
-                maxWidth: '100%',
+                height: 'calc(100vh - 190px)',
+                width: '100%',
               }}
-              className="relative aspect-[4/3] bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden"
+              className="relative bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden w-full"
             >
               <canvas
                 ref={canvasRef}
@@ -999,6 +1296,71 @@ export default function ClientForm() {
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
               />
+
+               {activeTextEditor && (
+                <div
+                  style={{
+                    left: `${activeTextEditor.x}%`,
+                    top: `${activeTextEditor.y}%`,
+                    transform: 'translate(-5px, -50%)',
+                  }}
+                  className="absolute z-30 max-w-[90%] flex items-center"
+                >
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={activeTextEditor.text}
+                      onChange={(e) => {
+                        setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.currentTarget.blur();
+                        } else if (e.key === 'Escape') {
+                          setActiveTextEditor(null);
+                        }
+                      }}
+                      onBlur={() => commitText(activeTextEditor)}
+                      placeholder="Type notes..."
+                      style={{
+                        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+                        caretColor: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+                        fontSize: `${activeTextEditor.fontSize}px`,
+                        width: `${Math.max(10, activeTextEditor.text.length || 12)}ch`,
+                      }}
+                      className="bg-transparent px-1.5 py-0.5 border border-black text-[#1A1A1A] text-sm font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black animate-in zoom-in-95 duration-100"
+                    />
+
+                    {/* Delete button floating above the input box */}
+                    <button
+                      type="button"
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setActiveTextEditor(null);
+                        setDrawMode('draw');
+                      }}
+                      className="absolute bottom-full right-0 mb-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded px-2 py-0.5 text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                      title="Delete Text"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+
+                    {/* Drag handle at bottom-right corner */}
+                    <div
+                      onPointerDown={handleResizePointerDown}
+                      onPointerMove={handleResizePointerMove}
+                      onPointerUp={handleResizePointerUp}
+                      className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-black border border-white cursor-se-resize translate-x-1.5 translate-y-1.5 rounded-full z-40 hover:scale-125 transition-transform"
+                      title="Drag to resize text"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1109,6 +1471,51 @@ export default function ClientForm() {
           </div>
         </div>
       )}
+
+      {/* Custom Modern Confirm Clear Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#E6DFD3] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-6">
+            
+            {/* Modal Header/Icon */}
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-800">Clear Sketch Canvas</h3>
+                <p className="text-xs text-[#9E7D3B] font-bold uppercase tracking-wider">Warning: Permanent Action</p>
+              </div>
+            </div>
+
+            {/* Body copy */}
+            <p className="text-sm font-semibold text-[#1A1A1A] leading-relaxed">
+              Are you sure you want to clear all drawings, sketches, and notes on <strong className="text-[#1A1A1A] font-black">Page {currentPage}</strong>? This action cannot be undone.
+            </p>
+
+            {/* Modal Action Controls */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={executeClear}
+                className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white text-sm font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md shadow-rose-200/50"
+              >
+                Clear Sketch
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-black rounded-xl border border-slate-200 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Category Search Modal */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">

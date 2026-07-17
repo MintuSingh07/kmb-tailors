@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { clientNo, name, contactNo, alternativeNo, category, images, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
+    const { clientNo, name, contactNo, alternativeNo, category, images, handoverImages, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
 
     if (!clientNo || !name || !contactNo || !category) {
       return NextResponse.json({ error: 'Client No, Name, Contact No, and Category are required' }, { status: 400 });
@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       for (const img of images) {
         const url = await uploadToCloudinary(img);
         uploadedImages.push(url);
+      }
+    }
+
+    const uploadedHandoverImages: string[] = [];
+    if (handoverImages && Array.isArray(handoverImages)) {
+      for (const img of handoverImages) {
+        const url = await uploadToCloudinary(img);
+        uploadedHandoverImages.push(url);
       }
     }
 
@@ -59,6 +67,7 @@ export async function POST(request: NextRequest) {
       existingClient.alternativeNo = alternativeNo;
       existingClient.category = category;
       existingClient.images = uploadedImages;
+      existingClient.handoverImages = uploadedHandoverImages;
       existingClient.measurementDrawing = uploadedMeasurementDrawing;
       existingClient.measurementDrawings = uploadedMeasurementDrawings;
       existingClient.strokes = strokes || [];
@@ -78,6 +87,7 @@ export async function POST(request: NextRequest) {
       alternativeNo,
       category,
       images: uploadedImages,
+      handoverImages: uploadedHandoverImages,
       measurementDrawing: uploadedMeasurementDrawing,
       measurementDrawings: uploadedMeasurementDrawings,
       strokes: strokes || [],

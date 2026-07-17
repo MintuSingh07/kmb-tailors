@@ -73,7 +73,7 @@ export default async function AdminPage() {
     (c: any) => c.suitStatus === 'Completed and handovered'
   ).length;
 
-  const totalPhotosCount = allClients.reduce((sum: number, c: any) => sum + (c.images?.length || 0), 0);
+  const totalPhotosCount = allClients.reduce((sum: number, c: any) => sum + (c.handoverImages?.length || 0), 0);
   const clientHistoryCount = allClients.length;
 
   const stats = [
@@ -273,6 +273,13 @@ export default async function AdminPage() {
             if (stat.id === 'completed-suits') {
               return (
                 <Link key={stat.id} href="/admin/completed" className={cardClasses}>
+                  {cardContent}
+                </Link>
+              );
+            }
+            if (stat.id === 'photos') {
+              return (
+                <Link key={stat.id} href="/admin/photos" className={cardClasses}>
                   {cardContent}
                 </Link>
               );

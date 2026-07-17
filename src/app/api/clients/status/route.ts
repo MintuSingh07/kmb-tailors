@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import dbConnect from '../../../../lib/db';
 import Client from '../../../../models/Client';
+import { uploadToCloudinary } from '../../../../lib/cloudinary';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -39,7 +40,12 @@ export async function POST(request: NextRequest) {
 
     client.suitStatus = status;
     if (images && Array.isArray(images)) {
-      client.images = [...(client.images || []), ...images];
+      const uploadedHandoverImages: string[] = [];
+      for (const img of images) {
+        const url = await uploadToCloudinary(img);
+        uploadedHandoverImages.push(url);
+      }
+      client.handoverImages = [...(client.handoverImages || []), ...uploadedHandoverImages];
     }
     await client.save();
 

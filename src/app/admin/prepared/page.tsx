@@ -71,7 +71,7 @@ export default async function PreparedSuitsPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full z-10">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
         {/* Navigation Back Button */}
         <div className="flex items-center justify-between mb-8">
           <Link

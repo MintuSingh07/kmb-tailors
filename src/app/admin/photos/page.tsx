@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '../../../lib/db';
 import Client from '../../../models/Client';
 import LogoutButton from '../LogoutButton';
-import PendingSuitsList from '../pending/PendingSuitsList';
+import CompletedGallery from '../completed/CompletedGallery';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -15,7 +15,7 @@ interface DecodedToken {
   username: string;
 }
 
-export default async function CompletedSuitsPage() {
+export default async function PhotosGalleryPage() {
   const cookieStore = await cookies();
   const tokenCookie = cookieStore.get('token');
   const token = tokenCookie?.value;
@@ -33,11 +33,17 @@ export default async function CompletedSuitsPage() {
     redirect('/login');
   }
 
-  // Connect to database and fetch all completed and handovered suits
+  // Connect to database and fetch all completed and handovered suits that have handover photos
   await dbConnect();
-  const completedSuits = await Client.find({
-    suitStatus: 'Completed and handovered'
+  const completedSuitsWithPhotos = await Client.find({
+    suitStatus: 'Completed and handovered',
+    handoverImages: { $exists: true, $not: { $size: 0 } }
   }).sort({ updatedAt: -1 });
+
+  const totalPhotosCount = completedSuitsWithPhotos.reduce(
+    (acc, client) => acc + (client.handoverImages?.length || 0),
+    0
+  );
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">
@@ -59,7 +65,7 @@ export default async function CompletedSuitsPage() {
             />
           </div>
           <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-[#1A1A1A]">
-            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Delivered Queue</span>
+            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Photos Gallery</span>
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -83,22 +89,22 @@ export default async function CompletedSuitsPage() {
             </svg>
             Back to Dashboard
           </Link>
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
-            {completedSuits.length} {completedSuits.length === 1 ? 'Suit' : 'Suits'} Handovered
+          <span className="bg-violet-50 text-violet-700 border border-violet-200 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
+            {totalPhotosCount} {totalPhotosCount === 1 ? 'Photo' : 'Photos'} Uploaded
           </span>
         </div>
 
         <div className="mb-6 select-none">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A] mb-1.5">
-            Completed & Handovered
+            Handover Suit Catalog
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            History of all delivered orders. Click cards to view details or select Measurement to view sketches.
+            Gallery of completed garment photos uploaded before final client delivery. Click photos to zoom.
           </p>
         </div>
 
         {/* Dynamic Queue Grid */}
-        {completedSuits.length === 0 ? (
+        {completedSuitsWithPhotos.length === 0 ? (
           <div className="rounded-3xl border border-[#E6DFD3] bg-[#FCFAF5] p-12 text-center shadow-xl shadow-slate-200/30 flex flex-col items-center justify-center max-w-2xl mx-auto">
             <div className="p-5 bg-white rounded-full border border-slate-200/60 shadow-sm mb-4">
               <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -107,8 +113,8 @@ export default async function CompletedSuitsPage() {
                 <circle cx="9" cy="9" r="2" />
               </svg>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Delivered History is Empty</h2>
-            <p className="text-slate-500 font-semibold mb-6">No suits completed and delivered yet.</p>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">No Photos Uploaded Yet</h2>
+            <p className="text-slate-500 font-semibold mb-6">Complete orders and upload photos during handover to fill the gallery.</p>
             <Link
               href="/admin/pending"
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white font-extrabold text-sm sm:text-base shadow-md shadow-[#9E7D3B]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -117,7 +123,7 @@ export default async function CompletedSuitsPage() {
             </Link>
           </div>
         ) : (
-          <PendingSuitsList initialSuits={JSON.parse(JSON.stringify(completedSuits))} />
+          <CompletedGallery initialSuits={JSON.parse(JSON.stringify(completedSuitsWithPhotos))} />
         )}
       </main>
     </div>
