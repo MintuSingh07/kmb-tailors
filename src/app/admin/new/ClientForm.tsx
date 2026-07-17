@@ -1196,87 +1196,87 @@ export default function ClientForm() {
 
       {/* FULLSCREEN DRAWING BOARD MODAL OVERLAY */}
       {isDrawingOpen && (
-        <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md">
+        <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md overflow-hidden">
           {/* Top Panel: Action Controls */}
-          <div className="bg-white border-b border-[#E6DFD3] px-4 pt-10 pb-3 sm:pt-4 flex flex-col min-[600px]:flex-row gap-3 items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <span className="font-extrabold text-slate-800 text-lg sm:text-xl">Measurement Board</span>
-            </div>
-
-            {/* Page Navigation Controls */}
-            <div className="flex items-center gap-3 bg-slate-100 p-1 rounded-full border border-slate-200 shadow-inner select-none">
-              <button
-                type="button"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="p-1.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
-                title="Previous Page"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+          <div className="bg-white border-b border-[#E6DFD3] px-3 pt-6 pb-2.5 sm:px-4 sm:pt-4 sm:pb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between shadow-sm flex-none">
+            <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+              <span className="font-extrabold text-slate-800 text-base sm:text-lg">Measurement Board</span>
               
-              <span className="text-xs font-black text-slate-700 min-w-[72px] text-center">
-                Page {currentPage} / {totalPages}
-              </span>
+              {/* Page Navigation Controls */}
+              <div className="flex items-center gap-2 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100 origin-right">
+                <button
+                  type="button"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                  title="Previous Page"
+                >
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <span className="text-[10px] font-black text-slate-700 min-w-[60px] text-center">
+                  Page {currentPage}/{totalPages}
+                </span>
 
-              <button
-                type="button"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="p-1.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
-                title="Next Page"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+                <button
+                  type="button"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                  title="Next Page"
+                >
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
 
-              {/* Plus Sign Button to Add Page */}
-              <button
-                type="button"
-                onClick={handleAddPage}
-                className="p-1.5 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
-                title="Add Another Page"
-              >
-                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
+                {/* Plus Sign Button to Add Page */}
+                <button
+                  type="button"
+                  onClick={handleAddPage}
+                  className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                  title="Add Another Page"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={strokes.length === 0}
-                className="h-10 px-3 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-sm font-semibold flex items-center gap-1.5 shadow-sm"
+                className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
                 title="Undo Stroke"
               >
-                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
-                <span className="hidden sm:inline">Undo</span>
+                <span>Undo</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleClear}
                 disabled={strokes.length === 0}
-                className="h-10 px-3 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-sm font-semibold flex items-center gap-1.5 shadow-sm"
+                className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
                 title="Clear All"
               >
-                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <span className="hidden sm:inline">Clear</span>
+                <span>Clear</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCancelDrawing}
-                className="h-10 px-4 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-sm font-semibold shadow-sm"
+                className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm"
               >
                 Cancel
               </button>
@@ -1284,7 +1284,7 @@ export default function ClientForm() {
               <button
                 type="button"
                 onClick={handleSaveDrawing}
-                className="h-10 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-sm font-black shadow-md shadow-[#9E7D3B]/20"
+                className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20"
               >
                 Done
               </button>
@@ -1292,14 +1292,8 @@ export default function ClientForm() {
           </div>
 
           {/* Center Drawing Area */}
-          <div className="flex-1 w-full flex items-center justify-center p-3 sm:p-4">
-            <div 
-              style={{
-                height: 'calc(100vh - 190px)',
-                width: '100%',
-              }}
-              className="relative bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden w-full"
-            >
+          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-2.5 sm:p-4">
+            <div className="relative bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden w-full h-full">
               <canvas
                 ref={canvasRef}
                 width={1000}
@@ -1379,13 +1373,13 @@ export default function ClientForm() {
           </div>
 
           {/* Bottom Panel: Brush styles & Color Selection */}
-          <div className="bg-white border-t border-[#E6DFD3] px-6 pt-4 pb-8 sm:py-5 flex flex-col md:flex-row gap-6 items-center justify-between shadow-inner">
+          <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3.5 sm:gap-6 sm:flex-row items-center justify-between shadow-inner flex-none">
             {/* Color Palette */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider select-none text-center sm:text-left">
+            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+              <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider select-none shrink-0">
                 Ink Color
               </span>
-              <div className="flex items-center justify-center gap-4 sm:gap-3">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
                 {[
                   { hex: '#1A1A1A', name: 'Black' },
                   { hex: '#E53E3E', name: 'Red' },
@@ -1399,7 +1393,7 @@ export default function ClientForm() {
                       setCurrentColor(c.hex);
                       setDrawMode('draw');
                     }}
-                    className={`h-11 w-11 sm:h-12 sm:w-12 rounded-full border border-slate-200 transition-all duration-200 ${
+                    className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full border border-slate-200 transition-all duration-200 ${
                       currentColor === c.hex && drawMode === 'draw'
                         ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
                         : 'hover:scale-105 active:scale-95'
@@ -1410,7 +1404,7 @@ export default function ClientForm() {
                 ))}
 
                 {/* Divider */}
-                <div className="w-[1px] h-8 bg-slate-200 mx-1 select-none" />
+                <div className="w-[1px] h-6 bg-slate-200 mx-0.5 select-none" />
 
                 {/* Eraser Button */}
                 <button
@@ -1419,14 +1413,14 @@ export default function ClientForm() {
                     setCurrentColor('#FFFFFF');
                     setDrawMode('draw');
                   }}
-                  className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
+                  className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
                     currentColor === '#FFFFFF' && drawMode === 'draw'
                       ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
                       : 'hover:scale-105 active:scale-95'
                   }`}
                   title="Eraser"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                     <path d="m22 21H7" />
                     <path d="m5 11 9 9" />
@@ -1442,14 +1436,14 @@ export default function ClientForm() {
                       setCurrentColor('#1A1A1A'); // Reset from eraser to black for text placement
                     }
                   }}
-                  className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
+                  className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
                     drawMode === 'text'
                       ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B] bg-slate-50'
                       : 'hover:scale-105 active:scale-95'
                   }`}
                   title="Add Text"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 7V4h16v3M9 20h6M12 4v16" />
                   </svg>
                 </button>
@@ -1457,11 +1451,11 @@ export default function ClientForm() {
             </div>
 
             {/* Brush Width Selector (Segmented Control) */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider select-none text-center sm:text-left">
+            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+              <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider select-none shrink-0">
                 Line Width
               </span>
-              <div className="flex bg-slate-200/60 p-1 rounded-xl w-full sm:w-64 max-w-sm">
+              <div className="flex bg-slate-200/60 p-0.5 rounded-xl w-full sm:w-56">
                 {[
                   { size: 2, name: 'Thin' },
                   { size: 4, name: 'Medium' },
@@ -1471,10 +1465,10 @@ export default function ClientForm() {
                     key={w.size}
                     type="button"
                     onClick={() => setCurrentWidth(w.size)}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-150 ${
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
                       currentWidth === w.size
-                        ? 'bg-white text-slate-800 shadow-md scale-[1.02]'
-                        : 'text-slate-500 hover:text-slate-800 font-bold'
+                        ? 'bg-white text-slate-800 shadow-sm scale-[1.02]'
+                        : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     {w.name}
