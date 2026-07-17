@@ -75,6 +75,7 @@ export default function ClientForm() {
   } | null>(null);
   const [hasDraggedText, setHasDraggedText] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isResizingText, setIsResizingText] = useState(false);
 
   // Load draft or query parameter on mount
   useEffect(() => {
@@ -283,40 +284,54 @@ export default function ClientForm() {
   };
 
   // Drag to resize reference and pointer handlers
-  const resizeStartRef = useRef<{ startX: number; startFontSize: number } | null>(null);
+  const resizeStartRef = useRef<{ anchorLeft: number; textLength: number } | null>(null);
 
   const handleResizePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (!activeTextEditor) return;
     
-    e.currentTarget.setPointerCapture((e as any).pointerId);
+    const editorEl = document.getElementById('whiteboard-text-input');
+    const editorRect = editorEl ? editorEl.getBoundingClientRect() : null;
+    const anchorLeft = editorRect ? editorRect.left : e.clientX - 100;
+
+    setIsResizingText(true);
     resizeStartRef.current = {
-      startX: e.clientX,
-      startFontSize: activeTextEditor.fontSize,
+      anchorLeft,
+      textLength: activeTextEditor.text.length || 10,
     };
   };
 
-  const handleResizePointerMove = (e: React.PointerEvent) => {
-    if (!resizeStartRef.current || !activeTextEditor) return;
-    e.stopPropagation();
-    e.preventDefault();
-    
-    const deltaX = e.clientX - resizeStartRef.current.startX;
-    // Limit font size between 12px and 120px
-    const newFontSize = Math.min(120, Math.max(12, resizeStartRef.current.startFontSize + deltaX * 0.4));
-    
-    setActiveTextEditor(prev => prev ? { ...prev, fontSize: newFontSize } : null);
-  };
+  // Global window listeners to ensure smooth, uninterrupted drag resizing on mobile/touch screens
+  useEffect(() => {
+    if (!isResizingText) return;
 
-  const handleResizePointerUp = (e: React.PointerEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (resizeStartRef.current) {
-      e.currentTarget.releasePointerCapture((e as any).pointerId);
+    const handleGlobalPointerMove = (e: PointerEvent) => {
+      if (!resizeStartRef.current || !activeTextEditor) return;
+      
+      const currentWidth = e.clientX - resizeStartRef.current.anchorLeft;
+      // Scale font size directly proportional to drag distance (locks cursor to text box edge!)
+      const newFontSize = Math.min(
+        120, 
+        Math.max(12, currentWidth / (resizeStartRef.current.textLength * 0.55))
+      );
+      
+      setActiveTextEditor(prev => prev ? { ...prev, fontSize: newFontSize } : null);
+    };
+
+    const handleGlobalPointerUp = () => {
+      setIsResizingText(false);
       resizeStartRef.current = null;
-    }
-  };
+    };
+
+    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: true });
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalPointerMove);
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+    };
+  }, [isResizingText, activeTextEditor]);
 
   // Drawing board: initialize, resize, and redraw
   useEffect(() => {
@@ -1308,6 +1323,7 @@ export default function ClientForm() {
                 >
                   <div className="relative group">
                     <input
+                      id="whiteboard-text-input"
                       type="text"
                       autoFocus
                       value={activeTextEditor.text}
@@ -1353,9 +1369,7 @@ export default function ClientForm() {
                     {/* Drag handle at bottom-right corner */}
                     <div
                       onPointerDown={handleResizePointerDown}
-                      onPointerMove={handleResizePointerMove}
-                      onPointerUp={handleResizePointerUp}
-                      className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-black border border-white cursor-se-resize translate-x-1.5 translate-y-1.5 rounded-full z-40 hover:scale-125 transition-transform"
+                      className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-black border border-white cursor-se-resize translate-x-1.5 translate-y-1.5 rounded-full z-40 hover:scale-125 transition-transform touch-none"
                       title="Drag to resize text"
                     />
                   </div>
