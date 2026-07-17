@@ -33,6 +33,14 @@ export default function ClientForm() {
   const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [initialStatus, setInitialStatus] = useState<string>('Pending');
+
+  // Lightbox viewer state
+  const [activeLightbox, setActiveLightbox] = useState<{
+    images: string[];
+    title: string;
+  } | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   
   // UI states
   const [loading, setLoading] = useState(false);
@@ -206,6 +214,7 @@ export default function ClientForm() {
       setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
       setCurrentPage(1);
       setSuitStatus(client.suitStatus || 'Pending');
+      setInitialStatus(client.suitStatus || 'Pending');
       
       setJustSelected(true);
       setClientNo(client.clientNo);
@@ -281,6 +290,16 @@ export default function ClientForm() {
     }
     setActiveTextEditor(null);
     setDrawMode('draw');
+  };
+
+  const prevLightboxPhoto = () => {
+    if (!activeLightbox) return;
+    setLightboxIndex((prev) => (prev === 0 ? activeLightbox.images.length - 1 : prev - 1));
+  };
+
+  const nextLightboxPhoto = () => {
+    if (!activeLightbox) return;
+    setLightboxIndex((prev) => (prev === activeLightbox.images.length - 1 ? 0 : prev + 1));
   };
 
   // Drag to resize reference and pointer handlers
@@ -880,7 +899,8 @@ export default function ClientForm() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Enter client's full name"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                disabled={initialStatus === 'Completed and handovered'}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -895,7 +915,8 @@ export default function ClientForm() {
                   onChange={(e) => setContactNo(e.target.value)}
                   required
                   placeholder="Primary phone number"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                  disabled={initialStatus === 'Completed and handovered'}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -907,7 +928,8 @@ export default function ClientForm() {
                   value={alternativeNo}
                   onChange={(e) => setAlternativeNo(e.target.value)}
                   placeholder="Optional backup number"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                  disabled={initialStatus === 'Completed and handovered'}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -919,8 +941,13 @@ export default function ClientForm() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => setIsCategoryModalOpen(true)}
-                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer"
+                  onClick={() => {
+                    if (initialStatus !== 'Completed and handovered') {
+                      setIsCategoryModalOpen(true);
+                    }
+                  }}
+                  disabled={initialStatus === 'Completed and handovered'}
+                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 >
                   <span className="truncate">{category || 'Select Category'}</span>
                   <span className="flex items-center gap-1.5 text-slate-400">
@@ -950,106 +977,37 @@ export default function ClientForm() {
                   }}
                   required
                   placeholder="e.g. 8500"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                  disabled={initialStatus === 'Completed and handovered'}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
 
             {isEditMode && (
               <div className="pt-6 border-t border-[#E6DFD3]/60 space-y-4">
-                <label className="block text-base sm:text-lg font-bold text-slate-700">
-                  Update Suit Status
-                </label>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mb-3">
-                  Select where this suit order belongs. Updating will transfer the record to the selected queue.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Option 1: Prepared but not handovered */}
-                  <button
-                    type="button"
-                    onClick={() => setSuitStatus(suitStatus === 'Prepared but not handovered' ? 'Pending' : 'Prepared but not handovered')}
-                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
-                      suitStatus === 'Prepared but not handovered'
-                        ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
-                        : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
-                    }`}
-                  >
-                    <div className="p-3 bg-amber-100/50 rounded-full mb-3 text-amber-700">
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-                        <path d="m3.3 7 8.7 5 8.7-5" />
-                        <path d="M12 22V12" />
-                      </svg>
-                    </div>
-                    <span className="text-sm sm:text-base font-black text-slate-800">Prepared but not handovered</span>
-                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Ready for Delivery</span>
-                  </button>
-
-                  {/* Option 2: Completed and handovered */}
-                  <button
-                    type="button"
-                    onClick={() => setSuitStatus(suitStatus === 'Completed and handovered' ? 'Pending' : 'Completed and handovered')}
-                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
-                      suitStatus === 'Completed and handovered'
-                        ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
-                        : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
-                    }`}
-                  >
-                    <div className="p-3 bg-emerald-100/50 rounded-full mb-3 text-emerald-700">
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="m9 12 2 2 4-4" />
-                      </svg>
-                    </div>
-                    <span className="text-sm sm:text-base font-black text-slate-800">Completed and handovered</span>
-                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Completed & Delivered</span>
-                  </button>
-                </div>
-                
-                {/* Current State indicator */}
-                <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">
-                  Current State: <span className="text-[#9E7D3B] font-extrabold">{suitStatus === 'Pending' ? 'PENDING (IN QUEUE)' : suitStatus.toUpperCase()}</span>
-                </div>
-
-                {suitStatus === 'Completed and handovered' && (
-                  <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
-                    <label className="block text-sm sm:text-base font-bold text-slate-700">
-                      Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
+                {initialStatus === 'Completed and handovered' ? (
+                  <div className="space-y-4">
+                    <label className="block text-base sm:text-lg font-bold text-slate-700">
+                      Handover Photos
                     </label>
-                    <p className="text-xs text-rose-500/80 font-bold mb-2">
-                      You must snap or upload at least one photo of the completed suit before giving it to the client.
+                    <p className="text-xs sm:text-sm text-emerald-600 font-bold flex items-center gap-1.5">
+                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                      This order has been completed and handed over to the client.
                     </p>
-                    
-                    <div className="relative">
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleHandoverImageChange}
-                        id="handover-image-file"
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="handover-image-file"
-                        className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
-                      >
-                        <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                          <circle cx="9" cy="9" r="2" />
-                          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                        </svg>
-                        <span className="text-sm font-bold text-slate-700">Add Photos</span>
-                        <span className="text-[10px] text-slate-400 mt-0.5">Select from library or tap camera</span>
-                      </label>
-                    </div>
 
-                    {/* Handover Photos Previews Grid */}
-                    {handoverImages.length > 0 && (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                    {/* Static Read-only Handover Photos Previews Grid */}
+                    {handoverImages.length > 0 ? (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-2">
                         {handoverImages.map((imgData, index) => (
                           <div
                             key={index}
-                            className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100 animate-in zoom-in-95 duration-150"
+                            onClick={() => {
+                              setLightboxIndex(index);
+                              setActiveLightbox({ images: handoverImages, title: `${name || 'Customer'} - Handover Photos` });
+                            }}
+                            className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-slate-100 cursor-zoom-in hover:opacity-90 transition-opacity"
                           >
                             <Image
                               src={imgData}
@@ -1058,20 +1016,136 @@ export default function ClientForm() {
                               sizes="(max-width: 640px) 33vw, 25vw"
                               className="object-cover"
                             />
-                            <button
-                              type="button"
-                              onClick={() => removeHandoverImage(index)}
-                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
-                            >
-                              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 6 6 18M6 6l12 12" />
-                              </svg>
-                            </button>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-slate-400 font-medium italic">No handover photos uploaded.</p>
                     )}
                   </div>
+                ) : (
+                  <>
+                    <label className="block text-base sm:text-lg font-bold text-slate-700">
+                      Update Suit Status
+                    </label>
+                    <p className="text-xs sm:text-sm text-slate-500 font-semibold mb-3">
+                      Select where this suit order belongs. Updating will transfer the record to the selected queue.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Option 1: Prepared but not handovered */}
+                      <button
+                        type="button"
+                        onClick={() => setSuitStatus(suitStatus === 'Prepared but not handovered' ? 'Pending' : 'Prepared but not handovered')}
+                        className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                          suitStatus === 'Prepared but not handovered'
+                            ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
+                            : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
+                        }`}
+                      >
+                        <div className="p-3 bg-amber-100/50 rounded-full mb-3 text-amber-700">
+                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                            <path d="m3.3 7 8.7 5 8.7-5" />
+                            <path d="M12 22V12" />
+                          </svg>
+                        </div>
+                        <span className="text-sm sm:text-base font-black text-slate-800">Prepared but not handovered</span>
+                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Ready for Delivery</span>
+                      </button>
+
+                      {/* Option 2: Completed and handovered */}
+                      <button
+                        type="button"
+                        onClick={() => setSuitStatus(suitStatus === 'Completed and handovered' ? 'Pending' : 'Completed and handovered')}
+                        className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                          suitStatus === 'Completed and handovered'
+                            ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
+                            : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
+                        }`}
+                      >
+                        <div className="p-3 bg-emerald-100/50 rounded-full mb-3 text-emerald-700">
+                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="m9 12 2 2 4-4" />
+                          </svg>
+                        </div>
+                        <span className="text-sm sm:text-base font-black text-slate-800">Completed and handovered</span>
+                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Completed & Delivered</span>
+                      </button>
+                    </div>
+                    
+                    {/* Current State indicator */}
+                    <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">
+                      Current State: <span className="text-[#9E7D3B] font-extrabold">{suitStatus === 'Pending' ? 'PENDING (IN QUEUE)' : suitStatus.toUpperCase()}</span>
+                    </div>
+
+                    {suitStatus === 'Completed and handovered' && (
+                      <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
+                        <label className="block text-sm sm:text-base font-bold text-slate-700">
+                          Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
+                        </label>
+                        <p className="text-xs text-rose-500/80 font-bold mb-2">
+                          You must snap or upload at least one photo of the completed suit before giving it to the client.
+                        </p>
+                        
+                        <div className="relative">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleHandoverImageChange}
+                            id="handover-image-file"
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="handover-image-file"
+                            className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
+                          >
+                            <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                              <circle cx="9" cy="9" r="2" />
+                              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                            </svg>
+                            <span className="text-sm font-bold text-slate-700">Add Photos</span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">Select from library or tap camera</span>
+                          </label>
+                        </div>
+
+                        {/* Handover Photos Previews Grid */}
+                        {handoverImages.length > 0 && (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                            {handoverImages.map((imgData, index) => (
+                              <div
+                                key={index}
+                                className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100 animate-in zoom-in-95 duration-150"
+                              >
+                                <Image
+                                  src={imgData}
+                                  alt={`Handover Preview ${index + 1}`}
+                                  fill
+                                  sizes="(max-width: 640px) 33vw, 25vw"
+                                  className="object-cover cursor-zoom-in hover:scale-105 transition-transform"
+                                  onClick={() => {
+                                    setLightboxIndex(index);
+                                    setActiveLightbox({ images: handoverImages, title: `${name || 'Customer'} - Handover Photos` });
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeHandoverImage(index)}
+                                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
+                                >
+                                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 6 6 18M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -1084,56 +1158,91 @@ export default function ClientForm() {
               <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
                 Fabric / Custom Style Photos
               </label>
-              <div className="relative">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  id="image-file"
-                  className="hidden"
-                />
-                <label
-                  htmlFor="image-file"
-                  className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
-                >
-                  <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                    <circle cx="9" cy="9" r="2" />
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                  </svg>
-                  <span className="text-sm font-bold text-slate-700">Add Fabric / Design Photos</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5">Upload fabric cloth photo or design references</span>
-                </label>
-              </div>
-
-              {/* Photos Previews Grid */}
-              {images.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                  {images.map((imgData, index) => (
-                    <div
-                      key={index}
-                      className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100"
-                    >
-                      <Image
-                        src={imgData}
-                        alt={`Preview ${index + 1}`}
-                        fill
-                        sizes="(max-width: 640px) 33vw, 25vw"
-                        className="object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
+              
+              {initialStatus === 'Completed and handovered' ? (
+                // Read-only view for completed orders
+                images.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {images.map((imgData, index) => (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          setLightboxIndex(index);
+                          setActiveLightbox({ images, title: `${name || 'Customer'} - Fabric / Design Photos` });
+                        }}
+                        className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-slate-100 cursor-zoom-in hover:opacity-90 transition-opacity"
                       >
-                        <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                        <Image
+                          src={imgData}
+                          alt={`Fabric Photo ${index + 1}`}
+                          fill
+                          sizes="(max-width: 640px) 33vw, 25vw"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs sm:text-sm text-slate-400 font-medium italic">No fabric or style photos uploaded.</p>
+                )
+              ) : (
+                // Editable view for pending/prepared orders
+                <>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      id="image-file"
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="image-file"
+                      className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
+                    >
+                      <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                        <circle cx="9" cy="9" r="2" />
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                      </svg>
+                      <span className="text-sm font-bold text-slate-700">Add Fabric / Design Photos</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">Upload fabric cloth photo or design references</span>
+                    </label>
+                  </div>
+
+                  {images.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                      {images.map((imgData, index) => (
+                        <div
+                          key={index}
+                          className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100"
+                        >
+                          <Image
+                            src={imgData}
+                            alt={`Preview ${index + 1}`}
+                            fill
+                            sizes="(max-width: 640px) 33vw, 25vw"
+                            className="object-cover cursor-zoom-in hover:scale-105 transition-transform"
+                            onClick={() => {
+                              setLightboxIndex(index);
+                              setActiveLightbox({ images, title: `${name || 'Customer'} - Fabric / Design Photos` });
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
+                          >
+                            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -1182,15 +1291,17 @@ export default function ClientForm() {
           </div>
 
           {/* Submitting buttons */}
-          <div className="lg:col-span-2 pt-6 border-t border-[#E6DFD3]/60">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] py-4 text-base sm:text-lg font-black text-white shadow-lg shadow-[#9E7D3B]/20 transition-all duration-150 disabled:opacity-50 hover:scale-[1.01]"
-            >
-              {loading ? 'Registering File...' : 'Save Customer File'}
-            </button>
-          </div>
+          {initialStatus !== 'Completed and handovered' && (
+            <div className="lg:col-span-2 pt-6 border-t border-[#E6DFD3]/60">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] py-4 text-base sm:text-lg font-black text-white shadow-lg shadow-[#9E7D3B]/20 transition-all duration-150 disabled:opacity-50 hover:scale-[1.01]"
+              >
+                {loading ? 'Registering File...' : 'Save Customer File'}
+              </button>
+            </div>
+          )}
         </form>
       </div>
 
@@ -1200,7 +1311,9 @@ export default function ClientForm() {
           {/* Top Panel: Action Controls */}
           <div className="bg-white border-b border-[#E6DFD3] px-3 pt-6 pb-2.5 sm:px-4 sm:pt-4 sm:pb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between shadow-sm flex-none">
             <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-              <span className="font-extrabold text-slate-800 text-base sm:text-lg">Measurement Board</span>
+              <span className="font-extrabold text-slate-800 text-base sm:text-lg">
+                {initialStatus === 'Completed and handovered' ? 'Measurement Board (Read Only)' : 'Measurement Board'}
+              </span>
               
               {/* Page Navigation Controls */}
               <div className="flex items-center gap-2 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100 origin-right">
@@ -1233,61 +1346,75 @@ export default function ClientForm() {
                 </button>
 
                 {/* Plus Sign Button to Add Page */}
-                <button
-                  type="button"
-                  onClick={handleAddPage}
-                  className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
-                  title="Add Another Page"
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
+                {initialStatus !== 'Completed and handovered' && (
+                  <button
+                    type="button"
+                    onClick={handleAddPage}
+                    className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                    title="Add Another Page"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={strokes.length === 0}
-                className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
-                title="Undo Stroke"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                </svg>
-                <span>Undo</span>
-              </button>
+              {initialStatus === 'Completed and handovered' ? (
+                <button
+                  type="button"
+                  onClick={handleCancelDrawing}
+                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs sm:text-sm font-black rounded-lg transition-colors cursor-pointer"
+                >
+                  Close View
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUndo}
+                    disabled={strokes.length === 0}
+                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
+                    title="Undo Stroke"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    <span>Undo</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={handleClear}
-                disabled={strokes.length === 0}
-                className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
-                title="Clear All"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Clear</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={strokes.length === 0}
+                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
+                    title="Clear All"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Clear</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={handleCancelDrawing}
-                className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm"
-              >
-                Cancel
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelDrawing}
+                    className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm"
+                  >
+                    Cancel
+                  </button>
 
-              <button
-                type="button"
-                onClick={handleSaveDrawing}
-                className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20"
-              >
-                Done
-              </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveDrawing}
+                    className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20"
+                  >
+                    Done
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -1299,7 +1426,9 @@ export default function ClientForm() {
                 width={1000}
                 height={750}
                 className={`w-full h-full touch-none bg-white ${
-                  drawMode === 'text' ? 'cursor-text' : 'cursor-crosshair'
+                  initialStatus === 'Completed and handovered'
+                    ? 'pointer-events-none'
+                    : drawMode === 'text' ? 'cursor-text' : 'cursor-crosshair'
                 }`}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
@@ -1373,7 +1502,8 @@ export default function ClientForm() {
           </div>
 
           {/* Bottom Panel: Brush styles & Color Selection */}
-          <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3.5 sm:gap-6 sm:flex-row items-center justify-between shadow-inner flex-none">
+          {initialStatus !== 'Completed and handovered' && (
+            <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3.5 sm:gap-6 sm:flex-row items-center justify-between shadow-inner flex-none">
             {/* Color Palette */}
             <div className="flex items-center justify-between w-full sm:w-auto gap-4">
               <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider select-none shrink-0">
@@ -1477,8 +1607,9 @@ export default function ClientForm() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
 
       {/* Custom Modern Confirm Clear Modal */}
       {showClearConfirm && (
@@ -1638,6 +1769,91 @@ export default function ClientForm() {
                 });
               })()}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Fullscreen Image Lightbox Modal */}
+      {activeLightbox && (
+        <div className="fixed inset-0 bg-black/95 z-[70] flex flex-col justify-between animate-in fade-in duration-200">
+          {/* Lightbox Header */}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent flex-none">
+            <div>
+              <h4 className="text-white font-extrabold text-sm sm:text-base">{activeLightbox.title}</h4>
+            </div>
+            <button
+              onClick={() => setActiveLightbox(null)}
+              className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer text-xl font-bold"
+              title="Close Fullscreen View"
+            >
+              &times;
+            </button>
+          </div>
+
+          {/* Lightbox Canvas Area */}
+          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center px-4 relative">
+            {/* Slide Left Button */}
+            {activeLightbox.images.length > 1 && (
+              <button
+                onClick={prevLightboxPhoto}
+                className="absolute left-4 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer z-10 font-bold text-lg select-none"
+              >
+                &larr;
+              </button>
+            )}
+
+            {/* Main Lightbox Image */}
+            <div className="relative w-full h-full max-h-[75vh] max-w-4xl select-none">
+              <Image
+                src={activeLightbox.images[lightboxIndex]}
+                alt="Large preview"
+                fill
+                sizes="(max-width: 1200px) 100vw, 1200px"
+                className="object-contain"
+                priority
+              />
+            </div>
+
+            {/* Slide Right Button */}
+            {activeLightbox.images.length > 1 && (
+              <button
+                onClick={nextLightboxPhoto}
+                className="absolute right-4 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer z-10 font-bold text-lg select-none"
+              >
+                &rarr;
+              </button>
+            )}
+          </div>
+
+          {/* Lightbox Footer & Thumbnail row */}
+          <div className="flex flex-col items-center gap-3 py-4 bg-gradient-to-t from-black/60 to-transparent flex-none">
+            {/* Counter Label */}
+            <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-black tracking-widest text-white/90 uppercase select-none">
+              Photo {lightboxIndex + 1} of {activeLightbox.images.length}
+            </span>
+
+            {/* Thumbnails Row */}
+            {activeLightbox.images.length > 1 && (
+              <div className="flex gap-2 items-center overflow-x-auto max-w-full px-4 py-1">
+                {activeLightbox.images.map((thumb, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setLightboxIndex(idx)}
+                    className={`relative h-12 w-12 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                      lightboxIndex === idx ? 'border-[#9E7D3B] scale-105' : 'border-white/20 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Image
+                      src={thumb}
+                      alt="thumbnail"
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
