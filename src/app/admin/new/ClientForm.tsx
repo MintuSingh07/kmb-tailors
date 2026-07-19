@@ -62,6 +62,8 @@ export default function ClientForm() {
   const [currentWidth, setCurrentWidth] = useState(4);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const isDrawingRef = useRef(false);
+  const activePointsRef = useRef<{ x: number; y: number }[]>([]);
   const [drawMode, setDrawMode] = useState<'draw' | 'text'>('draw');
 
   // Text editor overlay state
@@ -533,6 +535,7 @@ export default function ClientForm() {
       setHasDraggedText(false);
       canvas.setPointerCapture(e.pointerId);
       setIsDrawing(true);
+      isDrawingRef.current = true;
       return;
     }
 
@@ -561,21 +564,42 @@ export default function ClientForm() {
 
     canvas.setPointerCapture(e.pointerId);
     setIsDrawing(true);
-    
-    // Create new stroke (multiply width by 4 for eraser to make it efficient)
-    const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
-    const newStroke: Stroke = {
-      color: currentColor,
-      width: actualWidth,
-      points: [coords],
-      page: currentPage,
-    };
-    
-    setStrokes((prev) => [...prev, newStroke]);
+    isDrawingRef.current = true;
+    activePointsRef.current = [coords];
+
+    // Draw initial dot
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const dpr = window.devicePixelRatio || 1;
+      const cssWidth = canvas.width / dpr;
+      const cssHeight = canvas.height / dpr;
+      const scaleX = cssWidth / 1000;
+      const scaleY = cssHeight / 750;
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+      ctx.lineWidth = actualWidth * scaleX;
+      ctx.strokeStyle = currentColor;
+
+      if (currentColor === '#FFFFFF') {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
+      ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
+      ctx.stroke();
+      ctx.restore();
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     e.preventDefault();
     
     const coords = getCanvasCoords(e);
@@ -602,29 +626,58 @@ export default function ClientForm() {
       return;
     }
 
-    if (drawMode === 'text' || strokes.length === 0) return;
+    if (drawMode === 'text') return;
     
-    // Update the active stroke (last element)
-    setStrokes((prev) => {
-      const copy = [...prev];
-      const active = copy[copy.length - 1];
-      
-      // Prevent push coordinates that are identical to the last point
-      const lastPoint = active.points[active.points.length - 1];
-      if (!lastPoint || lastPoint.x !== coords.x || lastPoint.y !== coords.y) {
-        active.points.push(coords);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const lastPoint = activePointsRef.current[activePointsRef.current.length - 1];
+    if (!lastPoint || lastPoint.x !== coords.x || lastPoint.y !== coords.y) {
+      activePointsRef.current.push(coords);
+
+      const dpr = window.devicePixelRatio || 1;
+      const cssWidth = canvas.width / dpr;
+      const cssHeight = canvas.height / dpr;
+      const scaleX = cssWidth / 1000;
+      const scaleY = cssHeight / 750;
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+      ctx.lineWidth = actualWidth * scaleX;
+      ctx.strokeStyle = currentColor;
+
+      if (currentColor === '#FFFFFF') {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
       }
-      return copy;
-    });
+
+      ctx.beginPath();
+      if (lastPoint) {
+        ctx.moveTo(lastPoint.x * scaleX, lastPoint.y * scaleY);
+        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
+      } else {
+        ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
+        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     e.preventDefault();
     const canvas = canvasRef.current;
     if (canvas) {
       canvas.releasePointerCapture(e.pointerId);
     }
+    isDrawingRef.current = false;
     setIsDrawing(false);
 
     if (draggingText) {
@@ -655,6 +708,19 @@ export default function ClientForm() {
       setDraggingText(null);
       setHasDraggedText(false);
       return;
+    }
+
+    if (drawMode !== 'text' && activePointsRef.current.length > 0) {
+      // Commit active stroke to React state
+      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+      const newStroke: Stroke = {
+        color: currentColor,
+        width: actualWidth,
+        points: [...activePointsRef.current],
+        page: currentPage,
+      };
+      setStrokes((prev) => [...prev, newStroke]);
+      activePointsRef.current = [];
     }
   };
 
