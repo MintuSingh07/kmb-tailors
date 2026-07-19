@@ -983,6 +983,11 @@ export default function ClientForm() {
       return;
     }
 
+    if (suitStatus === 'Completed and handovered' && (!price || Number(price) <= 0)) {
+      setError('Please enter the stitching price when marking the order as Completed.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -1156,53 +1161,31 @@ export default function ClientForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                  Suit Category
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (initialStatus !== 'Completed and handovered') {
-                      setIsCategoryModalOpen(true);
-                    }
-                  }}
-                  disabled={initialStatus === 'Completed and handovered'}
-                  className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                >
-                  <span className="truncate">{category || 'Select Category'}</span>
-                  <span className="flex items-center gap-1.5 text-slate-400">
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="m21 21-4.3-4.3" />
-                    </svg>
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </span>
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                  Stitching Price (Rs.)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={price}
-                  onChange={(e) => {
-                    const cleaned = e.target.value.replace(/[^0-9]/g, '');
-                    setPrice(cleaned);
-                  }}
-                  required
-                  placeholder="e.g. 8500"
-                  disabled={initialStatus === 'Completed and handovered'}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                />
-              </div>
+            <div>
+              <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
+                Suit Category
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (initialStatus !== 'Completed and handovered') {
+                    setIsCategoryModalOpen(true);
+                  }
+                }}
+                disabled={initialStatus === 'Completed and handovered'}
+                className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+              >
+                <span className="truncate">{category || 'Select Category'}</span>
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+              </button>
             </div>
 
             {isEditMode && (
@@ -1244,6 +1227,16 @@ export default function ClientForm() {
                     ) : (
                       <p className="text-xs sm:text-sm text-slate-400 font-medium italic">No handover photos uploaded.</p>
                     )}
+
+                    {/* Read-only price display in completed view */}
+                    <div className="pt-4 border-t border-slate-100">
+                      <label className="block text-base sm:text-lg font-bold text-slate-700 mb-1.5">
+                        Stitching Price (Rs.)
+                      </label>
+                      <div className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm select-none">
+                        Rs. {price || '0'}
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -1365,6 +1358,26 @@ export default function ClientForm() {
                             ))}
                           </div>
                         )}
+
+                        {/* Stitching Price Input for Handover State */}
+                        <div className="pt-4 border-t border-[#E6DFD3]/60 space-y-2">
+                          <label className="block text-sm sm:text-base font-bold text-slate-700">
+                            Stitching Price (Rs.) <span className="text-rose-600 font-extrabold">(Required)</span>
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={price}
+                            onChange={(e) => {
+                              const cleaned = e.target.value.replace(/[^0-9]/g, '');
+                              setPrice(cleaned);
+                            }}
+                            required
+                            placeholder="e.g. 8500"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                          />
+                        </div>
                       </div>
                     )}
                   </>

@@ -28,7 +28,6 @@ const ClientSchema = new Schema(
     },
     price: {
       type: Number,
-      required: [true, 'Please provide a price in Rupees'],
       min: [0, 'Price cannot be negative'],
       default: 0,
     },
