@@ -64,7 +64,12 @@ export default function ClientForm() {
   const [isDrawing, setIsDrawing] = useState(false);
   const isDrawingRef = useRef(false);
   const activePointsRef = useRef<{ x: number; y: number }[]>([]);
-  const [drawMode, setDrawMode] = useState<'draw' | 'text'>('draw');
+  const [drawMode, setDrawMode] = useState<'draw' | 'text' | 'none'>('draw');
+  const [scale, setScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef({ x: 0, y: 0 });
+  const panInitialOffsetRef = useRef({ x: 0, y: 0 });
 
   // Text editor overlay state
   const [activeTextEditor, setActiveTextEditor] = useState<{
@@ -120,6 +125,12 @@ export default function ClientForm() {
     window.addEventListener('click', handleClickOutside);
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Reset zoom and pan offset when page or drawing modal changes
+  useEffect(() => {
+    setScale(1);
+    setPanOffset({ x: 0, y: 0 });
+  }, [currentPage, isDrawingOpen]);
 
   // Fetch client code search suggestions when clientNo input changes
   useEffect(() => {
@@ -360,7 +371,7 @@ export default function ClientForm() {
       }
       redrawCanvas();
     }
-  }, [isDrawingOpen, strokes, currentPage]);
+  }, [isDrawingOpen, strokes, currentPage, scale, panOffset]);
 
   // Handle window resizing / tablet rotation to keep drawings razor sharp
   useEffect(() => {
@@ -377,7 +388,7 @@ export default function ClientForm() {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isDrawingOpen, strokes, currentPage]);
+  }, [isDrawingOpen, strokes, currentPage, scale, panOffset]);
 
   const redrawCanvas = () => {
     const canvas = canvasRef.current;
@@ -405,6 +416,11 @@ export default function ClientForm() {
     offCtx.scale(dpr, dpr);
     offCtx.lineCap = 'round';
     offCtx.lineJoin = 'round';
+
+    // Apply pan and zoom context transformations to offscreen canvas
+    offCtx.save();
+    offCtx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
+    offCtx.scale(scale, scale);
 
     const activeStrokes = strokes.filter(
       (stroke) => stroke.page === currentPage || (!stroke.page && currentPage === 1)
@@ -445,6 +461,7 @@ export default function ClientForm() {
         offCtx.stroke();
       }
     });
+    offCtx.restore();
 
     // 2. Clear the visible canvas in absolute physical pixels
     ctx.save();
@@ -453,15 +470,31 @@ export default function ClientForm() {
 
     // 3. Draw visible canvas components (guidelines) in CSS scale
     ctx.scale(dpr, dpr);
+    
+    // Apply pan and zoom to guidelines as well so they zoom/pan properly
+    ctx.save();
+    ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
+    ctx.scale(scale, scale);
 
     ctx.strokeStyle = '#F0E7D5';
-    ctx.lineWidth = 1.5;
-    for (let y = 40 * scaleY; y < cssHeight; y += 40 * scaleY) {
+    ctx.lineWidth = 1.5 / scale; // Prevent lines getting too thick when zooming in
+    
+    // Calculate visible viewport range in logical coordinates to fill entire visible area
+    const yMin = -panOffset.y / scale;
+    const yMax = (750 - panOffset.y) / scale;
+    const xMin = -panOffset.x / scale;
+    const xMax = (1000 - panOffset.x) / scale;
+
+    const startLogicalY = Math.floor(yMin / 40) * 40;
+    const endLogicalY = Math.ceil(yMax / 40) * 40;
+
+    for (let ly = startLogicalY; ly <= endLogicalY; ly += 40) {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(cssWidth, y);
+      ctx.moveTo(xMin * scaleX, ly * scaleY);
+      ctx.lineTo(xMax * scaleX, ly * scaleY);
       ctx.stroke();
     }
+    ctx.restore();
 
     // 4. Draw offscreen canvas 1:1 onto visible canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to copy physical buffer 1-to-1
@@ -476,10 +509,26 @@ export default function ClientForm() {
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     
-    // Normalize coordinates to the database grid of 1000x750
-    const x = ((e.clientX - rect.left) / rect.width) * 1000;
-    const y = ((e.clientY - rect.top) / rect.height) * 750;
+    // Normalize coordinates in CSS pixels
+    const cssX = e.clientX - rect.left;
+    const cssY = e.clientY - rect.top;
+    
+    // Map to base 1000x750 layout
+    let x = (cssX / rect.width) * 1000;
+    let y = (cssY / rect.height) * 750;
+
+    // Apply inverse zoom and pan
+    x = (x - panOffset.x) / scale;
+    y = (y - panOffset.y) / scale;
+
     return { x, y };
+  };
+
+  const getTextEditorPosition = () => {
+    if (!activeTextEditor) return { x: 0, y: 0 };
+    const xCSS = ((activeTextEditor.canvasX * scale + panOffset.x) / 1000) * 100;
+    const yCSS = ((activeTextEditor.canvasY * scale + panOffset.y) / 750) * 100;
+    return { x: xCSS, y: yCSS };
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -487,6 +536,15 @@ export default function ClientForm() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    // Check if we should pan
+    if (drawMode === 'none') {
+      isPanningRef.current = true;
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+      panInitialOffsetRef.current = { ...panOffset };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+
     const coords = getCanvasCoords(e);
 
     // If there's an active text editor open, commit it first (supports click-outside-to-save on mobile/tablet)
@@ -562,43 +620,65 @@ export default function ClientForm() {
       return;
     }
 
-    canvas.setPointerCapture(e.pointerId);
-    setIsDrawing(true);
-    isDrawingRef.current = true;
-    activePointsRef.current = [coords];
+    // Only allow drawing if Pen/Eraser mode is active (drawMode === 'draw')
+    if (drawMode === 'draw') {
+      canvas.setPointerCapture(e.pointerId);
+      setIsDrawing(true);
+      isDrawingRef.current = true;
+      activePointsRef.current = [coords];
 
-    // Draw initial dot
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const dpr = window.devicePixelRatio || 1;
-      const cssWidth = canvas.width / dpr;
-      const cssHeight = canvas.height / dpr;
-      const scaleX = cssWidth / 1000;
-      const scaleY = cssHeight / 750;
+      // Draw initial dot
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const dpr = window.devicePixelRatio || 1;
+        const cssWidth = canvas.width / dpr;
+        const cssHeight = canvas.height / dpr;
+        const scaleX = cssWidth / 1000;
+        const scaleY = cssHeight / 750;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
-      ctx.lineWidth = actualWidth * scaleX;
-      ctx.strokeStyle = currentColor;
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
+        ctx.scale(scale, scale);
 
-      if (currentColor === '#FFFFFF') {
-        ctx.globalCompositeOperation = 'destination-out';
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+        ctx.lineWidth = actualWidth * scaleX;
+        ctx.strokeStyle = currentColor;
+
+        if (currentColor === '#FFFFFF') {
+          ctx.globalCompositeOperation = 'destination-out';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
+        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
+        ctx.stroke();
+        ctx.restore();
       }
-
-      ctx.beginPath();
-      ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
-      ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
-      ctx.stroke();
-      ctx.restore();
     }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Handle active panning
+    if (isPanningRef.current) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const dx = ((e.clientX - panStartRef.current.x) / rect.width) * 1000;
+      const dy = ((e.clientY - panStartRef.current.y) / rect.height) * 750;
+      setPanOffset({
+        x: panInitialOffsetRef.current.x + dx,
+        y: panInitialOffsetRef.current.y + dy,
+      });
+      return;
+    }
+
     if (!isDrawingRef.current) return;
     e.preventDefault();
     
@@ -626,10 +706,8 @@ export default function ClientForm() {
       return;
     }
 
-    if (drawMode === 'text') return;
+    if (drawMode !== 'draw') return;
     
-    const canvas = canvasRef.current;
-    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -645,6 +723,9 @@ export default function ClientForm() {
 
       ctx.save();
       ctx.scale(dpr, dpr);
+      ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
+      ctx.scale(scale, scale);
+
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
@@ -671,12 +752,20 @@ export default function ClientForm() {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current) return;
-    e.preventDefault();
     const canvas = canvasRef.current;
     if (canvas) {
       canvas.releasePointerCapture(e.pointerId);
     }
+
+    if (isPanningRef.current) {
+      e.preventDefault();
+      isPanningRef.current = false;
+      return;
+    }
+
+    if (!isDrawingRef.current) return;
+    e.preventDefault();
+    
     isDrawingRef.current = false;
     setIsDrawing(false);
 
@@ -710,7 +799,7 @@ export default function ClientForm() {
       return;
     }
 
-    if (drawMode !== 'text' && activePointsRef.current.length > 0) {
+    if (drawMode === 'draw' && activePointsRef.current.length > 0) {
       // Commit active stroke to React state
       const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
       const newStroke: Stroke = {
@@ -721,6 +810,36 @@ export default function ClientForm() {
       };
       setStrokes((prev) => [...prev, newStroke]);
       activePointsRef.current = [];
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+
+    // Get cursor position in CSS pixels relative to canvas
+    const cursorCSSX = e.clientX - rect.left;
+    const cursorCSSY = e.clientY - rect.top;
+
+    // Translate CSS pixels to logical coordinates
+    const cursorX = (cursorCSSX / rect.width) * 1000;
+    const cursorY = (cursorCSSY / rect.height) * 750;
+
+    // Calculate new scale
+    const newScale = e.deltaY < 0 
+      ? Math.min(scale * zoomFactor, 5) 
+      : Math.max(scale / zoomFactor, 0.5);
+
+    if (newScale !== scale) {
+      const scaleRatio = newScale / scale;
+      const newPanX = cursorX - (cursorX - panOffset.x) * scaleRatio;
+      const newPanY = cursorY - (cursorY - panOffset.y) * scaleRatio;
+
+      setScale(newScale);
+      setPanOffset({ x: newPanX, y: newPanY });
     }
   };
 
@@ -1366,53 +1485,92 @@ export default function ClientForm() {
           {/* Top Panel: Action Controls */}
           <div className="bg-white border-b border-[#E6DFD3] px-3 pt-6 pb-2.5 sm:px-4 sm:pt-4 sm:pb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between shadow-sm flex-none">
             <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-              <span className="font-extrabold text-slate-800 text-base sm:text-lg">
+              <span className="font-extrabold text-slate-800 text-base sm:text-lg select-none">
                 {initialStatus === 'Completed and handovered' ? 'Measurement Board (Read Only)' : 'Measurement Board'}
               </span>
               
-              {/* Page Navigation Controls */}
-              <div className="flex items-center gap-2 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100 origin-right">
-                <button
-                  type="button"
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                  className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
-                  title="Previous Page"
-                >
-                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <span className="text-[10px] font-black text-slate-700 min-w-[60px] text-center">
-                  Page {currentPage}/{totalPages}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
-                  title="Next Page"
-                >
-                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-
-                {/* Plus Sign Button to Add Page */}
-                {initialStatus !== 'Completed and handovered' && (
+              <div className="flex items-center gap-3">
+                {/* Page Navigation Controls */}
+                <div className="flex items-center gap-2 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100 origin-right">
                   <button
                     type="button"
-                    onClick={handleAddPage}
-                    className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
-                    title="Add Another Page"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                    title="Previous Page"
                   >
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  <span className="text-[10px] font-black text-slate-700 min-w-[60px] text-center">
+                    Page {currentPage}/{totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                    title="Next Page"
+                  >
+                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  {/* Plus Sign Button to Add Page */}
+                  {initialStatus !== 'Completed and handovered' && (
+                    <button
+                      type="button"
+                      onClick={handleAddPage}
+                      className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                      title="Add Another Page"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Zoom controls */}
+                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100">
+                  <button
+                    type="button"
+                    onClick={() => setScale(prev => Math.max(prev / 1.2, 0.5))}
+                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                    title="Zoom Out"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+                    </svg>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScale(1);
+                      setPanOffset({ x: 0, y: 0 });
+                    }}
+                    className="px-2 py-0.5 text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[48px] text-center cursor-pointer shadow-sm"
+                    title="Reset Zoom & Pan"
+                  >
+                    {Math.round(scale * 100)}%
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setScale(prev => Math.min(prev * 1.2, 5))}
+                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                    title="Zoom In"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
-                )}
+                </div>
               </div>
             </div>
 
@@ -1431,7 +1589,7 @@ export default function ClientForm() {
                     type="button"
                     onClick={handleUndo}
                     disabled={strokes.length === 0}
-                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
+                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm cursor-pointer"
                     title="Undo Stroke"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -1444,7 +1602,7 @@ export default function ClientForm() {
                     type="button"
                     onClick={handleClear}
                     disabled={strokes.length === 0}
-                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm"
+                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm cursor-pointer"
                     title="Clear All"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
@@ -1456,7 +1614,7 @@ export default function ClientForm() {
                   <button
                     type="button"
                     onClick={handleCancelDrawing}
-                    className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm"
+                    className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1464,7 +1622,7 @@ export default function ClientForm() {
                   <button
                     type="button"
                     onClick={handleSaveDrawing}
-                    className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20"
+                    className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
                   >
                     Done
                   </button>
@@ -1476,6 +1634,170 @@ export default function ClientForm() {
           {/* Center Drawing Area */}
           <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-2.5 sm:p-4">
             <div className="relative bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden w-full h-full">
+              {/* Floating capsule toolbar in the top section */}
+              {initialStatus !== 'Completed and handovered' && (
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-4 py-2 sm:px-6 sm:py-3 rounded-2xl sm:rounded-full border border-slate-200 shadow-xl flex flex-row flex-wrap justify-center items-center gap-3 sm:gap-4 select-none max-w-[95%]">
+                  {/* Tool Selection Segmented Control */}
+                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner">
+                    {/* Pen Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (drawMode === 'draw' && currentColor !== '#FFFFFF') {
+                          setDrawMode('none');
+                        } else {
+                          setDrawMode('draw');
+                          if (currentColor === '#FFFFFF') {
+                            setCurrentColor('#1A1A1A'); // Reset from eraser to black
+                          }
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                        drawMode === 'draw' && currentColor !== '#FFFFFF'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                      title="Pen Tool (Click to select/deselect)"
+                    >
+                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Pen</span>
+                    </button>
+
+                    {/* Text Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (drawMode === 'text') {
+                          setDrawMode('none');
+                        } else {
+                          setDrawMode('text');
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                        drawMode === 'text'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                      title="Text Tool (Click to select/deselect)"
+                    >
+                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+                      </svg>
+                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Text</span>
+                    </button>
+
+                    {/* Eraser Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (drawMode === 'draw' && currentColor === '#FFFFFF') {
+                          setDrawMode('none');
+                        } else {
+                          setDrawMode('draw');
+                          setCurrentColor('#FFFFFF');
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                        drawMode === 'draw' && currentColor === '#FFFFFF'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                      title="Eraser Tool (Click to select/deselect)"
+                    >
+                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+                        <path d="m22 21H7" />
+                        <path d="m5 11 9 9" />
+                      </svg>
+                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Eraser</span>
+                    </button>
+
+                    {/* Move / Pan Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (drawMode === 'none') {
+                          setDrawMode('draw'); // Toggling Move off defaults back to Pen drawing
+                          if (currentColor === '#FFFFFF') {
+                            setCurrentColor('#1A1A1A');
+                          }
+                        } else {
+                          setDrawMode('none');
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                        drawMode === 'none'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                      title="Move Mode (Click to select/deselect)"
+                    >
+                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9c0 5.5 4.5 10 10 10s10-4.5 10-10V11a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2" />
+                      </svg>
+                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Move</span>
+                    </button>
+                  </div>
+
+                  {/* Vertical Divider */}
+                  <div className="w-[1px] h-8 bg-slate-200 select-none" />
+
+                  {/* Color Palette (only clickable to select/active Pen drawing) */}
+                  <div className="flex items-center gap-2">
+                    {[
+                      { hex: '#1A1A1A', name: 'Black' },
+                      { hex: '#E53E3E', name: 'Red' },
+                      { hex: '#3182CE', name: 'Blue' },
+                      { hex: '#38A169', name: 'Green' },
+                    ].map((c) => (
+                      <button
+                        key={c.hex}
+                        type="button"
+                        onClick={() => {
+                          setCurrentColor(c.hex);
+                          setDrawMode('draw');
+                        }}
+                        className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-slate-200 transition-all duration-200 cursor-pointer ${
+                          currentColor === c.hex && drawMode === 'draw'
+                            ? 'scale-110 ring-4 ring-[#9E7D3B]/40 border-[#9E7D3B]'
+                            : 'hover:scale-105 active:scale-95'
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Vertical Divider */}
+                  <div className="w-[1px] h-8 bg-slate-200 select-none" />
+
+                  {/* Line Width Segmented Control with visual dots */}
+                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner select-none">
+                    {[
+                      { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
+                      { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
+                      { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
+                    ].map((w) => (
+                      <button
+                        key={w.size}
+                        type="button"
+                        onClick={() => setCurrentWidth(w.size)}
+                        className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                          currentWidth === w.size
+                            ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        title={`${w.label} Line Width`}
+                      >
+                        <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <canvas
                 ref={canvasRef}
                 width={1000}
@@ -1483,46 +1805,53 @@ export default function ClientForm() {
                 className={`w-full h-full touch-none bg-white ${
                   initialStatus === 'Completed and handovered'
                     ? 'pointer-events-none'
-                    : drawMode === 'text' ? 'cursor-text' : 'cursor-crosshair'
+                    : drawMode === 'text'
+                    ? 'cursor-text'
+                    : drawMode === 'none'
+                    ? 'cursor-grab active:cursor-grabbing'
+                    : 'cursor-crosshair'
                 }`}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
+                onWheel={handleWheel}
               />
 
-               {activeTextEditor && (
-                <div
-                  style={{
-                    left: `${activeTextEditor.x}%`,
-                    top: `${activeTextEditor.y}%`,
-                    transform: 'translate(-5px, -50%)',
-                  }}
-                  className="absolute z-30 max-w-[90%] flex items-center"
-                >
-                  <div className="relative group">
-                    <input
-                      id="whiteboard-text-input"
-                      type="text"
-                      autoFocus
-                      value={activeTextEditor.text}
-                      onChange={(e) => {
-                        setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.currentTarget.blur();
-                        } else if (e.key === 'Escape') {
-                          setActiveTextEditor(null);
-                        }
-                      }}
-                      onBlur={() => commitText(activeTextEditor)}
-                      placeholder="Type notes..."
-                      style={{
-                        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
-                        caretColor: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
-                        fontSize: `${activeTextEditor.fontSize}px`,
-                        width: `${Math.max(10, activeTextEditor.text.length || 12)}ch`,
-                      }}
+              {activeTextEditor && (() => {
+                const pos = getTextEditorPosition();
+                return (
+                  <div
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      transform: 'translate(-5px, -50%)',
+                    }}
+                    className="absolute z-30 max-w-[90%] flex items-center"
+                  >
+                    <div className="relative group">
+                      <input
+                        id="whiteboard-text-input"
+                        type="text"
+                        autoFocus
+                        value={activeTextEditor.text}
+                        onChange={(e) => {
+                          setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          } else if (e.key === 'Escape') {
+                            setActiveTextEditor(null);
+                          }
+                        }}
+                        onBlur={() => commitText(activeTextEditor)}
+                        placeholder="Type notes..."
+                        style={{
+                          color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+                          caretColor: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+                          fontSize: `${activeTextEditor.fontSize * scale}px`,
+                          width: `${Math.max(10, activeTextEditor.text.length || 12)}ch`,
+                        }}
                       className="bg-transparent px-1.5 py-0.5 border border-black text-[#1A1A1A] text-sm font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black animate-in zoom-in-95 duration-100"
                     />
 
@@ -1552,119 +1881,14 @@ export default function ClientForm() {
                     />
                   </div>
                 </div>
-              )}
+              );
+            })()}
             </div>
           </div>
 
-          {/* Bottom Panel: Brush styles & Color Selection */}
-          {initialStatus !== 'Completed and handovered' && (
-            <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3.5 sm:gap-6 sm:flex-row items-center justify-between shadow-inner flex-none">
-            {/* Color Palette */}
-            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-              <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider select-none shrink-0">
-                Ink Color
-              </span>
-              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-                {[
-                  { hex: '#1A1A1A', name: 'Black' },
-                  { hex: '#E53E3E', name: 'Red' },
-                  { hex: '#3182CE', name: 'Blue' },
-                  { hex: '#38A169', name: 'Green' },
-                ].map((c) => (
-                  <button
-                    key={c.hex}
-                    type="button"
-                    onClick={() => {
-                      setCurrentColor(c.hex);
-                      setDrawMode('draw');
-                    }}
-                    className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full border border-slate-200 transition-all duration-200 ${
-                      currentColor === c.hex && drawMode === 'draw'
-                        ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
-                        : 'hover:scale-105 active:scale-95'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
 
-                {/* Divider */}
-                <div className="w-[1px] h-6 bg-slate-200 mx-0.5 select-none" />
-
-                {/* Eraser Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentColor('#FFFFFF');
-                    setDrawMode('draw');
-                  }}
-                  className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
-                    currentColor === '#FFFFFF' && drawMode === 'draw'
-                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B]'
-                      : 'hover:scale-105 active:scale-95'
-                  }`}
-                  title="Eraser"
-                >
-                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
-                    <path d="m22 21H7" />
-                    <path d="m5 11 9 9" />
-                  </svg>
-                </button>
-
-                {/* Text Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDrawMode(drawMode === 'text' ? 'draw' : 'text');
-                    if (currentColor === '#FFFFFF') {
-                      setCurrentColor('#1A1A1A'); // Reset from eraser to black for text placement
-                    }
-                  }}
-                  className={`h-8 w-8 sm:h-10 sm:w-10 rounded-lg border border-slate-200 flex items-center justify-center bg-white text-slate-500 hover:text-slate-700 transition-all duration-200 ${
-                    drawMode === 'text'
-                      ? 'scale-110 ring-4 ring-[#9E7D3B]/30 border-[#9E7D3B] bg-slate-50'
-                      : 'hover:scale-105 active:scale-95'
-                  }`}
-                  title="Add Text"
-                >
-                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 7V4h16v3M9 20h6M12 4v16" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Brush Width Selector (Segmented Control) */}
-            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-              <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider select-none shrink-0">
-                Line Width
-              </span>
-              <div className="flex bg-slate-200/60 p-0.5 rounded-xl w-full sm:w-56">
-                {[
-                  { size: 2, name: 'Thin' },
-                  { size: 4, name: 'Medium' },
-                  { size: 7, name: 'Thick' },
-                ].map((w) => (
-                  <button
-                    key={w.size}
-                    type="button"
-                    onClick={() => setCurrentWidth(w.size)}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
-                      currentWidth === w.size
-                        ? 'bg-white text-slate-800 shadow-sm scale-[1.02]'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {w.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
+        </div>
+      )}
 
       {/* Custom Modern Confirm Clear Modal */}
       {showClearConfirm && (
