@@ -297,70 +297,59 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-sm font-extrabold text-slate-500 tracking-wider select-none uppercase">
-                  <th className="py-5 px-6 w-16 text-center"></th>
                   <th className="py-5 px-6">Customer Details</th>
                   <th className="py-5 px-6 w-36">Client Code</th>
                   <th className="py-5 px-6 w-48">Contact Number</th>
                   <th className="py-5 px-6 w-40 text-center">Orders Count</th>
-                  <th className="py-5 px-6 w-44 text-right">Actions</th>
+                  <th className="py-5 px-6 w-52 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {groupedCustomers.map((group) => {
-                  const isExpanded = !!expandedClients[group.clientNo];
                   const queryCount = group.queries.length;
 
                   return (
-                    <Fragment key={group.clientNo}>
-                      {/* Main Customer Profile Row */}
-                      <tr 
-                        className="hover:bg-slate-50/50 transition-colors cursor-pointer"
-                        onClick={() => toggleExpand(group.clientNo)}
-                      >
-                        {/* Expand/Collapse Arrow */}
-                        <td className="py-5.5 px-6 text-center">
-                          <button 
-                            type="button" 
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                    <tr 
+                      key={group.clientNo}
+                      className="hover:bg-slate-50/50 transition-colors"
+                    >
+                      {/* Customer Name */}
+                      <td className="py-5.5 px-6">
+                        <span className="font-black text-slate-800 text-lg sm:text-xl truncate block max-w-xs leading-snug">
+                          {group.name}
+                        </span>
+                      </td>
+
+                      {/* Client Code */}
+                      <td className="py-5.5 px-6 font-black text-slate-700 text-base">
+                        {group.clientNo}
+                      </td>
+
+                      {/* Primary Phone */}
+                      <td className="py-5.5 px-6 font-extrabold text-slate-700 text-base">
+                        {group.contactNo}
+                      </td>
+
+                      {/* Orders count badge */}
+                      <td className="py-5.5 px-6 text-center">
+                        <span className="inline-flex items-center justify-center px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black rounded-full select-none">
+                          {queryCount} {queryCount === 1 ? 'Order' : 'Orders'}
+                        </span>
+                      </td>
+
+                      {/* Actions: Show Details and Delete */}
+                      <td className="py-5.5 px-6 text-right">
+                        <div className="flex items-center justify-end gap-3 select-none">
+                          <Link
+                            href={`/admin/history/${group.clientNo}`}
+                            className="whitespace-nowrap px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                           >
-                            <svg 
-                              className={`h-4.5 w-4.5 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke="currentColor" 
-                              strokeWidth="2.5"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" />
+                            <svg className="h-3.5 w-3.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             </svg>
-                          </button>
-                        </td>
-
-                        {/* Customer Name */}
-                        <td className="py-5.5 px-6">
-                          <span className="font-black text-slate-800 text-lg sm:text-xl truncate block max-w-xs leading-snug">
-                            {group.name}
-                          </span>
-                        </td>
-
-                        {/* Client Code */}
-                        <td className="py-5.5 px-6 font-black text-slate-700 text-base">
-                          {group.clientNo}
-                        </td>
-
-                        {/* Primary Phone */}
-                        <td className="py-5.5 px-6 font-extrabold text-slate-700 text-base">
-                          {group.contactNo}
-                        </td>
-
-                        {/* Orders count badge */}
-                        <td className="py-5.5 px-6 text-center">
-                          <span className="inline-flex items-center justify-center px-3 py-1 bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black rounded-full select-none">
-                            {queryCount} {queryCount === 1 ? 'Order' : 'Orders'}
-                          </span>
-                        </td>
-
-                        {/* Actions (Delete All records of this customer) */}
-                        <td className="py-5.5 px-6 text-right">
+                            View Profile
+                          </Link>
                           <button
                             type="button"
                             onClick={(e) => {
@@ -376,118 +365,9 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                             </svg>
                           </button>
-                        </td>
-                      </tr>
-
-                      {/* Collapsible Sub-Table showing queries */}
-                      {isExpanded && (
-                        <tr className="bg-[#FAF9F5]/45">
-                          <td colSpan={6} className="p-0 border-t border-slate-100">
-                            <div className="px-12 py-5 border-l-4 border-[#9E7D3B] space-y-4">
-                              <h4 className="text-xs font-black tracking-widest text-[#9E7D3B] uppercase select-none">
-                                Orders / Suits history for this Customer
-                              </h4>
-                              
-                              <div className="border border-slate-100 rounded-2xl bg-white shadow-inner overflow-hidden">
-                                <table className="w-full text-sm">
-                                  <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 tracking-wider uppercase select-none">
-                                      <th className="py-3.5 px-5 w-20 text-center">Cover</th>
-                                      <th className="py-3.5 px-5">Category</th>
-                                      <th className="py-3.5 px-5 w-32">Stitching Price</th>
-                                      <th className="py-3.5 px-5 w-40 text-center">Status</th>
-                                      <th className="py-3.5 px-5 w-44">Registered Date</th>
-                                      <th className="py-3.5 px-5 w-56 text-right">Actions</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-slate-100">
-                                    {group.queries.map((q) => {
-                                      const hasImage = q.images && q.images.length > 0;
-                                      const primaryImage = hasImage ? q.images[0] : null;
-
-                                      return (
-                                        <tr key={q._id} className="hover:bg-slate-50/40 transition-colors">
-                                          {/* Style cover */}
-                                          <td className="py-3 px-5 text-center">
-                                            {primaryImage ? (
-                                              <div className="relative h-10 w-10 rounded-lg overflow-hidden border border-slate-200 mx-auto bg-slate-100 shadow-sm shrink-0">
-                                                <Image
-                                                  src={primaryImage}
-                                                  alt={q.category}
-                                                  fill
-                                                  sizes="40px"
-                                                  className="object-cover"
-                                                />
-                                              </div>
-                                            ) : (
-                                              <div className="h-10 w-10 rounded-lg border border-[#E6DFD3] mx-auto bg-[#FCFAF5] flex items-center justify-center text-[9px] font-black text-slate-400 tracking-widest shrink-0 uppercase select-none">
-                                                No Pic
-                                              </div>
-                                            )}
-                                          </td>
-
-                                          {/* Category */}
-                                          <td className="py-3 px-5">
-                                            <span className={`inline-block border rounded-full px-2.5 py-0.5 text-xs font-black uppercase tracking-wider ${getCategoryStyles(q.category)}`}>
-                                              {q.category}
-                                            </span>
-                                          </td>
-
-                                          {/* Stitching Price */}
-                                          <td className="py-3 px-5 font-black text-slate-800">
-                                            Rs. {q.price !== undefined ? q.price.toLocaleString('en-IN') : '0'}
-                                          </td>
-
-                                          {/* Status */}
-                                          <td className="py-3 px-5 text-center select-none">
-                                            <span className={`inline-block border rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${getStatusStyles(q.suitStatus)}`}>
-                                              {q.suitStatus || 'Pending'}
-                                            </span>
-                                          </td>
-
-                                          {/* Date */}
-                                          <td className="py-3 px-5 text-slate-500 font-semibold text-xs select-none">
-                                            {new Date(q.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                          </td>
-
-                                          {/* Actions */}
-                                          <td className="py-3 px-5 text-right select-none">
-                                            <div className="flex items-center justify-end gap-2">
-                                              <Link
-                                                href={`/admin/pending/measurement?id=${q._id}`}
-                                                className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:scale-[1.03] active:scale-[0.97]"
-                                              >
-                                                Drawing
-                                              </Link>
-                                              <Link
-                                                href={`/admin/new?id=${q._id}`}
-                                                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black rounded-full transition-all hover:scale-[1.03] active:scale-[0.97]"
-                                              >
-                                                Edit
-                                              </Link>
-                                              <button
-                                                type="button"
-                                                onClick={() => triggerDeleteQueryConfirm(q._id, group.clientNo, group.name, q.category)}
-                                                className="p-1.5 border border-rose-100 hover:border-rose-300 bg-white hover:bg-rose-50 text-rose-600 rounded-full transition-all cursor-pointer inline-flex items-center justify-center shadow-sm"
-                                                title="Delete this query/order record"
-                                              >
-                                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                </svg>
-                                              </button>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>
@@ -497,7 +377,6 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
           {/* Mobile & Tablet Compact Card List View */}
           <div className="lg:hidden space-y-6">
             {groupedCustomers.map((group) => {
-              const isExpanded = !!expandedClients[group.clientNo];
               const queryCount = group.queries.length;
 
               return (
@@ -506,125 +385,45 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                   className="bg-white border border-[#E6DFD3] rounded-3xl shadow-sm hover:shadow-md transition-all flex flex-col group overflow-hidden"
                 >
                   {/* Customer summary row */}
-                  <div 
-                    onClick={() => toggleExpand(group.clientNo)}
-                    className="p-6 cursor-pointer hover:bg-slate-50/40 transition-colors flex items-center justify-between"
-                  >
+                  <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <h3 className="font-black text-slate-800 text-xl leading-snug">
                         {group.name}
                       </h3>
-                      <p className="text-slate-400 font-bold text-xs mt-0.5 select-none">
-                        Code: {group.clientNo} | {group.contactNo}
+                      <p className="text-slate-400 font-extrabold text-xs mt-0.5 select-none">
+                        Code: {group.clientNo} | Contact: {group.contactNo}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                       <span className="px-2.5 py-0.5 bg-amber-50 border border-amber-200 text-[#9E7D3B] text-[10px] font-black rounded-full select-none uppercase tracking-wider shrink-0">
                         {queryCount} {queryCount === 1 ? 'Order' : 'Orders'}
                       </span>
-                      <svg 
-                        className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-95' : ''}`} 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor" 
-                        strokeWidth="2.5"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Expanded nested list for mobile */}
-                  {isExpanded && (
-                    <div className="border-t border-slate-100 bg-[#FCFAF5]/30 p-5 space-y-4">
-                      <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl bg-white overflow-hidden shadow-inner">
-                        {group.queries.map((q) => {
-                          const hasImage = q.images && q.images.length > 0;
-                          const primaryImage = hasImage ? q.images[0] : null;
-
-                          return (
-                            <div key={q._id} className="p-4 flex gap-4 items-start hover:bg-slate-50/30 transition-colors">
-                              {primaryImage ? (
-                                <div className="relative h-16 w-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm shrink-0">
-                                  <Image
-                                    src={primaryImage}
-                                    alt={q.category}
-                                    fill
-                                    sizes="64px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="h-16 w-16 rounded-xl border border-[#E6DFD3] bg-[#FCFAF5] flex flex-col items-center justify-center text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0 select-none">
-                                  <span>No image</span>
-                                </div>
-                              )}
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className={`inline-block border rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${getCategoryStyles(q.category)}`}>
-                                    {q.category}
-                                  </span>
-                                  <span className="text-slate-500 font-extrabold text-xs">
-                                    Rs. {q.price !== undefined ? q.price.toLocaleString('en-IN') : '0'}
-                                  </span>
-                                </div>
-                                
-                                <div className="flex items-center justify-between mt-2 select-none">
-                                  <span className={`inline-block border rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${getStatusStyles(q.suitStatus)}`}>
-                                    {q.suitStatus || 'Pending'}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 font-semibold">
-                                    {new Date(q.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                  </span>
-                                </div>
-
-                                {/* Actions row for this single query */}
-                                <div className="flex items-center justify-end gap-2 mt-3.5 border-t border-slate-100/60 pt-3 select-none">
-                                  <Link
-                                    href={`/admin/pending/measurement?id=${q._id}`}
-                                    className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all"
-                                  >
-                                    Drawing
-                                  </Link>
-                                  <Link
-                                    href={`/admin/new?id=${q._id}`}
-                                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black rounded-full transition-all"
-                                  >
-                                    Edit
-                                  </Link>
-                                  <button
-                                    type="button"
-                                    onClick={() => triggerDeleteQueryConfirm(q._id, group.clientNo, group.name, q.category)}
-                                    className="px-3 py-1.5 border border-rose-100 hover:border-rose-300 bg-white text-rose-600 rounded-full transition-all inline-flex items-center justify-center text-[10px] font-black gap-1"
-                                    title="Delete query record"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Delete profile row */}
-                      <div className="flex justify-end pt-2 select-none">
+                      
+                      <div className="flex items-center gap-2 select-none">
+                        <Link
+                          href={`/admin/history/${group.clientNo}`}
+                          className="whitespace-nowrap px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                        >
+                          <svg className="h-3.5 w-3.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                          View Profile
+                        </Link>
                         <button
                           type="button"
                           onClick={() => triggerDeleteConfirm(group.clientNo, group.name)}
-                          className="px-4 py-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 text-xs font-black rounded-full transition-all inline-flex items-center gap-1.5"
+                          className="p-2 border border-rose-200 hover:border-rose-400 bg-white hover:bg-rose-50 text-rose-600 rounded-full transition-all shadow-sm"
                           title="Delete entire profile"
                         >
                           <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           </svg>
-                          Delete Entire Customer Profile
                         </button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
