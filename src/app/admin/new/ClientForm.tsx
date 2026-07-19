@@ -33,7 +33,11 @@ export default function ClientForm() {
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
   const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(10);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right'>('left');
+  const [prevPageSnapshot, setPrevPageSnapshot] = useState('');
+  const [currentPageSnapshot, setCurrentPageSnapshot] = useState('');
   const [initialStatus, setInitialStatus] = useState<string>('Pending');
 
   // Lightbox viewer state
@@ -190,9 +194,9 @@ export default function ClientForm() {
         setImages([]);
         setHandoverImages([]);
         setMeasurementDrawing('');
-        setMeasurementDrawings([]);
+        setMeasurementDrawings(new Array(10).fill(''));
         setStrokes([]);
-        setTotalPages(1);
+        setTotalPages(10);
         setCurrentPage(1);
         setSuitStatus('Pending');
         setInitialStatus('Pending');
@@ -203,10 +207,15 @@ export default function ClientForm() {
         setPrice(client.price !== undefined ? String(client.price) : '');
         setImages(client.images || []);
         setHandoverImages(client.handoverImages || []);
+        const loadedDrawings = client.measurementDrawings || [];
+        const finalDrawings = [...loadedDrawings];
+        while (finalDrawings.length < 10) {
+          finalDrawings.push('');
+        }
         setMeasurementDrawing(client.measurementDrawing || '');
-        setMeasurementDrawings(client.measurementDrawings || [client.measurementDrawing || '']);
+        setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
-        setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
+        setTotalPages(finalDrawings.length);
         setCurrentPage(1);
         setSuitStatus(client.suitStatus || 'Pending');
         setInitialStatus(client.suitStatus || 'Pending');
@@ -869,28 +878,63 @@ export default function ClientForm() {
   };
 
   // Page shifting helpers
+  // Page shifting helpers
   const savePageDataUrl = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     setMeasurementDrawings((prev) => {
       const next = [...prev];
+      while (next.length < totalPages) {
+        next.push('');
+      }
       next[currentPage - 1] = dataUrl;
       return next;
     });
   };
 
+  const changePageWithTransition = (targetPage: number) => {
+    if (targetPage < 1 || targetPage > totalPages || targetPage === currentPage) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      setCurrentPage(targetPage);
+      return;
+    }
+    
+    // Save current strokes to database array
+    savePageDataUrl();
+    const oldSnapshot = canvas.toDataURL('image/png');
+    
+    setPrevPageSnapshot(oldSnapshot);
+    setTransitionDirection(targetPage > currentPage ? 'left' : 'right');
+    setIsTransitioning(true);
+    setCurrentPageSnapshot(''); // Clear new snapshot to mark start of capture tick
+    setCurrentPage(targetPage);
+    
+    // Allow canvas redrawing lifecycle to render target strokes before taking snap
+    setTimeout(() => {
+      if (canvasRef.current) {
+        const nextSnapshot = canvasRef.current.toDataURL('image/png');
+        setCurrentPageSnapshot(nextSnapshot);
+      }
+      
+      // Keep transition sliding view on top for 300ms duration
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300);
+    }, 40);
+  };
+
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      savePageDataUrl();
-      setCurrentPage((prev) => prev - 1);
+      changePageWithTransition(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      savePageDataUrl();
-      setCurrentPage((prev) => prev + 1);
+      changePageWithTransition(currentPage + 1);
     }
   };
 
@@ -898,7 +942,11 @@ export default function ClientForm() {
     savePageDataUrl();
     const newPageNum = totalPages + 1;
     setTotalPages(newPageNum);
-    setCurrentPage(newPageNum);
+    
+    // Run slide transition to newly created page
+    setTimeout(() => {
+      changePageWithTransition(newPageNum);
+    }, 10);
   };
 
   const handleSaveDrawing = () => {
@@ -1490,32 +1538,52 @@ export default function ClientForm() {
               </span>
               
               <div className="flex items-center gap-3">
-                {/* Page Navigation Controls */}
-                <div className="flex items-center gap-2 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100 origin-right">
+                {/* Horizontal Page Tabs selection (10 pages default) */}
+                <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner select-none overflow-x-auto max-w-[220px] sm:max-w-md md:max-w-lg scrollbar-none">
+                  {/* Left Arrow */}
                   <button
                     type="button"
                     onClick={handlePrevPage}
                     disabled={currentPage === 1}
-                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                    className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
                     title="Previous Page"
                   >
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  
-                  <span className="text-[10px] font-black text-slate-700 min-w-[60px] text-center">
-                    Page {currentPage}/{totalPages}
-                  </span>
 
+                  {/* Scrollable list of page circles */}
+                  <div className="flex items-center gap-1 overflow-x-auto scrollbar-none px-1">
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const pageNum = idx + 1;
+                      const isActive = pageNum === currentPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => changePageWithTransition(pageNum)}
+                          className={`h-8 min-w-[32px] px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center cursor-pointer ${
+                            isActive
+                              ? 'bg-[#9E7D3B] text-white shadow-sm scale-105 border border-[#9E7D3B]'
+                              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Right Arrow */}
                   <button
                     type="button"
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer"
+                    className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
                     title="Next Page"
                   >
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -1525,10 +1593,10 @@ export default function ClientForm() {
                     <button
                       type="button"
                       onClick={handleAddPage}
-                      className="p-1 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center"
+                      className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
                       title="Add Another Page"
                     >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                       </svg>
                     </button>
@@ -1797,6 +1865,46 @@ export default function ClientForm() {
                   </div>
                 </div>
               )}
+
+               {/* Transition sliding page overlay */}
+               {isTransitioning && prevPageSnapshot && (
+                 <div className="absolute inset-0 z-30 bg-white overflow-hidden pointer-events-none">
+                   <style dangerouslySetInnerHTML={{__html: `
+                     @keyframes slidePage-left {
+                       from { transform: translateX(0%); }
+                       to { transform: translateX(-50%); }
+                     }
+                     @keyframes slidePage-right {
+                       from { transform: translateX(-50%); }
+                       to { transform: translateX(0%); }
+                     }
+                   `}} />
+                   <div 
+                     className="flex h-full w-[200%] bg-white"
+                     style={
+                       currentPageSnapshot 
+                         ? {
+                             transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)',
+                             animation: `slidePage-${transitionDirection} 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards`
+                           }
+                         : {
+                             transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)'
+                           }
+                     }
+                   >
+                     <img 
+                       src={transitionDirection === 'left' ? prevPageSnapshot : (currentPageSnapshot || prevPageSnapshot)} 
+                       className="w-1/2 h-full object-contain bg-white" 
+                       alt="Page Transition Out"
+                     />
+                     <img 
+                       src={transitionDirection === 'left' ? (currentPageSnapshot || prevPageSnapshot) : prevPageSnapshot} 
+                       className="w-1/2 h-full object-contain bg-white" 
+                       alt="Page Transition In"
+                     />
+                   </div>
+                 </div>
+               )}
 
               <canvas
                 ref={canvasRef}

@@ -27,7 +27,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="flex-grow flex flex-col">
+          {children}
+        </div>
+        <footer className="w-full bg-white border-t border-slate-100 py-4 sm:py-6 text-center text-xs sm:text-sm text-slate-400 font-bold select-none mt-auto flex-none">
+          ©️ 2026 KMB Tailor. All Rights Reserved. Designed & Developed by Sivora Digital
+        </footer>
+      </body>
     </html>
   );
 }
