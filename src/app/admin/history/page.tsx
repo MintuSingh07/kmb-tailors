@@ -35,7 +35,7 @@ export default async function ClientHistoryPage() {
 
   // Connect to database and fetch all client history
   await dbConnect();
-  const clients = await Client.find({}).sort({ updatedAt: -1 });
+  const clients = await Client.find({}).select('-measurementDrawing -measurementDrawings -strokes -handoverImages').sort({ updatedAt: -1 });
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">

@@ -24,16 +24,8 @@ async function dbConnect() {
     };
 
     console.log('Connecting to MongoDB at:', MONGODB_URI);
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then(async (mongooseInstance) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
       console.log('Successfully connected to MongoDB.');
-      try {
-        if (mongooseInstance.connection.db) {
-          await mongooseInstance.connection.db.collection('clients').dropIndex('clientNo_1');
-          console.log('Successfully dropped unique index on clientNo.');
-        }
-      } catch (err) {
-        // Ignore errors if index doesn't exist
-      }
       return mongooseInstance;
     }).catch((err) => {
       console.error('Failed to connect to MongoDB:', err.message);

@@ -37,7 +37,7 @@ export default async function CompletedSuitsPage() {
   await dbConnect();
   const completedSuits = await Client.find({
     suitStatus: 'Completed and handovered'
-  }).sort({ updatedAt: -1 });
+  }).select('-measurementDrawing -measurementDrawings -strokes -images -handoverImages').sort({ updatedAt: -1 });
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">

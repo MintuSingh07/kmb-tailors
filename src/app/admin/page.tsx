@@ -34,7 +34,7 @@ export default async function AdminPage() {
 
   // Connect to database and retrieve dynamic counts/calculations
   await dbConnect();
-  const allClients = await Client.find({});
+  const allClients = await Client.find({}).select('-measurementDrawing -measurementDrawings -strokes -images');
 
   const pricing: { [key: string]: number } = {
     Suit: 8500,
