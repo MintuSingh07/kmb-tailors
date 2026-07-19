@@ -193,19 +193,40 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
     });
   }, [filteredClients]);
 
-  // Count items per category group dynamically
+  // Count unique customer profiles per category group dynamically
   const categoryCounts = useMemo(() => {
-    const counts: { [key: string]: number } = { All: clients.length };
+    const counts: { [key: string]: number } = {};
     categories.forEach((cat) => {
-      if (cat !== 'All') {
-        counts[cat] = clients.filter((c) => getGroupForCategory(c.category) === cat).length;
-      }
+      const matchingQueries = clients.filter(
+        (c) => cat === 'All' || getGroupForCategory(c.category) === cat
+      );
+      counts[cat] = new Set(matchingQueries.map((c) => c.clientNo)).size;
     });
     return counts;
   }, [clients]);
 
+  // Calculate unique profiles count reactively
+  const uniqueProfilesCount = useMemo(() => {
+    return new Set(clients.map((c) => c.clientNo)).size;
+  }, [clients]);
+
   return (
     <div className="space-y-8">
+      {/* Navigation Back Button & Profiles count (reactive) */}
+      <div className="flex items-center justify-between select-none">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Dashboard
+        </Link>
+        <span className="bg-slate-200 text-slate-800 border border-slate-300 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
+          {uniqueProfilesCount} {uniqueProfilesCount === 1 ? 'Profile' : 'Profiles'}
+        </span>
+      </div>
       {/* Search & Filtering Control Bar */}
       <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center justify-between bg-white border border-[#E6DFD3] rounded-3xl p-5 shadow-sm select-none">
         {/* Real-time search */}

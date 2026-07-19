@@ -70,21 +70,23 @@ export default async function ClientHistoryPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
-        {/* Navigation Back Button */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <span className="bg-slate-200 text-slate-800 border border-slate-300 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
-            {clients.length} {clients.length === 1 ? 'Profile' : 'Profiles'}
-          </span>
-        </div>
+        {/* Navigation Back Button (Empty State Only) */}
+        {clients.length === 0 && (
+          <div className="flex items-center justify-between mb-8">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Dashboard
+            </Link>
+            <span className="bg-slate-200 text-slate-800 border border-slate-300 px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
+              0 Profiles
+            </span>
+          </div>
+        )}
 
         <div className="mb-6 select-none">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A] mb-1.5">
