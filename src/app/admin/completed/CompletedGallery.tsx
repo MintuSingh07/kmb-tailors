@@ -122,95 +122,98 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
         </div>
       ) : (
         /* Grid Layout: Photos are the main visual entity */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {filteredSuits.map((client) => {
-            const totalPhotos = client.handoverImages ? client.handoverImages.length : 0;
-            const activeIndex = activePhotoIndices[client.clientNo] || 0;
-            const activeImage = client.handoverImages && client.handoverImages.length > 0 ? client.handoverImages[activeIndex] : '';
+            const handoverImgs = client.handoverImages || [];
+            const fabricImgs   = client.images || [];
+
+            // Priority: handover first, fill remaining slots with fabric, cap at 3
+            const slotsLeft    = Math.max(0, 3 - handoverImgs.length);
+            const displayImages = [
+              ...handoverImgs.slice(0, 3),
+              ...fabricImgs.slice(0, slotsLeft),
+            ]; // already max 3 items
+
+            // Full ordered list for the lightbox (handover + fabric)
+            const allImages = [...handoverImgs, ...fabricImgs];
+            const totalCount = allImages.length;
 
             return (
               <div
                 key={client._id}
-                className="bg-white border border-[#E6DFD3] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col group animate-in fade-in duration-200"
+                className="bg-white border border-[#E6DFD3] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col group animate-in fade-in duration-200 w-full"
               >
-                {/* 1. PHOTO BLOCK - Dominates the Card */}
-                <div
-                  onClick={() => triggerLightbox(client.handoverImages || [], activeIndex, client.name, client.clientNo)}
-                  className="relative aspect-[4/5] bg-slate-100 overflow-hidden border-b border-[#E6DFD3]/40 select-none cursor-pointer"
-                >
-                  <Image
-                    src={activeImage}
-                    alt={`${client.name} handover photo ${activeIndex + 1}`}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-102"
-                    priority
-                  />
+                {/* 1. PHOTO BLOCK — 3 full-portrait images side by side, no cropping */}
+                <div className="flex border-b border-[#E6DFD3]/40 overflow-hidden select-none gap-px bg-[#F5F0E8] min-h-72 sm:min-h-[22rem] md:min-h-[26rem]">
 
-                  {/* Top Overlay Badge for Category and Client Code */}
-                  <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
-                    <span className="bg-[#1A1A1A]/80 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/15">
-                      {client.category}
-                    </span>
-                    <span className="bg-[#9E7D3B]/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg">
-                      {client.clientNo}
-                    </span>
-                  </div>
+                  {[0, 1, 2].map((idx) => {
+                    const imgSrc  = displayImages[idx] || null;
+                    const lbIndex = imgSrc ? allImages.indexOf(imgSrc) : 0;
 
-                  {/* Multi-Photo Carousel Indicators */}
-                  {totalPhotos > 1 && (
-                    <>
-                      {/* Left/Right Slide Arrows */}
-                      <button
-                        onClick={(e) => handlePrevPhoto(client.clientNo, totalPhotos, e)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-[#1A1A1A]/60 text-white flex items-center justify-center hover:bg-[#1a1a1a]/85 transition-all shadow-md cursor-pointer z-10 opacity-0 group-hover:opacity-100"
+                    return (
+                      <div
+                        key={idx}
+                        className="relative flex-1 bg-[#F5F0E8] cursor-pointer overflow-hidden"
+                        onClick={() =>
+                          triggerLightbox(allImages, Math.max(0, lbIndex), client.name, client.clientNo)
+                        }
                       >
-                        &larr;
-                      </button>
-                      <button
-                        onClick={(e) => handleNextPhoto(client.clientNo, totalPhotos, e)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-[#1A1A1A]/60 text-white flex items-center justify-center hover:bg-[#1a1a1a]/85 transition-all shadow-md cursor-pointer z-10 opacity-0 group-hover:opacity-100"
-                      >
-                        &rarr;
-                      </button>
-
-                      {/* Photo counter index dot indicators */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1A1A1A]/60 backdrop-blur-md px-2.5 py-1 rounded-full flex gap-1 items-center z-10 border border-white/10">
-                        <span className="text-[10px] font-black text-white/90 tracking-wider uppercase">
-                          {activeIndex + 1} of {totalPhotos}
-                        </span>
+                        {imgSrc ? (
+                          <Image
+                            src={imgSrc}
+                            alt={`${client.name} photo ${idx + 1}`}
+                            fill
+                            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 17vw, 11vw"
+                            className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                            priority={idx === 0}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-[#F5F0E8]">
+                            <svg className="h-6 w-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                              <rect width="18" height="18" x="3" y="3" rx="2"/>
+                              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                              <circle cx="9" cy="9" r="2"/>
+                            </svg>
+                          </div>
+                        )}
+                        {/* "+N more" overlay on 3rd slot when there are extra images */}
+                        {idx === 2 && totalCount > 3 && (
+                          <div className="absolute inset-0 bg-[#1A1A1A]/55 flex items-center justify-center">
+                            <span className="text-white text-sm font-black tracking-wide">+{totalCount - 3} more</span>
+                          </div>
+                        )}
                       </div>
-                    </>
-                  )}
+                    );
+                  })}
                 </div>
 
                 {/* 2. CLIENT DETAILS PANEL - Clean & Minimal */}
-                <div className="p-5 flex flex-col justify-between flex-1 space-y-4">
+                <div className="p-4.5 flex flex-col justify-between flex-1 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-black text-slate-800 leading-snug group-hover:text-[#9E7D3B] transition-colors">
+                      <h3 className="text-base font-black text-slate-800 leading-snug group-hover:text-[#9E7D3B] transition-colors">
                         {client.name}
                       </h3>
-                      <p className="text-xs font-bold text-slate-400 mt-0.5">{client.contactNo}</p>
+                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">{client.contactNo}</p>
                     </div>
-                    <span className="text-slate-800 font-extrabold text-base">
+                    <span className="text-slate-800 font-extrabold text-sm">
                       Rs. {client.price !== undefined ? client.price.toLocaleString('en-IN') : '0'}
                     </span>
                   </div>
 
                   {/* Actions Row */}
-                  <div className="flex items-center justify-between pt-3.5 border-t border-slate-50 gap-2">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-50 gap-2">
                     <Link
                       href={`/admin/pending/measurement?id=${client._id}`}
-                      className="px-4 py-2 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-xs font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
+                      className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
                     >
                       Measurement
                     </Link>
                     <Link
                       href={`/admin/new?id=${client._id}`}
-                      className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-black rounded-full transition-all border border-slate-100 hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
+                      className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-black rounded-full transition-all border border-slate-100 hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
                     >
-                      Edit Profile
+                      Edit
                     </Link>
                   </div>
                 </div>

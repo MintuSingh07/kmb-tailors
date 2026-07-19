@@ -1543,124 +1543,18 @@ export default function ClientForm() {
       {/* FULLSCREEN DRAWING BOARD MODAL OVERLAY */}
       {isDrawingOpen && (
         <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md overflow-hidden">
-          {/* Top Panel: Action Controls */}
-          <div className="bg-white border-b border-[#E6DFD3] px-3 pt-6 pb-2.5 sm:px-4 sm:pt-4 sm:pb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between shadow-sm flex-none">
-            <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-              <span className="font-extrabold text-slate-800 text-base sm:text-lg select-none">
-                {initialStatus === 'Completed and handovered' ? 'Measurement Board (Read Only)' : 'Measurement Board'}
-              </span>
-              
-              <div className="flex items-center gap-3">
-                {/* Horizontal Page Tabs selection (10 pages default) */}
-                <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner select-none overflow-x-auto max-w-[220px] sm:max-w-md md:max-w-lg scrollbar-none">
-                  {/* Left Arrow */}
-                  <button
-                    type="button"
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 1}
-                    className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
-                    title="Previous Page"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+          {/* Top Panel: Title & Principal Actions */}
+          <div className="bg-white border-b border-[#E6DFD3] px-4 py-3 flex flex-row items-center justify-between shadow-sm flex-none select-none">
+            <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate pr-2">
+              {initialStatus === 'Completed and handovered' ? 'Measurement Board (Read Only)' : 'Measurement Board'}
+            </span>
 
-                  {/* Scrollable list of page circles */}
-                  <div className="flex items-center gap-1 overflow-x-auto scrollbar-none px-1">
-                    {Array.from({ length: totalPages }).map((_, idx) => {
-                      const pageNum = idx + 1;
-                      const isActive = pageNum === currentPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          type="button"
-                          onClick={() => changePageWithTransition(pageNum)}
-                          className={`h-8 min-w-[32px] px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center cursor-pointer ${
-                            isActive
-                              ? 'bg-[#9E7D3B] text-white shadow-sm scale-105 border border-[#9E7D3B]'
-                              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Right Arrow */}
-                  <button
-                    type="button"
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
-                    title="Next Page"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-
-                  {/* Plus Sign Button to Add Page */}
-                  {initialStatus !== 'Completed and handovered' && (
-                    <button
-                      type="button"
-                      onClick={handleAddPage}
-                      className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
-                      title="Add Another Page"
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {/* Zoom controls */}
-                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none scale-90 sm:scale-100">
-                  <button
-                    type="button"
-                    onClick={() => setScale(prev => Math.max(prev / 1.2, 0.5))}
-                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
-                    title="Zoom Out"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
-                    </svg>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setScale(1);
-                      setPanOffset({ x: 0, y: 0 });
-                    }}
-                    className="px-2 py-0.5 text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[48px] text-center cursor-pointer shadow-sm"
-                    title="Reset Zoom & Pan"
-                  >
-                    {Math.round(scale * 100)}%
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setScale(prev => Math.min(prev * 1.2, 5))}
-                    className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
-                    title="Zoom In"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 shrink-0">
               {initialStatus === 'Completed and handovered' ? (
                 <button
                   type="button"
                   onClick={handleCancelDrawing}
-                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs sm:text-sm font-black rounded-lg transition-colors cursor-pointer"
+                  className="h-8.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-black rounded-xl transition-colors cursor-pointer"
                 >
                   Close View
                 </button>
@@ -1668,34 +1562,8 @@ export default function ClientForm() {
                 <>
                   <button
                     type="button"
-                    onClick={handleUndo}
-                    disabled={strokes.length === 0}
-                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm cursor-pointer"
-                    title="Undo Stroke"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                    <span>Undo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    disabled={strokes.length === 0}
-                    className="h-9 px-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm font-semibold flex items-center gap-1 shadow-sm cursor-pointer"
-                    title="Clear All"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>Clear</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={handleCancelDrawing}
-                    className="h-9 px-3 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold shadow-sm cursor-pointer"
+                    className="h-8.5 px-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs font-bold shadow-sm cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1703,7 +1571,7 @@ export default function ClientForm() {
                   <button
                     type="button"
                     onClick={handleSaveDrawing}
-                    className="h-9 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-xs sm:text-sm font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
+                    className="h-8.5 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-xl text-white text-xs font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
                   >
                     Done
                   </button>
@@ -1713,11 +1581,11 @@ export default function ClientForm() {
           </div>
 
           {/* Center Drawing Area */}
-          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-2.5 sm:p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl border border-[#E6DFD3] overflow-hidden w-full h-full">
-              {/* Floating capsule toolbar in the top section */}
+          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-0 sm:p-4">
+            <div className="relative bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-xl border-x-0 border-y sm:border border-[#E6DFD3] overflow-hidden w-full h-full flex flex-col">
+              {/* Pinned full-width toolbar at the top */}
               {initialStatus !== 'Completed and handovered' && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-4 py-2 sm:px-6 sm:py-3 rounded-2xl sm:rounded-full border border-slate-200 shadow-xl flex flex-row flex-wrap justify-center items-center gap-3 sm:gap-4 select-none max-w-[95%]">
+                <div className="w-full z-40 bg-white border-b border-slate-200 px-4 py-2 sm:py-3 flex flex-row flex-wrap justify-between items-center gap-3 sm:gap-4 select-none shrink-0">
                   {/* Tool Selection Segmented Control */}
                   <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner">
                     {/* Pen Button */}
@@ -1816,65 +1684,65 @@ export default function ClientForm() {
                       title="Move Mode (Click to select/deselect)"
                     >
                       <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9c0 5.5 4.5 10 10 10s10-4.5 10-10V11a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2" />
+                        <path d="M18 10V5a2 2 0 0 0-4 0v4H13V3a2 2 0 0 0-4 0v6H8V5a2 2 0 0 0-4 0v10a7 7 0 0 0 7 7h3a7 7 0 0 0 7-7v-5a2 2 0 0 0-4 0z" />
                       </svg>
                       <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Move</span>
                     </button>
                   </div>
 
-                  {/* Vertical Divider */}
-                  <div className="w-[1px] h-8 bg-slate-200 select-none" />
+                  {/* Colors & Width Options Panel */}
+                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                    {/* Color Palette (only clickable to select/active Pen drawing) */}
+                    <div className="flex items-center gap-2">
+                      {[
+                        { hex: '#1A1A1A', name: 'Black' },
+                        { hex: '#E53E3E', name: 'Red' },
+                        { hex: '#3182CE', name: 'Blue' },
+                        { hex: '#38A169', name: 'Green' },
+                      ].map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          onClick={() => {
+                            setCurrentColor(c.hex);
+                            setDrawMode('draw');
+                          }}
+                          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-slate-200 transition-all duration-200 cursor-pointer ${
+                            currentColor === c.hex && drawMode === 'draw'
+                              ? 'scale-110 ring-4 ring-[#9E7D3B]/40 border-[#9E7D3B]'
+                              : 'hover:scale-105 active:scale-95'
+                          }`}
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                        />
+                      ))}
+                    </div>
 
-                  {/* Color Palette (only clickable to select/active Pen drawing) */}
-                  <div className="flex items-center gap-2">
-                    {[
-                      { hex: '#1A1A1A', name: 'Black' },
-                      { hex: '#E53E3E', name: 'Red' },
-                      { hex: '#3182CE', name: 'Blue' },
-                      { hex: '#38A169', name: 'Green' },
-                    ].map((c) => (
-                      <button
-                        key={c.hex}
-                        type="button"
-                        onClick={() => {
-                          setCurrentColor(c.hex);
-                          setDrawMode('draw');
-                        }}
-                        className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-slate-200 transition-all duration-200 cursor-pointer ${
-                          currentColor === c.hex && drawMode === 'draw'
-                            ? 'scale-110 ring-4 ring-[#9E7D3B]/40 border-[#9E7D3B]'
-                            : 'hover:scale-105 active:scale-95'
-                        }`}
-                        style={{ backgroundColor: c.hex }}
-                        title={c.name}
-                      />
-                    ))}
-                  </div>
+                    {/* Vertical Divider */}
+                    <div className="hidden sm:block w-[1px] h-8 bg-slate-200 select-none" />
 
-                  {/* Vertical Divider */}
-                  <div className="w-[1px] h-8 bg-slate-200 select-none" />
-
-                  {/* Line Width Segmented Control with visual dots */}
-                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner select-none">
-                    {[
-                      { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
-                      { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
-                      { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
-                    ].map((w) => (
-                      <button
-                        key={w.size}
-                        type="button"
-                        onClick={() => setCurrentWidth(w.size)}
-                        className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                          currentWidth === w.size
-                            ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
-                            : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                        title={`${w.label} Line Width`}
-                      >
-                        <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
-                      </button>
-                    ))}
+                    {/* Line Width Segmented Control with visual dots */}
+                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner select-none">
+                      {[
+                        { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
+                        { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
+                        { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
+                      ].map((w) => (
+                        <button
+                          key={w.size}
+                          type="button"
+                          onClick={() => setCurrentWidth(w.size)}
+                          className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                            currentWidth === w.size
+                              ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                          title={`${w.label} Line Width`}
+                        >
+                          <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -2004,6 +1872,127 @@ export default function ClientForm() {
                 </div>
               );
             })()}
+            </div>
+          </div>
+
+          {/* Bottom Panel: Zoom, Navigation, and Whiteboard editing options */}
+          <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 flex flex-row flex-wrap items-center justify-center sm:justify-between gap-3.5 sm:gap-4 flex-none select-none w-full shadow-inner">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none shrink-0 scale-90 sm:scale-100">
+              <button
+                type="button"
+                onClick={() => setScale(prev => Math.max(prev / 1.2, 0.5))}
+                className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                title="Zoom Out"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+                </svg>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setScale(1);
+                  setPanOffset({ x: 0, y: 0 });
+                }}
+                className="px-2 py-0.5 text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[48px] text-center cursor-pointer shadow-sm"
+                title="Reset Zoom & Pan"
+              >
+                {Math.round(scale * 100)}%
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setScale(prev => Math.min(prev * 1.2, 5))}
+                className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                title="Zoom In"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Page Navigation Indicator */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner select-none shrink-0">
+              {/* Left Arrow */}
+              <button
+                type="button"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                title="Previous Page"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              {/* Concise Page Indicator */}
+              <span className="text-xs font-black text-slate-700 px-2.5 min-w-[72px] text-center select-none">
+                Page {currentPage} / {totalPages}
+              </span>
+
+              {/* Right Arrow */}
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                title="Next Page"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Plus Sign Button to Add Page */}
+              {initialStatus !== 'Completed and handovered' && (
+                <button
+                  type="button"
+                  onClick={handleAddPage}
+                  className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
+                  title="Add Another Page"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Undo & Clear Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              {initialStatus !== 'Completed and handovered' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUndo}
+                    disabled={strokes.length === 0}
+                    className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
+                    title="Undo Stroke"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    <span>Undo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    disabled={strokes.length === 0}
+                    className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
+                    title="Clear All"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Clear</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

@@ -38,7 +38,7 @@ export default async function PhotosGalleryPage() {
   const completedSuitsWithPhotos = await Client.find({
     suitStatus: 'Completed and handovered',
     handoverImages: { $exists: true, $not: { $size: 0 } }
-  }).select('-measurementDrawing -measurementDrawings -strokes -images').sort({ updatedAt: -1 });
+  }).select('-measurementDrawing -measurementDrawings -strokes').sort({ updatedAt: -1 });
 
   const totalPhotosCount = completedSuitsWithPhotos.reduce(
     (acc, client) => acc + (client.handoverImages?.length || 0),

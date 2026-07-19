@@ -255,16 +255,13 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                           alt="Fabric Design"
                           className="w-full h-full object-cover transition-transform duration-350 group-hover:scale-105"
                         />
-                        <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-[9px] sm:text-[10px] font-black text-white uppercase tracking-wider rounded-md">
-                          Fabric
-                        </span>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 border-r border-[#E6DFD3] text-slate-400 shrink-0">
                         <svg className="h-6 w-6 sm:h-7 sm:w-7 text-slate-300 mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 21m0 0-.813-5.096M9 21h3.75m-6.375-3A3.75 3.75 0 1 1 9 14.25" />
                         </svg>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-450">No Fabric</span>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-455">No Fabric</span>
                       </div>
                     )}
 
@@ -283,16 +280,13 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                           alt="Completed Outfit"
                           className="w-full h-full object-cover transition-transform duration-350 group-hover:scale-105"
                         />
-                        <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-[9px] sm:text-[10px] font-black text-white uppercase tracking-wider rounded-md">
-                          Outfit
-                        </span>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 border-r border-[#E6DFD3] text-slate-400 shrink-0">
                         <svg className="h-6 w-6 sm:h-7 sm:w-7 text-slate-300 mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                         </svg>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-450">No Outfit</span>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-455">No Outfit</span>
                       </div>
                     )}
 
@@ -311,9 +305,6 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                           alt="Measurement Sketch"
                           className="w-full h-full object-contain p-2 transition-transform duration-350 group-hover:scale-105"
                         />
-                        <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-[9px] sm:text-[10px] font-black text-white uppercase tracking-wider rounded-md">
-                          Sketch
-                        </span>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 shrink-0">
@@ -415,7 +406,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-1.178-.304 3.5 3.5 0 1 0-3.702 3.543c.022.95.83 1.639 1.78 1.639h1.93a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-.193a3 3 0 0 0-3 3v9.062a3 3 0 0 0 3 3ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        View sketches
+                        Measurement
                       </Link>
                       <Link
                         href={`/admin/new?id=${q._id}`}
@@ -424,7 +415,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                         </svg>
-                        Edit details
+                        Edit
                       </Link>
                     </div>
                   </div>
