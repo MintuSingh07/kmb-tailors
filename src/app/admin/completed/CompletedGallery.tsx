@@ -201,13 +201,13 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
                   {/* Actions Row */}
                   <div className="flex items-center justify-between pt-3.5 border-t border-slate-50 gap-2">
                     <Link
-                      href={`/admin/pending/measurement?code=${encodeURIComponent(client.clientNo)}`}
+                      href={`/admin/pending/measurement?id=${client._id}`}
                       className="px-4 py-2 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-xs font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
                     >
                       Measurement
                     </Link>
                     <Link
-                      href={`/admin/new?code=${encodeURIComponent(client.clientNo)}`}
+                      href={`/admin/new?id=${client._id}`}
                       className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-black rounded-full transition-all border border-slate-100 hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"
                     >
                       Edit Profile

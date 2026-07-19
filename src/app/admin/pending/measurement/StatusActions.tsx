@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 
 interface StatusActionsProps {
   clientNo: string;
+  clientId: string;
   currentStatus: string;
 }
 
-export default function StatusActions({ clientNo, currentStatus }: StatusActionsProps) {
+export default function StatusActions({ clientNo, clientId, currentStatus }: StatusActionsProps) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
@@ -50,7 +51,7 @@ export default function StatusActions({ clientNo, currentStatus }: StatusActions
       const response = await fetch('/api/clients/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientNo, status: newStatus, images }),
+        body: JSON.stringify({ id: clientId, clientNo, status: newStatus, images }),
       });
 
       const data = await response.json();

@@ -30,7 +30,7 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
           >
             {/* Clickable Card Header & Body */}
             <Link
-              href={`/admin/new?code=${encodeURIComponent(client.clientNo)}`}
+              href={`/admin/new?id=${client._id}`}
               className="flex-1 flex flex-col cursor-pointer"
               title="Click card to edit profile details"
             >
@@ -108,7 +108,7 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
             {/* Card Footer */}
             <div className="border-t border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50/50">
               <Link
-                href={`/admin/pending/measurement?code=${encodeURIComponent(client.clientNo)}`}
+                href={`/admin/pending/measurement?id=${client._id}`}
                 className="px-6 py-2.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-xs font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-block tracking-wider"
               >
                 Measurement

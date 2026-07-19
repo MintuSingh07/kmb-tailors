@@ -17,7 +17,7 @@ interface DecodedToken {
 }
 
 interface PageProps {
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ code?: string; id?: string }>;
 }
 
 export default async function MeasurementPage(props: PageProps) {
@@ -39,14 +39,17 @@ export default async function MeasurementPage(props: PageProps) {
   }
 
   const searchParams = await props.searchParams;
+  const id = searchParams.id;
   const clientNo = searchParams.code;
 
-  if (!clientNo) {
+  if (!id && !clientNo) {
     redirect('/admin/pending');
   }
 
   await dbConnect();
-  const client = await Client.findOne({ clientNo });
+  const client = id 
+    ? await Client.findById(id)
+    : await Client.findOne({ clientNo }).sort({ updatedAt: -1 });
 
   if (!client) {
     redirect('/admin/pending');
@@ -105,6 +108,7 @@ export default async function MeasurementPage(props: PageProps) {
             
             <MeasurementViewer
               clientNo={client.clientNo}
+              clientId={client._id.toString()}
               clientName={client.name}
               primaryDrawing={client.measurementDrawing || ''}
               drawings={client.measurementDrawings || []}
@@ -130,7 +134,11 @@ export default async function MeasurementPage(props: PageProps) {
             </div>
 
             {/* Interactive Status Controller Component */}
-            <StatusActions clientNo={client.clientNo} currentStatus={client.suitStatus || 'Pending'} />
+            <StatusActions 
+              clientNo={client.clientNo} 
+              clientId={client._id.toString()} 
+              currentStatus={client.suitStatus || 'Pending'} 
+            />
           </div>
 
         </div>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 interface MeasurementViewerProps {
   clientNo: string;
+  clientId: string;
   clientName: string;
   primaryDrawing: string;
   drawings: string[];
@@ -13,6 +14,7 @@ interface MeasurementViewerProps {
 
 export default function MeasurementViewer({
   clientNo,
+  clientId,
   clientName,
   primaryDrawing,
   drawings,
@@ -45,7 +47,7 @@ export default function MeasurementViewer({
     <div className="space-y-4">
       {/* Clickable Image Frame */}
       <Link
-        href={`/admin/new?code=${encodeURIComponent(clientNo)}&draw=true`}
+        href={`/admin/new?id=${encodeURIComponent(clientId)}&draw=true`}
         className="group block relative aspect-[4/3] w-full rounded-3xl bg-white border border-[#E6DFD3] hover:border-[#9E7D3B] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 p-3 select-none"
         title="Click to edit drawing notes"
       >

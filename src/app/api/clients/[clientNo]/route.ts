@@ -27,7 +27,11 @@ export async function GET(
     }
 
     await dbConnect();
-    const client = await Client.findOne({ clientNo });
+    const by = request.nextUrl.searchParams.get('by');
+    const client = by === 'id'
+      ? await Client.findById(clientNo)
+      : await Client.findOne({ clientNo }).sort({ updatedAt: -1 });
+
     if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
@@ -61,12 +65,20 @@ export async function DELETE(
     }
 
     await dbConnect();
-    const result = await Client.findOneAndDelete({ clientNo });
-    if (!result) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    const by = request.nextUrl.searchParams.get('by');
+    if (by === 'id') {
+      const result = await Client.findByIdAndDelete(clientNo);
+      if (!result) {
+        return NextResponse.json({ error: 'Record not found' }, { status: 404 });
+      }
+      return NextResponse.json({ message: 'Measurement record deleted successfully' });
+    } else {
+      const result = await Client.deleteMany({ clientNo });
+      if (result.deletedCount === 0) {
+        return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+      }
+      return NextResponse.json({ message: 'Client and all queries deleted successfully' });
     }
-
-    return NextResponse.json({ message: 'Client deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting client:', error);
     return NextResponse.json({ error: 'Internal server error while deleting client' }, { status: 500 });

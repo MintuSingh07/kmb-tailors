@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { clientNo, name, contactNo, alternativeNo, category, images, handoverImages, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
+    const { id, clientNo, name, contactNo, alternativeNo, category, images, handoverImages, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
 
     if (!clientNo || !name || !contactNo || !category) {
       return NextResponse.json({ error: 'Client No, Name, Contact No, and Category are required' }, { status: 400 });
@@ -58,8 +58,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if client exists
-    const existingClient = await Client.findOne({ clientNo });
+    // Check if client exists by ID to update it, otherwise create a new query/measurement
+    let existingClient = null;
+    if (id) {
+      existingClient = await Client.findById(id);
+    }
+
     if (existingClient) {
       // Update existing client
       existingClient.name = name;

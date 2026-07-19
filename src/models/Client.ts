@@ -5,7 +5,6 @@ const ClientSchema = new Schema(
     clientNo: {
       type: String,
       required: [true, 'Please provide a client number'],
-      unique: true,
       trim: true,
     },
     name: {

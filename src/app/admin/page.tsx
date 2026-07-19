@@ -74,7 +74,8 @@ export default async function AdminPage() {
   ).length;
 
   const totalPhotosCount = allClients.reduce((sum: number, c: any) => sum + (c.handoverImages?.length || 0), 0);
-  const clientHistoryCount = allClients.length;
+  const uniqueClientsSet = new Set(allClients.map((c: any) => c.clientNo));
+  const clientHistoryCount = uniqueClientsSet.size;
 
   const stats = [
     {

@@ -19,6 +19,7 @@ export default function ClientForm() {
 
   // Form states
   const [clientNo, setClientNo] = useState('');
+  const [dbId, setDbId] = useState('');
   const [name, setName] = useState('');
   const [contactNo, setContactNo] = useState('');
   const [alternativeNo, setAlternativeNo] = useState('');
@@ -85,65 +86,27 @@ export default function ClientForm() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
 
-  // Load draft or query parameter on mount
+  // Load query parameter on mount
   useEffect(() => {
-    // 1. Check if there is a 'code' query parameter in the URL
     const params = new URLSearchParams(window.location.search);
+    const queryId = params.get('id');
     const queryCode = params.get('code');
     const autoDraw = params.get('draw') === 'true';
     
-    if (queryCode) {
-      handleSelectClient(queryCode);
+    if (queryId) {
+      handleSelectClient(queryId, false, true);
+      if (autoDraw) {
+        setIsDrawingOpen(true);
+      }
+      return;
+    } else if (queryCode) {
+      handleSelectClient(queryCode, false, false);
       if (autoDraw) {
         setIsDrawingOpen(true);
       }
       return;
     }
-
-    // 2. Fallback to localStorage draft
-    const savedDraft = localStorage.getItem('kmb_client_draft');
-    if (savedDraft) {
-      try {
-        const draft = JSON.parse(savedDraft);
-        if (draft.name) setName(draft.name);
-        if (draft.contactNo) setContactNo(draft.contactNo);
-        if (draft.alternativeNo) setAlternativeNo(draft.alternativeNo);
-        if (draft.category) setCategory(draft.category);
-        if (draft.price) setPrice(draft.price);
-        if (draft.images) setImages(draft.images);
-        if (draft.handoverImages) setHandoverImages(draft.handoverImages);
-        if (draft.measurementDrawing) setMeasurementDrawing(draft.measurementDrawing);
-        if (draft.measurementDrawings) setMeasurementDrawings(draft.measurementDrawings);
-        if (draft.totalPages) setTotalPages(draft.totalPages);
-        if (draft.currentPage) setCurrentPage(draft.currentPage);
-        if (draft.strokes) setStrokes(draft.strokes);
-      } catch (e) {
-        console.error('Error loading draft:', e);
-      }
-    }
   }, []);
-
-  // Save draft to localStorage on change
-  useEffect(() => {
-    if (clientNo) {
-      const draft = {
-        name,
-        clientNo,
-        contactNo,
-        alternativeNo,
-        category,
-        price,
-        images,
-        handoverImages,
-        measurementDrawing,
-        measurementDrawings,
-        totalPages,
-        currentPage,
-        strokes,
-      };
-      localStorage.setItem('kmb_client_draft', JSON.stringify(draft));
-    }
-  }, [name, clientNo, contactNo, alternativeNo, category, price, images, handoverImages, measurementDrawing, measurementDrawings, totalPages, currentPage, strokes]);
 
   // Hide suggestions when clicking outside
   useEffect(() => {
@@ -186,7 +149,7 @@ export default function ClientForm() {
   }, [clientNo]);
 
   // Load full client details and autofill the form
-  async function handleSelectClient(selectedClientNo: string) {
+  async function handleSelectClient(selectedClientNo: string, isAutofillOnly = false, loadById = false) {
     setLoading(true);
     setError('');
     setSuccess('');
@@ -194,7 +157,10 @@ export default function ClientForm() {
     setSuggestions([]);
     
     try {
-      const response = await fetch(`/api/clients/${encodeURIComponent(selectedClientNo)}`);
+      const url = loadById 
+        ? `/api/clients/${encodeURIComponent(selectedClientNo)}?by=id`
+        : `/api/clients/${encodeURIComponent(selectedClientNo)}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to load client details');
       }
@@ -203,24 +169,46 @@ export default function ClientForm() {
       
       setName(client.name || '');
       setContactNo(client.contactNo || '');
-      setAlternativeNo(client.alternativeNo || '');
-      setCategory(client.category || 'Punjabi Suit');
-      setPrice(client.price !== undefined ? String(client.price) : '');
-      setImages(client.images || []);
-      setHandoverImages(client.handoverImages || []);
-      setMeasurementDrawing(client.measurementDrawing || '');
-      setMeasurementDrawings(client.measurementDrawings || [client.measurementDrawing || '']);
-      setStrokes(client.strokes || []);
-      setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
-      setCurrentPage(1);
-      setSuitStatus(client.suitStatus || 'Pending');
-      setInitialStatus(client.suitStatus || 'Pending');
+      
+      if (isAutofillOnly) {
+        setAlternativeNo('');
+        setCategory('Punjabi Suit');
+        setPrice('');
+        setImages([]);
+        setHandoverImages([]);
+        setMeasurementDrawing('');
+        setMeasurementDrawings([]);
+        setStrokes([]);
+        setTotalPages(1);
+        setCurrentPage(1);
+        setSuitStatus('Pending');
+        setInitialStatus('Pending');
+        setDbId(''); // Clear database ID so a new record is created for autofill
+      } else {
+        setAlternativeNo(client.alternativeNo || '');
+        setCategory(client.category || 'Punjabi Suit');
+        setPrice(client.price !== undefined ? String(client.price) : '');
+        setImages(client.images || []);
+        setHandoverImages(client.handoverImages || []);
+        setMeasurementDrawing(client.measurementDrawing || '');
+        setMeasurementDrawings(client.measurementDrawings || [client.measurementDrawing || '']);
+        setStrokes(client.strokes || []);
+        setTotalPages(Math.max(client.measurementDrawings?.length || 1, 1));
+        setCurrentPage(1);
+        setSuitStatus(client.suitStatus || 'Pending');
+        setInitialStatus(client.suitStatus || 'Pending');
+        setDbId(client._id); // Set database ID to update existing query
+      }
       
       setJustSelected(true);
       setClientNo(client.clientNo);
-      setIsEditMode(true);
+      setIsEditMode(!isAutofillOnly);
       
-      setSuccess(`Loaded measurements for ${client.name}!`);
+      if (isAutofillOnly) {
+        setSuccess(`Autofilled customer details for ${client.name}!`);
+      } else {
+        setSuccess(`Loaded measurements for ${client.name}!`);
+      }
       setTimeout(() => setSuccess(''), 2000);
     } catch (err: any) {
       setError(err.message || 'Error loading client data');
@@ -771,6 +759,7 @@ export default function ClientForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: dbId,
           clientNo,
           name,
           contactNo,
@@ -793,7 +782,7 @@ export default function ClientForm() {
 
       setSuccess(data.message || 'Client measurement profile saved successfully!');
       setIsEditMode(false);
-      localStorage.removeItem('kmb_client_draft');
+      setDbId('');
       setTimeout(() => {
         router.push('/admin');
       }, 1500);
@@ -869,7 +858,7 @@ export default function ClientForm() {
                     <button
                       key={s.clientNo}
                       type="button"
-                      onClick={() => handleSelectClient(s.clientNo)}
+                      onClick={() => handleSelectClient(s.clientNo, true)}
                       className="w-full px-4 py-3 text-left hover:bg-[#FCFAF5] flex items-center justify-between transition-colors group"
                     >
                       <div className="flex flex-col">

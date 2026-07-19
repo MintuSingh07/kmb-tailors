@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
     }
 
-    const { clientNo, status, images } = await request.json();
+    const { id, clientNo, status, images } = await request.json();
 
     if (!clientNo || !status) {
       return NextResponse.json({ error: 'Client Number and Status are required' }, { status: 400 });
@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    const client = await Client.findOne({ clientNo });
+    const client = id
+      ? await Client.findById(id)
+      : await Client.findOne({ clientNo }).sort({ updatedAt: -1 });
     if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }

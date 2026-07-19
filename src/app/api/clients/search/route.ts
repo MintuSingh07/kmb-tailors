@@ -32,10 +32,19 @@ export async function GET(request: NextRequest) {
         { name: { $regex: new RegExp(query, 'i') } }
       ]
     })
-    .select('clientNo name')
-    .limit(5);
+    .select('clientNo name contactNo')
+    .sort({ updatedAt: -1 });
 
-    return NextResponse.json(clients);
+    const uniqueClients: any[] = [];
+    const seen = new Set();
+    for (const c of clients) {
+      if (!seen.has(c.clientNo)) {
+        seen.add(c.clientNo);
+        uniqueClients.push(c);
+      }
+    }
+    
+    return NextResponse.json(uniqueClients.slice(0, 5));
   } catch (error: any) {
     console.error('Error searching clients:', error);
     return NextResponse.json({ error: 'Internal server error while searching clients' }, { status: 500 });
