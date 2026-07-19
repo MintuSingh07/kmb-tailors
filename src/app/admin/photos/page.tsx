@@ -57,7 +57,7 @@ export default async function PhotosGalleryPage() {
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 select-none">
             <Image
               src="/logo.png"
-              alt="KMB Tailor Logo"
+              alt="KMB Boutique Logo"
               fill
               sizes="(max-width: 640px) 40px, 48px"
               priority
@@ -65,7 +65,7 @@ export default async function PhotosGalleryPage() {
             />
           </div>
           <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-[#1A1A1A]">
-            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Photos Gallery</span>
+            KMB Boutique <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Photos Gallery</span>
           </span>
         </div>
         <div className="flex items-center gap-4">

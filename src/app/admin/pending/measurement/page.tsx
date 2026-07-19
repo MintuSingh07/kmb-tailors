@@ -66,10 +66,10 @@ export default async function MeasurementPage(props: PageProps) {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10">
-              <Image src="/logo.png" alt="KMB Tailor Logo" fill className="object-contain" />
+              <Image src="/logo.png" alt="KMB Boutique Logo" fill className="object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-800">KMB Tailor</h1>
+              <h1 className="text-xl font-black tracking-tight text-slate-800">KMB Boutique</h1>
               <p className="text-[10px] text-[#9E7D3B] font-bold tracking-widest uppercase">Whiteboard viewer</p>
             </div>
           </div>

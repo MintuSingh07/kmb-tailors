@@ -991,7 +991,7 @@ export default function ClientForm() {
           </svg>
           Back to Dashboard
         </Link>
-        <span className="text-slate-400 text-sm font-semibold sm:text-base select-none">KMB Tailor Form</span>
+        <span className="text-slate-400 text-sm font-semibold sm:text-base select-none">KMB Boutique Form</span>
       </div>
 
       <div className="rounded-3xl border border-[#E6DFD3] bg-[#FCFAF5] p-6 sm:p-10 shadow-xl shadow-slate-200/40">

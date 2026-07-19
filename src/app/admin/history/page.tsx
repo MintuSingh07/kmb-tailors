@@ -49,7 +49,7 @@ export default async function ClientHistoryPage() {
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 select-none">
             <Image
               src="/logo.png"
-              alt="KMB Tailor Logo"
+              alt="KMB Boutique Logo"
               fill
               sizes="(max-width: 640px) 40px, 48px"
               priority
@@ -57,7 +57,7 @@ export default async function ClientHistoryPage() {
             />
           </div>
           <span className="font-extrabold text-lg sm:text-2xl tracking-tight text-[#1A1A1A]">
-            KMB Tailor <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Client History</span>
+            KMB Boutique <span className="hidden min-[450px]:inline-block font-semibold text-slate-500 text-sm sm:text-lg ml-1.5 border-l border-slate-200 pl-2.5">Client History</span>
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -106,7 +106,7 @@ export default async function ClientHistoryPage() {
               </svg>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Database is Empty</h2>
-            <p className="text-slate-500 font-semibold mb-6">No client records saved in KMB Tailor database yet.</p>
+            <p className="text-slate-500 font-semibold mb-6">No client records saved in KMB Boutique database yet.</p>
             <Link
               href="/admin/new"
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white font-extrabold text-sm sm:text-base shadow-md shadow-[#9E7D3B]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"

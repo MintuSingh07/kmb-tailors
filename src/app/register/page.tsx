@@ -68,7 +68,7 @@ export default function RegisterPage() {
             <div className="relative w-24 h-24 sm:w-28 sm:h-28 mb-4 select-none">
               <Image
                 src="/logo.png"
-                alt="KMB Tailor Logo"
+                alt="KMB Boutique Logo"
                 fill
                 sizes="(max-width: 640px) 96px, 112px"
                 priority
@@ -79,7 +79,7 @@ export default function RegisterPage() {
               Create Account
             </h2>
             <p className="mt-2 text-base sm:text-lg text-slate-500">
-              Join KMB Tailor to access your admin panel
+              Join KMB Boutique to access your admin panel
             </p>
           </div>
 
