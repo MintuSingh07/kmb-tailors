@@ -20,8 +20,7 @@ export default async function NewClientPage() {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-    if ((decoded as any).role === 'manager') redirect('/admin');
+    jwt.verify(token, JWT_SECRET);
   } catch (err) {
     redirect('/login');
   }

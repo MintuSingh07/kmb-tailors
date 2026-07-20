@@ -29,7 +29,7 @@ export default async function PreparedSuitsPage() {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
     username = decoded.username;
-    if ((decoded as any).role === 'manager') redirect('/admin');
+    if ((decoded as any).role === 'admin') redirect('/admin');
   } catch (err) {
     redirect('/login');
   }

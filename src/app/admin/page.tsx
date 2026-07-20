@@ -188,11 +188,10 @@ export default async function AdminPage() {
     },
   ];
 
-  // Manager sees only these 3 stat cards
-  const managerStatIds = ['total-earning', 'todays-earning', 'completed-suits'];
+  // Filter stats cards visibility based on user roles
   const visibleStats = role === 'manager'
-    ? stats.filter((s) => managerStatIds.includes(s.id))
-    : stats;
+    ? stats.filter((s) => ['pending-suits', 'photos', 'prepared-not-handovered', 'completed-suits'].includes(s.id))
+    : stats.filter((s) => ['total-earning', 'todays-earning', 'client-history', 'completed-suits'].includes(s.id));
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">
@@ -312,20 +311,18 @@ export default async function AdminPage() {
         </div>
       </main>
 
-      {/* Floating Action Button — Admin only */}
-      {role !== 'manager' && (
-        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50">
-          <Link
-            href="/admin/new"
-            title="Add Action"
-            className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white flex items-center justify-center shadow-xl shadow-[#9E7D3B]/30 hover:scale-110 active:scale-95 transition-all duration-200 group focus:outline-none"
-          >
-            <svg className="h-8 w-8 sm:h-10 sm:w-10 transition-transform duration-200 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </Link>
-        </div>
-      )}
+      {/* Floating Action Button — Create New Query/Client */}
+      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50">
+        <Link
+          href="/admin/new"
+          title="Create New Query"
+          className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white flex items-center justify-center shadow-xl shadow-[#9E7D3B]/30 hover:scale-110 active:scale-95 transition-all duration-200 group focus:outline-none"
+        >
+          <svg className="h-8 w-8 sm:h-10 sm:w-10 transition-transform duration-200 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </Link>
+      </div>
     </div>
   );
 }
