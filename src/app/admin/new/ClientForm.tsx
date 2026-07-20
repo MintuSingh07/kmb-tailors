@@ -64,6 +64,7 @@ export default function ClientForm() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [currentColor, setCurrentColor] = useState('#1A1A1A');
   const [currentWidth, setCurrentWidth] = useState(4);
+  const [eraserSize, setEraserSize] = useState(20);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const isDrawingRef = useRef(false);
@@ -685,7 +686,7 @@ export default function ClientForm() {
 
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+        const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
         ctx.lineWidth = actualWidth * scaleX;
         ctx.strokeStyle = currentColor;
 
@@ -770,7 +771,7 @@ export default function ClientForm() {
 
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
       ctx.lineWidth = actualWidth * scaleX;
       ctx.strokeStyle = currentColor;
 
@@ -847,7 +848,7 @@ export default function ClientForm() {
 
     if (drawMode === 'draw' && activePointsRef.current.length > 0) {
       // Commit active stroke to React state
-      const actualWidth = currentColor === '#FFFFFF' ? currentWidth * 4 : currentWidth;
+      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
       const newStroke: Stroke = {
         color: currentColor,
         width: actualWidth,
@@ -1901,6 +1902,50 @@ export default function ClientForm() {
                 onPointerUp={handlePointerUp}
                 onWheel={handleWheel}
               />
+
+              {/* Eraser Size Vertical Slider Overlay */}
+              {drawMode === 'draw' && currentColor === '#FFFFFF' && (
+                <div 
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerMove={(e) => e.stopPropagation()}
+                  onPointerUp={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center bg-white/95 backdrop-blur-md px-3 py-5 rounded-2xl border border-[#E6DFD3] shadow-xl gap-4 select-none animate-in fade-in slide-in-from-left-4 duration-200"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
+                    Size
+                  </div>
+                  {/* Indicator Circle showing current thickness */}
+                  <div className="h-8 w-8 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-lg">
+                    <div
+                      style={{
+                        width: `${Math.max(2, Math.min(28, eraserSize * 0.4))}px`,
+                        height: `${Math.max(2, Math.min(28, eraserSize * 0.4))}px`,
+                      }}
+                      className="bg-[#9E7D3B] rounded-full transition-all duration-100"
+                    />
+                  </div>
+                  {/* Vertical Range Slider container */}
+                  <div className="h-28 w-6 flex items-center justify-center relative">
+                    <input
+                      type="range"
+                      min="5"
+                      max="100"
+                      step="1"
+                      value={eraserSize}
+                      onChange={(e) => setEraserSize(Number(e.target.value))}
+                      className="h-1.5 w-24 cursor-pointer accent-[#9E7D3B] bg-slate-200 rounded-lg appearance-none"
+                      style={{
+                        transform: 'rotate(-90deg)',
+                        transformOrigin: 'center',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-black text-slate-700 font-mono select-none">
+                    {eraserSize}px
+                  </span>
+                </div>
+              )}
 
               {activeTextEditor && (() => {
                 const pos = getTextEditorPosition();

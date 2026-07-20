@@ -30,11 +30,12 @@ export default async function MeasurementPage(props: PageProps) {
   }
 
   let username = '';
+  let role = 'admin';
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
     username = decoded.username;
-    if ((decoded as any).role === 'manager') redirect('/admin');
+    role = (decoded as any).role || 'admin';
   } catch (err) {
     redirect('/login');
   }
@@ -88,13 +89,13 @@ export default async function MeasurementPage(props: PageProps) {
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center justify-between select-none">
           <Link
-            href="/admin/pending"
+            href={role === 'admin' ? '/admin' : '/admin/pending'}
             className="group flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-500 hover:text-[#9E7D3B] transition-colors"
           >
             <svg className="h-4.5 w-4.5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Queue
+            {role === 'admin' ? 'Back to Dashboard' : 'Back to Queue'}
           </Link>
         </div>
 
@@ -139,6 +140,7 @@ export default async function MeasurementPage(props: PageProps) {
               clientNo={client.clientNo} 
               clientId={client._id.toString()} 
               currentStatus={client.suitStatus || 'Pending'} 
+              userRole={role}
             />
           </div>
 

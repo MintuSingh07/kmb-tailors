@@ -7,9 +7,10 @@ interface StatusActionsProps {
   clientNo: string;
   clientId: string;
   currentStatus: string;
+  userRole?: string;
 }
 
-export default function StatusActions({ clientNo, clientId, currentStatus }: StatusActionsProps) {
+export default function StatusActions({ clientNo, clientId, currentStatus, userRole }: StatusActionsProps) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
@@ -62,9 +63,13 @@ export default function StatusActions({ clientNo, clientId, currentStatus }: Sta
       setStatus(newStatus);
       setSuccess(`Status updated to "${newStatus}"!`);
       
-      // Redirect back to pending suits queue after a brief success delay
+      // Redirect back after a brief success delay
       setTimeout(() => {
-        router.push('/admin/pending');
+        if (userRole === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/admin/pending');
+        }
         router.refresh();
       }, 1500);
     } catch (err: any) {
