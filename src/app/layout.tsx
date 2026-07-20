@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,13 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -28,11 +35,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <div className="flex-grow flex flex-col">
-          {children}
-        </div>
+        <div className="flex-grow flex flex-col">{children}</div>
         <footer className="w-full bg-white border-t border-slate-100 py-4 sm:py-6 text-center text-xs sm:text-sm text-slate-400 font-bold select-none mt-auto flex-none">
-          ©️ 2026 KMB Tailor. All Rights Reserved. Designed & Developed by Sivora Digital
+          ©️ 2026 KMB Boutique. All Rights Reserved. Designed & Developed by
+          Sivora Digital
         </footer>
       </body>
     </html>

@@ -83,6 +83,7 @@ export default function ClientForm() {
     canvasY: number;
     text: string;
     fontSize: number;
+    color?: string;
   } | null>(null);
 
   // Draggable text states
@@ -290,7 +291,7 @@ export default function ClientForm() {
       const calculatedWidth = editor.fontSize / 6;
 
       const textStroke: Stroke = {
-        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+        color: editor.color || (currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor),
         width: calculatedWidth,
         points: [{ x: editor.canvasX, y: editor.canvasY }],
         page: currentPage,
@@ -313,21 +314,27 @@ export default function ClientForm() {
   };
 
   // Drag to resize reference and pointer handlers
-  const resizeStartRef = useRef<{ anchorLeft: number; textLength: number } | null>(null);
+  const textInputRef = useRef<HTMLInputElement>(null);
+  const resizeStartRef = useRef<{ startX: number; startY: number; initialFontSize: number } | null>(null);
+  const resizePointerIdRef = useRef<number | null>(null);
+  const resizeTargetRef = useRef<Element | null>(null);
 
   const handleResizePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (!activeTextEditor) return;
     
-    const editorEl = document.getElementById('whiteboard-text-input');
-    const editorRect = editorEl ? editorEl.getBoundingClientRect() : null;
-    const anchorLeft = editorRect ? editorRect.left : e.clientX - 100;
+    // Capture the pointer so touch move events keep firing even when finger leaves the element
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    resizePointerIdRef.current = e.pointerId;
+    resizeTargetRef.current = target;
 
     setIsResizingText(true);
     resizeStartRef.current = {
-      anchorLeft,
-      textLength: activeTextEditor.text.length || 10,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialFontSize: activeTextEditor.fontSize,
     };
   };
 
@@ -338,17 +345,29 @@ export default function ClientForm() {
     const handleGlobalPointerMove = (e: PointerEvent) => {
       if (!resizeStartRef.current || !activeTextEditor) return;
       
-      const currentWidth = e.clientX - resizeStartRef.current.anchorLeft;
-      // Scale font size directly proportional to drag distance (locks cursor to text box edge!)
-      const newFontSize = Math.min(
-        120, 
-        Math.max(12, currentWidth / (resizeStartRef.current.textLength * 0.55))
+      // Use diagonal drag distance for smooth, precise control
+      // Dragging down-right increases size, up-left decreases
+      const deltaX = e.clientX - resizeStartRef.current.startX;
+      const deltaY = e.clientY - resizeStartRef.current.startY;
+      // Combine both axes with slight diagonal bias for natural feel
+      const diagonal = (deltaX + deltaY) / 2;
+      // 0.5px of drag = 1px of font size change for precise control
+      const newFontSize = Math.round(
+        Math.min(200, Math.max(10, resizeStartRef.current.initialFontSize + diagonal * 0.5))
       );
       
       setActiveTextEditor(prev => prev ? { ...prev, fontSize: newFontSize } : null);
     };
 
     const handleGlobalPointerUp = () => {
+      // Release pointer capture if active
+      if (resizePointerIdRef.current !== null && resizeTargetRef.current) {
+        try {
+          resizeTargetRef.current.releasePointerCapture(resizePointerIdRef.current);
+        } catch (_) { /* already released */ }
+      }
+      resizePointerIdRef.current = null;
+      resizeTargetRef.current = null;
       setIsResizingText(false);
       resizeStartRef.current = null;
     };
@@ -361,6 +380,18 @@ export default function ClientForm() {
       window.removeEventListener('pointerup', handleGlobalPointerUp);
     };
   }, [isResizingText, activeTextEditor]);
+
+  // Focus the text input with preventScroll to stop browsers from auto-scrolling/panning the viewport on focus
+  useEffect(() => {
+    if (activeTextEditor && textInputRef.current) {
+      const timer = setTimeout(() => {
+        if (textInputRef.current) {
+          textInputRef.current.focus({ preventScroll: true });
+        }
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTextEditor]);
 
   // Drawing board: initialize, resize, and redraw
   useEffect(() => {
@@ -443,11 +474,12 @@ export default function ClientForm() {
         
         // Scale font size and coordinates proportionally in CSS coordinates
         const baseFontSize = Math.max(16, stroke.width * 6);
-        const fontSize = baseFontSize * scaleX;
+        const fontSize = Math.round(baseFontSize * scaleX);
         offCtx.font = `bold ${fontSize}px sans-serif`;
         
         const renderX = stroke.points[0].x * scaleX;
         const renderY = stroke.points[0].y * scaleY;
+        offCtx.textBaseline = 'middle';
         offCtx.fillText(stroke.text, renderX, renderY);
       } else {
         if (stroke.points.length === 0) return;
@@ -625,6 +657,7 @@ export default function ClientForm() {
         canvasY: coords.y,
         text: '',
         fontSize: initialFontSize,
+        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
       });
       return;
     }
@@ -790,6 +823,9 @@ export default function ClientForm() {
           // Remove from list so it doesn't double-render during typing
           setStrokes((prev) => prev.filter((_, idx) => idx !== draggingText.strokeIndex));
 
+          // Sync current active color with the stroke color
+          setCurrentColor(strokeToEdit.color);
+
           setActiveTextEditor({
             x: strokeX,
             y: strokeY,
@@ -797,6 +833,7 @@ export default function ClientForm() {
             canvasY: strokeToEdit.points[0].y,
             text: strokeToEdit.text || '',
             fontSize: strokeFontSize,
+            color: strokeToEdit.color,
           });
         }
       } else {
@@ -919,10 +956,10 @@ export default function ClientForm() {
         setCurrentPageSnapshot(nextSnapshot);
       }
       
-      // Keep transition sliding view on top for 300ms duration
+      // Keep transition sliding view on top for 750ms duration
       setTimeout(() => {
         setIsTransitioning(false);
-      }, 300);
+      }, 750);
     }, 40);
   };
 
@@ -1580,9 +1617,35 @@ export default function ClientForm() {
             </div>
           </div>
 
-          {/* Center Drawing Area */}
-          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-0 sm:p-4">
-            <div className="relative bg-white rounded-none sm:rounded-2xl shadow-none sm:shadow-xl border-x-0 border-y sm:border border-[#E6DFD3] overflow-hidden w-full h-full flex flex-col">
+          {/* Center Drawing Area (Note occupies the full space) */}
+          <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-0 relative bg-white">
+            {/* Left Page Arrow */}
+            <button
+              type="button"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="absolute left-4 z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white hover:bg-slate-50 border border-[#E6DFD3] shadow-lg flex items-center justify-center text-slate-750 disabled:opacity-20 disabled:hover:bg-white disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shrink-0 select-none cursor-pointer"
+              title="Previous Page"
+            >
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* Right Page Arrow */}
+            <button
+              type="button"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="absolute right-4 z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white hover:bg-slate-50 border border-[#E6DFD3] shadow-lg flex items-center justify-center text-slate-750 disabled:opacity-20 disabled:hover:bg-white disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shrink-0 select-none cursor-pointer"
+              title="Next Page"
+            >
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
               {initialStatus !== 'Completed and handovered' && (
                 <div className="w-full z-40 bg-white border-b border-slate-200 px-4 py-2 sm:py-3 flex flex-row flex-wrap justify-between items-center gap-3 sm:gap-4 select-none shrink-0">
@@ -1703,12 +1766,17 @@ export default function ClientForm() {
                         <button
                           key={c.hex}
                           type="button"
-                          onClick={() => {
+                          onPointerDown={(e) => {
+                            e.preventDefault(); // Prevents input focus theft/blur
                             setCurrentColor(c.hex);
-                            setDrawMode('draw');
+                            if (activeTextEditor) {
+                              setActiveTextEditor(prev => prev ? { ...prev, color: c.hex } : null);
+                            } else {
+                              setDrawMode('draw');
+                            }
                           }}
                           className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-slate-200 transition-all duration-200 cursor-pointer ${
-                            currentColor === c.hex && drawMode === 'draw'
+                            (activeTextEditor?.color || currentColor) === c.hex
                               ? 'scale-110 ring-4 ring-[#9E7D3B]/40 border-[#9E7D3B]'
                               : 'hover:scale-105 active:scale-95'
                           }`}
@@ -1747,42 +1815,70 @@ export default function ClientForm() {
                 </div>
               )}
 
-               {/* Transition sliding page overlay */}
-               {isTransitioning && prevPageSnapshot && (
-                 <div className="absolute inset-0 z-30 bg-white overflow-hidden pointer-events-none">
+              {/* Inner wrapper container to align canvas and absolute overlays (positioned below the toolbar) */}
+              <div className="relative flex-grow min-h-0 w-full bg-[#FCFAF5]">
+                {/* Transition sliding page overlay */}
+                {isTransitioning && prevPageSnapshot && (
+                 <div className="absolute inset-0 z-30 bg-[#FCFAF5] overflow-hidden pointer-events-none flex items-center justify-center">
                    <style dangerouslySetInnerHTML={{__html: `
+                     @keyframes shrinkAndExpand {
+                       0% { transform: scale(1); }
+                       20% { transform: scale(0.9); }
+                       80% { transform: scale(0.9); }
+                       100% { transform: scale(1); }
+                     }
                      @keyframes slidePage-left {
-                       from { transform: translateX(0%); }
-                       to { transform: translateX(-50%); }
+                       0% { transform: translateX(0%); }
+                       20% { transform: translateX(0%); }
+                       80% { transform: translateX(-50%); }
+                       100% { transform: translateX(-50%); }
                      }
                      @keyframes slidePage-right {
-                       from { transform: translateX(-50%); }
-                       to { transform: translateX(0%); }
+                       0% { transform: translateX(-50%); }
+                       20% { transform: translateX(-50%); }
+                       80% { transform: translateX(0%); }
+                       100% { transform: translateX(0%); }
                      }
                    `}} />
                    <div 
-                     className="flex h-full w-[200%] bg-white"
-                     style={
-                       currentPageSnapshot 
-                         ? {
-                             transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)',
-                             animation: `slidePage-${transitionDirection} 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards`
-                           }
-                         : {
-                             transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)'
-                           }
-                     }
+                     className="w-full h-full"
+                     style={{
+                       animation: 'shrinkAndExpand 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards',
+                       transformOrigin: 'center'
+                     }}
                    >
-                     <img 
-                       src={transitionDirection === 'left' ? prevPageSnapshot : (currentPageSnapshot || prevPageSnapshot)} 
-                       className="w-1/2 h-full object-contain bg-white" 
-                       alt="Page Transition Out"
-                     />
-                     <img 
-                       src={transitionDirection === 'left' ? (currentPageSnapshot || prevPageSnapshot) : prevPageSnapshot} 
-                       className="w-1/2 h-full object-contain bg-white" 
-                       alt="Page Transition In"
-                     />
+                     <div 
+                       className="flex h-full w-[200%]"
+                       style={
+                         currentPageSnapshot 
+                           ? {
+                               transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)',
+                               animation: `slidePage-${transitionDirection} 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards`
+                             }
+                           : {
+                               transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)'
+                             }
+                       }
+                     >
+                       <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
+                         <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
+                           <img 
+                             src={transitionDirection === 'left' ? prevPageSnapshot : (currentPageSnapshot || prevPageSnapshot)} 
+                             className="w-full h-full object-contain bg-white" 
+                             alt="Page Transition Out"
+                           />
+                         </div>
+                       </div>
+                       <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
+                         <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
+                           <img 
+                             src={transitionDirection === 'left' ? (currentPageSnapshot || prevPageSnapshot) : prevPageSnapshot} 
+                             className="w-full h-full object-contain bg-white" 
+                             alt="Page Transition In"
+                           />
+                         </div>
+                       </div>
+                     </div>
                    </div>
                  </div>
                )}
@@ -1808,6 +1904,28 @@ export default function ClientForm() {
 
               {activeTextEditor && (() => {
                 const pos = getTextEditorPosition();
+                const canvas = canvasRef.current;
+                const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+                const cssWidth = canvas ? canvas.width / dpr : 1000;
+                const scaleX = cssWidth / 1000;
+                const baseFontSize = Math.max(16, activeTextEditor.fontSize);
+                const inputFontSize = Math.round(baseFontSize * scaleX * scale);
+
+                // Measure text width using canvas context to fit the input exactly to the pixel
+                let textWidth = 120;
+                if (canvas) {
+                  const ctx = canvas.getContext('2d');
+                  if (ctx) {
+                    ctx.save();
+                    ctx.font = `bold ${inputFontSize}px sans-serif`;
+                    textWidth = ctx.measureText(activeTextEditor.text || 'Type notes...').width;
+                    ctx.restore();
+                  }
+                }
+                
+                // Add safety padding (32px) for the caret and asymmetric padding (4px left, 24px right)
+                const inputWidthPx = Math.ceil(textWidth) + 32;
+
                 return (
                   <div
                     style={{
@@ -1819,9 +1937,9 @@ export default function ClientForm() {
                   >
                     <div className="relative group">
                       <input
+                        ref={textInputRef}
                         id="whiteboard-text-input"
                         type="text"
-                        autoFocus
                         value={activeTextEditor.text}
                         onChange={(e) => {
                           setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
@@ -1834,14 +1952,17 @@ export default function ClientForm() {
                           }
                         }}
                         onBlur={() => commitText(activeTextEditor)}
+                        onDoubleClick={(e) => {
+                          e.currentTarget.select(); // Highlight/select all text inside the input
+                        }}
                         placeholder="Type notes..."
                         style={{
-                          color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
-                          caretColor: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
-                          fontSize: `${activeTextEditor.fontSize * scale}px`,
-                          width: `${Math.max(10, activeTextEditor.text.length || 12)}ch`,
+                          color: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
+                          caretColor: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
+                          fontSize: `${inputFontSize}px`,
+                          width: `${inputWidthPx}px`,
                         }}
-                      className="bg-transparent px-1.5 py-0.5 border border-black text-[#1A1A1A] text-sm font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black animate-in zoom-in-95 duration-100"
+                      className="bg-transparent pl-1 pr-6 py-0.5 border border-black text-[#1A1A1A] text-sm font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black"
                     />
 
                     {/* Delete button floating above the input box */}
@@ -1862,18 +1983,27 @@ export default function ClientForm() {
                       Delete
                     </button>
 
-                    {/* Drag handle at bottom-right corner */}
+                    {/* Drag handle at bottom-right corner — premium pull/drag icon */}
                     <div
                       onPointerDown={handleResizePointerDown}
-                      className="absolute bottom-0 right-0 h-3.5 w-3.5 bg-black border border-white cursor-se-resize translate-x-1.5 translate-y-1.5 rounded-full z-40 hover:scale-125 transition-transform touch-none"
+                      className="absolute -bottom-4 -right-4 h-11 w-11 flex items-center justify-center cursor-se-resize z-40 touch-none"
                       title="Drag to resize text"
-                    />
+                    >
+                      <div className="h-7 w-7 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg shadow-lg flex items-center justify-center pointer-events-none ring-1 ring-white/30">
+                        <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 16 16" fill="none">
+                          <path d="M4 12L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4 8V12H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M12 8V4H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
             })()}
-            </div>
-          </div>
+            </div> {/* Closes inner wrapper container */}
+            </div> {/* Closes Note Page flex container */}
+          </div> {/* Closes Center Drawing Area */}
 
           {/* Bottom Panel: Zoom, Navigation, and Whiteboard editing options */}
           <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 flex flex-row flex-wrap items-center justify-center sm:justify-between gap-3.5 sm:gap-4 flex-none select-none w-full shadow-inner">
