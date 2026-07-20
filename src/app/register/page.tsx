@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'admin' | 'manager'>('admin');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -34,7 +35,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, role }),
       });
 
       const data = await res.json();
@@ -150,6 +151,25 @@ export default function RegisterPage() {
                   className="block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#1A1A1A] placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A85C]/20 transition-all duration-200 disabled:opacity-50 text-base sm:text-lg"
                   placeholder="••••••••"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="role" className="block text-base sm:text-lg font-semibold text-slate-700 mb-1">
+                Account Role
+              </label>
+              <div className="mt-1">
+                <select
+                  id="role"
+                  name="role"
+                  disabled={loading || success}
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as 'admin' | 'manager')}
+                  className="block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#1A1A1A] shadow-sm focus:border-[#C5A85C] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C5A85C]/20 transition-all duration-200 disabled:opacity-50 text-base sm:text-lg"
+                >
+                  <option value="admin">Admin — full access</option>
+                  <option value="manager">Manager — view earnings &amp; completed suits only</option>
+                </select>
               </div>
             </div>
 

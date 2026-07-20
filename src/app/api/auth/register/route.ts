@@ -5,11 +5,14 @@ import User from '../../../../models/User';
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
+    const { username, password, role } = await request.json();
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
+
+    // Validate role
+    const userRole = role === 'manager' ? 'manager' : 'admin';
 
     await dbConnect();
 
@@ -26,6 +29,7 @@ export async function POST(request: NextRequest) {
     const user = new User({
       username,
       password: hashedPassword,
+      role: userRole,
     });
     await user.save();
 

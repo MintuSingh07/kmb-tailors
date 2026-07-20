@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 400 });
     }
 
-    // Sign JWT
+    // Sign JWT — include role so the dashboard can render the correct view
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user._id, username: user.username, role: user.role || 'admin' },
       JWT_SECRET,
       { expiresIn: '30d' }
     );

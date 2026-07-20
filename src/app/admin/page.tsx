@@ -12,6 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 interface DecodedToken {
   userId: string;
   username: string;
+  role: string;
 }
 
 export default async function AdminPage() {
@@ -24,10 +25,12 @@ export default async function AdminPage() {
   }
 
   let username = '';
+  let role = 'admin';
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
     username = decoded.username;
+    role = decoded.role || 'admin';
   } catch (err) {
     redirect('/login');
   }
@@ -185,6 +188,12 @@ export default async function AdminPage() {
     },
   ];
 
+  // Manager sees only these 3 stat cards
+  const managerStatIds = ['total-earning', 'todays-earning', 'completed-suits'];
+  const visibleStats = role === 'manager'
+    ? stats.filter((s) => managerStatIds.includes(s.id))
+    : stats;
+
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">
       {/* Background Subtle Glows */}
@@ -209,9 +218,9 @@ export default async function AdminPage() {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-base sm:text-lg text-slate-500 hidden sm:inline">
-            Welcome, <strong className="text-[#9E7D3B] capitalize font-bold">{username}</strong>
-          </span>
+           <span className="text-base sm:text-lg text-slate-500 hidden sm:inline">
+             {role === 'manager' ? 'Manager' : 'Welcome,'}{' '}<strong className="text-[#9E7D3B] capitalize font-bold">{username}</strong>
+           </span>
           <LogoutButton />
         </div>
       </header>
@@ -220,16 +229,18 @@ export default async function AdminPage() {
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
         <div className="mb-6 select-none">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A] mb-1.5">
-            Workspace
+            {role === 'manager' ? 'Business Overview' : 'Workspace'}
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            Tailoring operation metrics and business insights.
+            {role === 'manager'
+              ? 'Earnings summary and completed order metrics.'
+              : 'Tailoring operation metrics and business insights.'}
           </p>
         </div>
 
         {/* 7 Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {stats.map((stat) => {
+          {visibleStats.map((stat) => {
             const cardContent = (
               <>
                 <div className="flex items-start justify-between mb-4">
@@ -301,18 +312,20 @@ export default async function AdminPage() {
         </div>
       </main>
 
-      {/* Floating Action Button (FAB) at bottom-right */}
-      <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50">
-        <Link
-          href="/admin/new"
-          title="Add Action"
-          className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white flex items-center justify-center shadow-xl shadow-[#9E7D3B]/30 hover:scale-110 active:scale-95 transition-all duration-200 group focus:outline-none"
-        >
-          <svg className="h-8 w-8 sm:h-10 sm:w-10 transition-transform duration-200 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </Link>
-      </div>
+      {/* Floating Action Button — Admin only */}
+      {role !== 'manager' && (
+        <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50">
+          <Link
+            href="/admin/new"
+            title="Add Action"
+            className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] text-white flex items-center justify-center shadow-xl shadow-[#9E7D3B]/30 hover:scale-110 active:scale-95 transition-all duration-200 group focus:outline-none"
+          >
+            <svg className="h-8 w-8 sm:h-10 sm:w-10 transition-transform duration-200 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
