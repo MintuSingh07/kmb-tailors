@@ -16,6 +16,7 @@ interface ClientRecord {
   measurementDrawing: string;
   price: number;
   suitStatus: string;
+  address?: string;
   updatedAt: string;
 }
 
@@ -163,6 +164,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
         name: string;
         contactNo: string;
         alternativeNo?: string;
+        address?: string;
         queries: ClientRecord[];
       };
     } = {};
@@ -174,6 +176,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
           name: client.name,
           contactNo: client.contactNo,
           alternativeNo: client.alternativeNo,
+          address: client.address,
           queries: [],
         };
       }
@@ -318,6 +321,11 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                         <span className="font-black text-slate-800 text-lg sm:text-xl truncate block max-w-xs leading-snug">
                           {group.name}
                         </span>
+                        {group.address && (
+                          <span className="text-xs text-slate-400 font-semibold block mt-0.5 max-w-xs truncate" title={group.address}>
+                            {group.address}
+                          </span>
+                        )}
                       </td>
 
                       {/* Client Code */}
@@ -393,6 +401,11 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                       <p className="text-slate-400 font-extrabold text-xs mt-0.5 select-none">
                         Code: {group.clientNo} | Contact: {group.contactNo}
                       </p>
+                      {group.address && (
+                        <p className="text-slate-500 font-semibold text-xs mt-1">
+                          {group.address}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
