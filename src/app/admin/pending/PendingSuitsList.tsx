@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Ruler } from 'lucide-react';
@@ -20,9 +21,57 @@ interface ClientRecord {
 }
 
 export default function PendingSuitsList({ initialSuits }: { initialSuits: ClientRecord[] }) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSuits = useMemo(() => {
+    if (!searchQuery.trim()) return initialSuits;
+    const q = searchQuery.toLowerCase().trim();
+    return initialSuits.filter(
+      (suit) =>
+        suit.name.toLowerCase().includes(q) ||
+        suit.clientNo.toLowerCase().includes(q) ||
+        suit.contactNo.includes(q) ||
+        (suit.alternativeNo && suit.alternativeNo.includes(q))
+    );
+  }, [initialSuits, searchQuery]);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-      {initialSuits.map((client) => {
+    <div className="space-y-6">
+      {/* Search Bar */}
+      <div className="relative max-w-md w-full">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search suits by customer name or code..."
+          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-[#E6DFD3] bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#9E7D3B] focus:ring-2 focus:ring-[#9E7D3B]/10 font-bold text-sm shadow-sm transition-all"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {filteredSuits.length === 0 ? (
+        <div className="text-center py-16 bg-white border border-[#E6DFD3] rounded-3xl p-8 max-w-md mx-auto shadow-sm select-none">
+          <p className="text-slate-400 font-extrabold text-lg">No suits match search</p>
+          <p className="text-slate-400 text-xs mt-1 font-semibold">Try searching for another customer or code.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {filteredSuits.map((client) => {
         const isCompleted = client.suitStatus === 'Completed and handovered';
         
         let primaryImage: string | null = null;
@@ -139,8 +188,10 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
               </span>
             </div>
           </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      )}
     </div>
   );
 }
