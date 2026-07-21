@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import NextImage from 'next/image';
 import { Ruler } from 'lucide-react';
 
 interface ClientRecord {
@@ -101,8 +102,15 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
       {/* Top Banner section */}
       <header className="bg-white border-b border-[#E6DFD3] py-4.5 px-6 sm:px-12 flex items-center justify-between shadow-sm select-none">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center text-[#DFBA6B] font-black text-sm border-2 border-[#DFBA6B] shadow-inner">
-            KB
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 select-none">
+            <NextImage
+              src="/logo.png"
+              alt="KMB Boutique Logo"
+              fill
+              sizes="(max-width: 640px) 40px, 48px"
+              priority
+              className="object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
