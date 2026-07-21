@@ -86,31 +86,25 @@ export default function GalleryView({
             <p className="text-slate-500 font-semibold">This client has no design or handover photos loaded.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
             {allImages.map((imgSrc, index) => {
-              const isHandover = index < (handoverImages?.length || 0);
-
               return (
                 <div
                   key={index}
                   onClick={() => setSelectedImage(imgSrc)}
-                  className="group relative bg-[#FCFAF5] border border-[#E6DFD3] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 cursor-pointer flex flex-col aspect-[4/5] min-h-[300px]"
+                  className="group relative bg-transparent border-none rounded-none overflow-hidden shadow-none cursor-pointer flex flex-col w-full h-auto select-none"
                 >
-                  <div className="relative flex-1 w-full h-full overflow-hidden select-none">
-                    <Image
-                      src={imgSrc}
-                      alt={`${clientName} photo ${index + 1}`}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                      className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    
-                    {/* View Fullscreen Hover Overlay */}
-                    <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <span className="bg-white/95 text-slate-800 border border-[#E6DFD3] text-xs font-black tracking-wider uppercase px-4.5 py-2.5 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
-                        View Fullscreen &rarr;
-                      </span>
-                    </div>
+                  <img
+                    src={imgSrc}
+                    alt={`${clientName} photo ${index + 1}`}
+                    className="w-full h-auto block rounded-none border-none shadow-none transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  
+                  {/* View Fullscreen Hover Overlay */}
+                  <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="bg-white/95 text-slate-800 border border-[#E6DFD3] text-xs font-black tracking-wider uppercase px-4.5 py-2.5 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
+                      View Fullscreen &rarr;
+                    </span>
                   </div>
                 </div>
               );
