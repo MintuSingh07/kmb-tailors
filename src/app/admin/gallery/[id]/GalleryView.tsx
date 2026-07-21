@@ -180,13 +180,13 @@ export default function GalleryView({
         {/* Back Button */}
         <div className="flex items-center mb-8 select-none">
           <Link
-            href="/admin/completed"
+            href="/admin/photos"
             className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Completed Gallery
+            Back to Handover Catalog
           </Link>
         </div>
 
