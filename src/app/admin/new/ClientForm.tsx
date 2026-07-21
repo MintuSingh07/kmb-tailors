@@ -638,6 +638,12 @@ export default function ClientForm() {
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+
+    // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
+    if (e.pointerType === 'touch' && drawMode !== 'none') {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -769,6 +775,11 @@ export default function ClientForm() {
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
+    if (e.pointerType === 'touch' && drawMode !== 'none') {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -858,6 +869,11 @@ export default function ClientForm() {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
+    if (e.pointerType === 'touch' && drawMode !== 'none') {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (canvas) {
       canvas.releasePointerCapture(e.pointerId);
