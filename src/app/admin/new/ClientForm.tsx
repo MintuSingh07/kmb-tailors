@@ -1822,7 +1822,7 @@ export default function ClientForm() {
                       {[
                         { hex: '#1A1A1A', name: 'Black' },
                         { hex: '#E53E3E', name: 'Red' },
-                        { hex: '#3182CE', name: 'Blue' },
+                        { hex: '#1E3A8A', name: 'Dark Blue' },
                         { hex: '#38A169', name: 'Green' },
                       ].map((c) => (
                         <button
