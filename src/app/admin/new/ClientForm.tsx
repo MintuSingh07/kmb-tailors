@@ -70,6 +70,7 @@ export default function ClientForm() {
   const [name, setName] = useState('');
   const [contactNo, setContactNo] = useState('');
   const [alternativeNo, setAlternativeNo] = useState('');
+  const [address, setAddress] = useState('');
   const [category, setCategory] = useState('Punjabi Suit');
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
@@ -235,6 +236,7 @@ export default function ClientForm() {
       
       setName(client.name || '');
       setContactNo(client.contactNo || '');
+      setAddress(client.address || '');
       
       if (isAutofillOnly) {
         setAlternativeNo('');
@@ -1101,6 +1103,7 @@ export default function ClientForm() {
           name,
           contactNo,
           alternativeNo,
+          address,
           category,
           images,
           handoverImages,
@@ -1258,6 +1261,20 @@ export default function ClientForm() {
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
+                Address
+              </label>
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter client's address"
+                disabled={initialStatus === 'Completed and handovered'}
+                rows={2}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed resize-none"
+              />
             </div>
 
             <div>

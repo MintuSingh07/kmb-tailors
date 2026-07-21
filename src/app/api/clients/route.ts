@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, clientNo, name, contactNo, alternativeNo, category, images, handoverImages, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
+    const { id, clientNo, name, contactNo, alternativeNo, address, category, images, handoverImages, measurementDrawing, measurementDrawings, strokes, price, suitStatus } = body;
 
     if (!clientNo || !name || !contactNo || !category) {
       return NextResponse.json({ error: 'Client No, Name, Contact No, and Category are required' }, { status: 400 });
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       existingClient.name = name;
       existingClient.contactNo = contactNo;
       existingClient.alternativeNo = alternativeNo;
+      existingClient.address = address;
       existingClient.category = category;
       existingClient.images = uploadedImages;
       existingClient.handoverImages = uploadedHandoverImages;
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
       name,
       contactNo,
       alternativeNo,
+      address,
       category,
       images: uploadedImages,
       handoverImages: uploadedHandoverImages,

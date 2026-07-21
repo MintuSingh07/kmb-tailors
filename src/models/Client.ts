@@ -21,6 +21,10 @@ const ClientSchema = new Schema(
       type: String,
       trim: true,
     },
+    address: {
+      type: String,
+      trim: true,
+    },
     category: {
       type: String,
       required: [true, 'Please select a category'],

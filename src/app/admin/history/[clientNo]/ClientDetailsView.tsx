@@ -18,6 +18,7 @@ interface ClientRecord {
   handoverImages: string[];
   measurementDrawing?: string;
   measurementDrawings?: string[];
+  address?: string;
   strokes?: any[];
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -221,6 +222,19 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                 </span>
               </div>
             </div>
+
+            {profile.address && (
+              <div className="mt-6 pt-5 border-t border-slate-100 flex items-start gap-1.5">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block select-none">
+                    Address
+                  </span>
+                  <p className="text-sm font-semibold text-slate-700 mt-1">
+                    {profile.address}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
