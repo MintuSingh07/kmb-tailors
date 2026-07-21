@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Ruler } from 'lucide-react';
 
 interface ClientRecord {
   _id: any;
@@ -403,9 +404,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         href={`/admin/pending/measurement?id=${q._id}`}
                         className="w-full sm:flex-1 text-center py-3.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-xs sm:text-sm font-black rounded-2xl transition-all duration-150 cursor-pointer shadow-sm bg-white inline-flex items-center justify-center gap-2"
                       >
-                        <svg className="h-4.5 w-4.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-1.178-.304 3.5 3.5 0 1 0-3.702 3.543c.022.95.83 1.639 1.78 1.639h1.93a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3h-.193a3 3 0 0 0-3 3v9.062a3 3 0 0 0 3 3ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
+                        <Ruler className="h-4.5 w-4.5 shrink-0" strokeWidth={2.5} />
                         Measurement
                       </Link>
                       <Link

@@ -190,7 +190,7 @@ export default async function AdminPage() {
 
   // Filter stats cards visibility based on user roles
   const visibleStats = role === 'manager'
-    ? stats.filter((s) => ['pending-suits', 'photos', 'prepared-not-handovered', 'completed-suits'].includes(s.id))
+    ? stats.filter((s) => ['pending-suits', 'photos', 'prepared-not-handovered', 'completed-suits', 'client-history'].includes(s.id))
     : stats.filter((s) => ['total-earning', 'todays-earning', 'client-history', 'completed-suits'].includes(s.id));
 
   return (

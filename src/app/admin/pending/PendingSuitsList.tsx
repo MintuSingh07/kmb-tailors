@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { Ruler } from 'lucide-react';
 
 interface ClientRecord {
   _id: string;
@@ -127,8 +128,9 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
             <div className="border-t border-slate-100 px-5 py-3 flex items-center justify-between bg-slate-50/50">
               <Link
                 href={`/admin/pending/measurement?id=${client._id}`}
-                className="px-4 py-2 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-block tracking-wider"
+                className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-flex items-center justify-center gap-1.5 tracking-wider"
               >
+                <Ruler className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
                 Measurement
               </Link>
               

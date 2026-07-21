@@ -141,6 +141,7 @@ export default async function MeasurementPage(props: PageProps) {
               clientId={client._id.toString()} 
               currentStatus={client.suitStatus || 'Pending'} 
               userRole={role}
+              currentPrice={client.price}
             />
           </div>
 

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 });
     }
 
-    const { id, clientNo, status, images } = await request.json();
+    const { id, clientNo, status, images, price } = await request.json();
 
     if (!clientNo || !status) {
       return NextResponse.json({ error: 'Client Number and Status are required' }, { status: 400 });
@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     client.suitStatus = status;
+    if (price !== undefined && price !== null) {
+      client.price = Number(price);
+    }
     if (images && Array.isArray(images)) {
       const uploadedHandoverImages: string[] = [];
       for (const img of images) {

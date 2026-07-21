@@ -8,13 +8,15 @@ interface StatusActionsProps {
   clientId: string;
   currentStatus: string;
   userRole?: string;
+  currentPrice?: number;
 }
 
-export default function StatusActions({ clientNo, clientId, currentStatus, userRole }: StatusActionsProps) {
+export default function StatusActions({ clientNo, clientId, currentStatus, userRole, currentPrice }: StatusActionsProps) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
   const [images, setImages] = useState<string[]>([]);
+  const [price, setPrice] = useState(currentPrice !== undefined && currentPrice !== null ? currentPrice : 0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -44,6 +46,11 @@ export default function StatusActions({ clientNo, clientId, currentStatus, userR
       return;
     }
 
+    if (newStatus === 'Completed and handovered' && (!price || Number(price) <= 0)) {
+      setError('Please enter the stitching price when marking the order as Completed.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -52,7 +59,7 @@ export default function StatusActions({ clientNo, clientId, currentStatus, userR
       const response = await fetch('/api/clients/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: clientId, clientNo, status: newStatus, images }),
+        body: JSON.stringify({ id: clientId, clientNo, status: newStatus, images, price: Number(price) }),
       });
 
       const data = await response.json();
@@ -148,13 +155,35 @@ export default function StatusActions({ clientNo, clientId, currentStatus, userR
       {selectedStatus !== status && (
         <div className="border-t border-[#E6DFD3]/60 pt-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
           {selectedStatus === 'Completed and handovered' && (
-            <div className="space-y-3">
-              <label className="block text-sm sm:text-base font-bold text-slate-700">
-                Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
-              </label>
-              <p className="text-xs text-rose-500/80 font-bold mb-2">
-                You must snap or upload at least one photo of the completed suit before giving it to the client.
-              </p>
+            <div className="space-y-4">
+              {/* Price input field */}
+              <div className="space-y-2">
+                <label className="block text-sm sm:text-base font-bold text-slate-700">
+                  Stitching Price (Rs.) <span className="text-rose-600 font-extrabold">(Required)</span>
+                </label>
+                <div className="relative rounded-2xl border border-[#E6DFD3] px-3.5 py-3 bg-[#FCFAF5] focus-within:border-[#9E7D3B] focus-within:ring-1 focus-within:ring-[#9E7D3B]/20 transition-all">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm select-none">
+                    Rs.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Enter stitching price (e.g. 8500)"
+                    value={price || ''}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                    className="w-full bg-transparent pl-8 pr-2 focus:outline-none text-slate-800 font-bold text-sm sm:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+              </div>
+
+              {/* Handover photos field */}
+              <div className="space-y-3">
+                <label className="block text-sm sm:text-base font-bold text-slate-700">
+                  Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
+                </label>
+                <p className="text-xs text-rose-500/80 font-bold mb-2">
+                  You must snap or upload at least one photo of the completed suit before giving it to the client.
+                </p>
               
               <div className="relative">
                 <input
@@ -206,6 +235,7 @@ export default function StatusActions({ clientNo, clientId, currentStatus, userR
                   ))}
                 </div>
               )}
+            </div>
             </div>
           )}
 
