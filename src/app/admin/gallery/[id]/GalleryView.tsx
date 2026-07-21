@@ -59,8 +59,8 @@ export default function GalleryView({
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
-        {/* Back Button & Count */}
-        <div className="flex items-center justify-between mb-8 select-none">
+        {/* Back Button */}
+        <div className="flex items-center mb-8 select-none">
           <Link
             href="/admin/completed"
             className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
@@ -70,22 +70,6 @@ export default function GalleryView({
             </svg>
             Back to Completed Gallery
           </Link>
-          <span className="bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-3.5 py-1 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider">
-            {allImages.length} {allImages.length === 1 ? 'Photo' : 'Photos'}
-          </span>
-        </div>
-
-        {/* Title */}
-        <div className="mb-8 select-none border-b border-[#E6DFD3]/40 pb-6">
-          <span className="text-[10px] font-black text-[#9E7D3B] uppercase tracking-widest block mb-1">
-            Customer Profile Photos
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-800">
-            {clientName}
-          </h1>
-          <span className="inline-block mt-2 text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider bg-slate-100 border border-slate-200 px-3 py-1 rounded-lg">
-            Client Code: <strong className="text-[#9E7D3B] font-black ml-1">{clientNo}</strong>
-          </span>
         </div>
 
         {/* Dynamic Gallery Grid (3 Images Side by Side on desktop) */}
@@ -121,15 +105,6 @@ export default function GalleryView({
                       className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                     
-                    {/* Badge type label (Handover vs Style) */}
-                    <span className={`absolute top-4 left-4 border text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm select-none ${
-                      isHandover 
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                        : 'bg-amber-50 border-amber-200 text-[#9E7D3B]'
-                    }`}>
-                      {isHandover ? 'Handover' : 'Design Fabric'}
-                    </span>
-
                     {/* View Fullscreen Hover Overlay */}
                     <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <span className="bg-white/95 text-slate-800 border border-[#E6DFD3] text-xs font-black tracking-wider uppercase px-4.5 py-2.5 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
