@@ -25,30 +25,6 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
   // Track active photo index for each suit card
   const [activePhotoIndices, setActivePhotoIndices] = useState<{ [clientNo: string]: number }>({});
 
-  // Lightbox viewer state
-  const [activeLightbox, setActiveLightbox] = useState<{
-    images: string[];
-    clientName: string;
-    clientNo: string;
-  } | null>(null);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-
-  const triggerLightbox = (images: string[], index: number, clientName: string, clientNo: string) => {
-    setLightboxIndex(index);
-    setActiveLightbox({ images, clientName, clientNo });
-  };
-
-  const nextLightboxPhoto = () => {
-    if (!activeLightbox) return;
-    setLightboxIndex((prev) => (prev + 1) % activeLightbox.images.length);
-  };
-
-  const prevLightboxPhoto = () => {
-    if (!activeLightbox) return;
-    const len = activeLightbox.images.length;
-    setLightboxIndex((prev) => (prev - 1 + len) % len);
-  };
-
   const handleNextPhoto = (clientNo: string, total: number, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -145,19 +121,17 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
                 className="bg-white border border-[#E6DFD3] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col group animate-in fade-in duration-200 w-full"
               >
                 {/* 1. PHOTO BLOCK — 3 full-portrait images side by side, no cropping */}
-                <div className="flex border-b border-[#E6DFD3]/40 overflow-hidden select-none gap-px bg-[#F5F0E8] min-h-72 sm:min-h-[22rem] md:min-h-[26rem]">
-
+                <Link
+                  href={`/admin/gallery/${client._id}`}
+                  className="flex border-b border-[#E6DFD3]/40 overflow-hidden select-none gap-px bg-[#F5F0E8] min-h-72 sm:min-h-[22rem] md:min-h-[26rem] cursor-pointer block"
+                >
                   {[0, 1, 2].map((idx) => {
                     const imgSrc  = displayImages[idx] || null;
-                    const lbIndex = imgSrc ? allImages.indexOf(imgSrc) : 0;
 
                     return (
                       <div
                         key={idx}
-                        className="relative flex-1 bg-[#F5F0E8] cursor-pointer overflow-hidden"
-                        onClick={() =>
-                          triggerLightbox(allImages, Math.max(0, lbIndex), client.name, client.clientNo)
-                        }
+                        className="relative flex-1 bg-[#F5F0E8] overflow-hidden"
                       >
                         {imgSrc ? (
                           <Image
@@ -186,7 +160,7 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
                       </div>
                     );
                   })}
-                </div>
+                </Link>
 
                 {/* 2. CLIENT DETAILS PANEL - Clean & Minimal */}
                 <div className="p-4.5 flex flex-col justify-between flex-1 space-y-3">
@@ -223,97 +197,6 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
             );
           })}
          </div>
-      )}
-
-      {/* High-Resolution Lightbox Section */}
-      {activeLightbox && (
-        <div className="fixed inset-0 bg-[#0A0A0A]/95 z-50 flex flex-col justify-between p-4 sm:p-6 animate-in fade-in duration-200">
-          
-          {/* Lightbox Header */}
-          <div className="flex items-center justify-between text-white py-2 px-4 border-b border-white/10">
-            <div>
-              <h4 className="text-lg font-black text-white">{activeLightbox.clientName}</h4>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Client Code: {activeLightbox.clientNo}</p>
-            </div>
-            
-            {/* Close Button */}
-            <button
-              onClick={() => setActiveLightbox(null)}
-              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
-              title="Close Image Viewer"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Lightbox Image Stage */}
-          <div className="relative flex-1 flex items-center justify-center py-8">
-            {/* Slide Left Button */}
-            {activeLightbox.images.length > 1 && (
-              <button
-                onClick={prevLightboxPhoto}
-                className="absolute left-4 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer z-10 font-bold text-lg select-none"
-              >
-                &larr;
-              </button>
-            )}
-
-            {/* Main Lightbox Image */}
-            <div className="relative w-full h-full max-h-[70vh] max-w-4xl select-none">
-              <Image
-                src={activeLightbox.images[lightboxIndex]}
-                alt={`${activeLightbox.clientName} large view`}
-                fill
-                sizes="(max-width: 1200px) 100vw, 1200px"
-                className="object-contain"
-                priority
-              />
-            </div>
-
-            {/* Slide Right Button */}
-            {activeLightbox.images.length > 1 && (
-              <button
-                onClick={nextLightboxPhoto}
-                className="absolute right-4 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer z-10 font-bold text-lg select-none"
-              >
-                &rarr;
-              </button>
-            )}
-          </div>
-
-          {/* Lightbox Footer & Thumbnail list */}
-          <div className="flex flex-col items-center gap-4 py-2 border-t border-white/10">
-            {/* Counter Label */}
-            <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-black tracking-widest text-white/90 uppercase select-none">
-              Photo {lightboxIndex + 1} of {activeLightbox.images.length}
-            </span>
-
-            {/* Thumbnails Row */}
-            {activeLightbox.images.length > 1 && (
-              <div className="flex gap-2 items-center overflow-x-auto max-w-full py-1">
-                {activeLightbox.images.map((thumb, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setLightboxIndex(idx)}
-                    className={`relative h-14 w-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                      lightboxIndex === idx ? 'border-[#9E7D3B] scale-105' : 'border-white/20 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <Image
-                      src={thumb}
-                      alt="thumbnail"
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       )}
     </div>
   );
