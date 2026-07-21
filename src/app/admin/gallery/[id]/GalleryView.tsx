@@ -190,10 +190,15 @@ export default function GalleryView({
           </Link>
         </div>
 
-        {/* Client Name Display Header */}
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-800 mb-6 select-none">
-          {clientName}
-        </h1>
+        {/* Client Name & Code Display Header */}
+        <div className="mb-6 select-none flex flex-wrap items-center gap-3 sm:gap-4 border-b border-[#E6DFD3]/40 pb-5">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-800">
+            {clientName}
+          </h1>
+          <span className="text-xs sm:text-sm font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-3.5 py-1.5 rounded-2xl select-none">
+            Code: {clientNo}
+          </span>
+        </div>
 
         {/* Add/Take Photos Buttons */}
         <div className="flex items-center gap-3 mb-8 select-none flex-wrap">
