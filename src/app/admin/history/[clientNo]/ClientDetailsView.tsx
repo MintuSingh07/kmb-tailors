@@ -164,7 +164,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
               <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
                 {profile.name || 'N/A'}
               </h2>
-              <span className="inline-block mt-1.5 text-xs font-bold text-slate-450 uppercase tracking-wider">
+              <span className="inline-block mt-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Code: <strong className="text-[#9E7D3B] font-black">{profile.clientNo}</strong>
               </span>
             </div>
