@@ -748,15 +748,16 @@ export default function ClientForm() {
         const scaleX = cssWidth / 1000;
         const scaleY = cssHeight / 750;
 
-        ctx.save();
-        ctx.scale(dpr, dpr);
-        ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
-        ctx.scale(scale, scale);
+        const px = (coords.x * scale + panOffset.x) * scaleX * dpr;
+        const py = (coords.y * scale + panOffset.y) * scaleY * dpr;
 
+        const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
+        const physicalLineWidth = actualWidth * scaleX * scale * dpr;
+
+        ctx.save();
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
-        ctx.lineWidth = actualWidth * scaleX;
+        ctx.lineWidth = physicalLineWidth;
         ctx.strokeStyle = currentColor;
 
         if (currentColor === '#FFFFFF') {
@@ -766,8 +767,8 @@ export default function ClientForm() {
         }
 
         ctx.beginPath();
-        ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
-        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
+        ctx.moveTo(px, py);
+        ctx.lineTo(px, py);
         ctx.stroke();
         ctx.restore();
       }
@@ -838,15 +839,21 @@ export default function ClientForm() {
       const scaleX = cssWidth / 1000;
       const scaleY = cssHeight / 750;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
-      ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
-      ctx.scale(scale, scale);
+      const toPhysicalX = (val: number) => (val * scale + panOffset.x) * scaleX * dpr;
+      const toPhysicalY = (val: number) => (val * scale + panOffset.y) * scaleY * dpr;
 
+      const p1x = toPhysicalX(lastPoint.x);
+      const p1y = toPhysicalY(lastPoint.y);
+      const p2x = toPhysicalX(coords.x);
+      const p2y = toPhysicalY(coords.y);
+
+      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
+      const physicalLineWidth = actualWidth * scaleX * scale * dpr;
+
+      ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
-      ctx.lineWidth = actualWidth * scaleX;
+      ctx.lineWidth = physicalLineWidth;
       ctx.strokeStyle = currentColor;
 
       if (currentColor === '#FFFFFF') {
@@ -856,13 +863,8 @@ export default function ClientForm() {
       }
 
       ctx.beginPath();
-      if (lastPoint) {
-        ctx.moveTo(lastPoint.x * scaleX, lastPoint.y * scaleY);
-        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
-      } else {
-        ctx.moveTo(coords.x * scaleX, coords.y * scaleY);
-        ctx.lineTo(coords.x * scaleX, coords.y * scaleY);
-      }
+      ctx.moveTo(p1x, p1y);
+      ctx.lineTo(p2x, p2y);
       ctx.stroke();
       ctx.restore();
     }

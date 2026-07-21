@@ -47,6 +47,7 @@ export default async function ClientGalleryPage(props: PageProps) {
 
   return (
     <GalleryView 
+      clientId={client._id}
       clientName={client.name}
       clientNo={client.clientNo}
       images={client.images || []}
