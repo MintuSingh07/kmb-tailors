@@ -93,23 +93,39 @@ export default function GalleryView({
     try {
       const base64Promises = Array.from(files).map((file) => compressImage(file));
       const base64Images = await Promise.all(base64Promises);
-      const res = await fetch(`/api/clients/${clientId}/images`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newImages: base64Images }),
-      });
+      
+      let lastUpdatedClient: any = null;
+      let uploadErrorMsg: string | null = null;
 
-      if (res.ok) {
-        const data = await res.json();
-        setLocalHandoverImages(data.client.handoverImages || []);
-        setLocalImages(data.client.images || []);
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        alert(errData.error || 'Failed to upload photos. Please try again.');
+      // Upload each photo one by one to keep request payload size under Vercel limits (< 500KB)
+      for (const base64Img of base64Images) {
+        const res = await fetch(`/api/clients/${clientId}/images`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newImages: [base64Img] }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          lastUpdatedClient = data.client;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          uploadErrorMsg = errData.error || 'Failed to upload photo';
+          break;
+        }
       }
-    } catch (err) {
+
+      if (lastUpdatedClient) {
+        setLocalHandoverImages(lastUpdatedClient.handoverImages || []);
+        setLocalImages(lastUpdatedClient.images || []);
+      }
+
+      if (uploadErrorMsg) {
+        alert(uploadErrorMsg);
+      }
+    } catch (err: any) {
       console.error('Error uploading photos:', err);
-      alert('An error occurred during photo upload.');
+      alert('An error occurred during photo upload: ' + (err.message || err));
     } finally {
       setLoading(false);
       // Reset input element value so same photo can be re-captured/selected

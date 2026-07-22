@@ -1759,25 +1759,25 @@ export default function ClientForm() {
       {isDrawingOpen && (
         <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md overflow-hidden">
           {/* Top Panel: Title & Principal Actions */}
-          <div className="bg-white border-b border-[#E6DFD3] px-4 py-3 flex flex-row items-center justify-between shadow-sm flex-none select-none">
-            <div className="flex items-center gap-2 truncate pr-2">
+          <div className="bg-white border-b border-[#E6DFD3] px-3 py-1.5 flex flex-row items-center justify-between shadow-sm flex-none select-none">
+            <div className="flex items-center gap-1.5 truncate pr-2">
               {name && (
-                <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate">
+                <span className="font-extrabold text-slate-800 text-xs sm:text-sm select-none truncate">
                   {name}
                 </span>
               )}
               {clientNo && (
-                <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2.5 py-0.5 rounded-lg shrink-0 select-none">
+                <span className="text-[9px] sm:text-[10px] font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2 py-0.5 rounded-md shrink-0 select-none">
                   {clientNo}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={handleCancelDrawing}
-                className="h-8.5 px-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs font-bold shadow-sm cursor-pointer"
+                className="h-6 px-2.5 bg-slate-100 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-200 text-[10px] sm:text-xs font-bold shadow-sm cursor-pointer"
               >
                 Cancel
               </button>
@@ -1785,7 +1785,7 @@ export default function ClientForm() {
               <button
                 type="button"
                 onClick={handleSaveDrawing}
-                className="h-8.5 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-xl text-white text-xs font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
+                className="h-6 px-3 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-lg text-white text-[10px] sm:text-xs font-black shadow-sm cursor-pointer"
               >
                 Done
               </button>
@@ -1798,9 +1798,9 @@ export default function ClientForm() {
 
             <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
-              <div className="w-full z-40 bg-white border-b border-slate-200 px-3 py-1.5 sm:px-4 sm:py-2 flex flex-row flex-wrap justify-between items-center gap-2 sm:gap-3 select-none shrink-0">
+              <div className="w-full z-40 bg-white border-b border-slate-200 px-2 py-1 sm:px-3 sm:py-1 flex flex-row flex-wrap justify-between items-center gap-1.5 sm:gap-2 select-none shrink-0">
                   {/* Tool Selection Segmented Control */}
-                  <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-inner">
+                  <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 shadow-inner">
                     {/* Pen Button */}
                     <button
                       type="button"
@@ -1814,17 +1814,17 @@ export default function ClientForm() {
                           }
                         }
                       }}
-                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'draw' && currentColor !== '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Pen Tool (Click to select/deselect)"
                     >
-                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                       </svg>
-                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Pen</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Pen</span>
                     </button>
 
                     {/* Text Button */}
@@ -1837,17 +1837,17 @@ export default function ClientForm() {
                           setDrawMode('text');
                         }
                       }}
-                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'text'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Text Tool (Click to select/deselect)"
                     >
-                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 7V4h16v3M9 20h6M12 4v16" />
                       </svg>
-                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Text</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Text</span>
                     </button>
 
                     {/* Eraser Button */}
@@ -1861,19 +1861,19 @@ export default function ClientForm() {
                           setCurrentColor('#FFFFFF');
                         }
                       }}
-                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'draw' && currentColor === '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Eraser Tool (Click to select/deselect)"
                     >
-                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                         <path d="m22 21H7" />
                         <path d="m5 11 9 9" />
                       </svg>
-                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Eraser</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Eraser</span>
                     </button>
 
                     {/* Move / Pan Button */}
@@ -1889,24 +1889,24 @@ export default function ClientForm() {
                           setDrawMode('none');
                         }
                       }}
-                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'none'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Move Mode (Click to select/deselect)"
                     >
-                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 10V5a2 2 0 0 0-4 0v4H13V3a2 2 0 0 0-4 0v6H8V5a2 2 0 0 0-4 0v10a7 7 0 0 0 7 7h3a7 7 0 0 0 7-7v-5a2 2 0 0 0-4 0z" />
                       </svg>
-                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Move</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Move</span>
                     </button>
                   </div>
 
                   {/* Colors & Width Options Panel */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     {/* Color Palette (only clickable to select/active Pen drawing) */}
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       {[
                         { hex: '#0000FF', name: 'Blue Ink' },
                         { hex: '#1A1A1A', name: 'Black' },
@@ -1925,7 +1925,7 @@ export default function ClientForm() {
                               setDrawMode('draw');
                             }
                           }}
-                          className={`h-6.5 w-6.5 sm:h-7.5 sm:w-7.5 rounded-full border border-slate-200 transition-all duration-150 cursor-pointer ${
+                          className={`h-4.5 w-4.5 sm:h-5 sm:w-5 rounded-full border border-slate-200 transition-all duration-150 cursor-pointer ${
                             (activeTextEditor?.color || currentColor) === c.hex
                               ? 'scale-110 ring-2 ring-[#9E7D3B]/50 border-[#9E7D3B]'
                               : 'hover:scale-105 active:scale-95'
@@ -1937,21 +1937,21 @@ export default function ClientForm() {
                     </div>
 
                     {/* Vertical Divider */}
-                    <div className="hidden sm:block w-[1px] h-6 bg-slate-200 select-none" />
+                    <div className="hidden sm:block w-[1px] h-4 bg-slate-200 select-none" />
 
                     {/* Line Width / Eraser Size Segmented Control with 3 precise sizes */}
-                    <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-inner select-none">
+                    <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 shadow-inner select-none">
                       {currentColor === '#FFFFFF'
                         ? [
-                            { size: 15, label: 'Small Eraser', dotSize: 'h-1.5 w-1.5' },
-                            { size: 35, label: 'Medium Eraser', dotSize: 'h-2.5 w-2.5' },
-                            { size: 60, label: 'Large Eraser', dotSize: 'h-4 w-4' },
+                            { size: 15, label: 'Small Eraser', dotSize: 'h-1 w-1' },
+                            { size: 35, label: 'Medium Eraser', dotSize: 'h-2 w-2' },
+                            { size: 60, label: 'Large Eraser', dotSize: 'h-3 w-3' },
                           ].map((eSize) => (
                             <button
                               key={eSize.size}
                               type="button"
                               onClick={() => setEraserSize(eSize.size)}
-                              className={`h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                                 eraserSize === eSize.size
                                   ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
                                   : 'text-slate-500 hover:text-slate-800'
@@ -1962,15 +1962,15 @@ export default function ClientForm() {
                             </button>
                           ))
                         : [
-                            { size: 2, label: 'Thin', dotSize: 'h-1 w-1' },
-                            { size: 4, label: 'Medium', dotSize: 'h-2 w-2' },
-                            { size: 7, label: 'Thick', dotSize: 'h-3.5 w-3.5' },
+                            { size: 2, label: 'Thin', dotSize: 'h-0.5 w-0.5' },
+                            { size: 4, label: 'Medium', dotSize: 'h-1.5 w-1.5' },
+                            { size: 7, label: 'Thick', dotSize: 'h-2.5 w-2.5' },
                           ].map((w) => (
                             <button
                               key={w.size}
                               type="button"
                               onClick={() => setCurrentWidth(w.size)}
-                              className={`h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
                                 currentWidth === w.size
                                   ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
                                   : 'text-slate-500 hover:text-slate-800'
@@ -2185,16 +2185,16 @@ export default function ClientForm() {
           </div> {/* Closes Center Drawing Area */}
 
           {/* Bottom Panel: Zoom, Navigation, and Whiteboard editing options */}
-          <div className="bg-white border-t border-[#E6DFD3] px-4 py-3 flex flex-row flex-wrap items-center justify-center sm:justify-between gap-3.5 sm:gap-4 flex-none select-none w-full shadow-inner">
+          <div className="bg-white border-t border-[#E6DFD3] px-3 py-1.5 flex flex-row flex-wrap items-center justify-between gap-2 flex-none select-none w-full shadow-inner">
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none shrink-0 scale-90 sm:scale-100">
+            <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none shrink-0 scale-75 origin-left sm:scale-85">
               <button
                 type="button"
                 onClick={() => setScale(prev => Math.max(prev / 1.2, 0.5))}
-                className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
                 title="Zoom Out"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
                 </svg>
               </button>
@@ -2205,7 +2205,7 @@ export default function ClientForm() {
                   setScale(0.83);
                   setPanOffset({ x: 0, y: 0 });
                 }}
-                className="px-2 py-0.5 text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[48px] text-center cursor-pointer shadow-sm"
+                className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[40px] text-center cursor-pointer shadow-sm"
                 title="Reset Zoom & Pan"
               >
                 {Math.round(scale * 100)}%
@@ -2214,19 +2214,19 @@ export default function ClientForm() {
               <button
                 type="button"
                 onClick={() => setScale(prev => Math.min(prev * 1.2, 5))}
-                className="p-1 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
                 title="Zoom In"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
             </div>
 
             {/* Page Navigation Indicator */}
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 px-3 rounded-2xl border border-slate-200 shadow-inner select-none shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 px-2 rounded-xl border border-slate-200 shadow-inner select-none shrink-0">
               {/* Concise Page Indicator */}
-              <span className="text-xs font-black text-slate-700 min-w-[72px] text-center select-none">
+              <span className="text-[10px] sm:text-xs font-black text-slate-700 min-w-[60px] text-center select-none">
                 Page {currentPage} / {totalPages}
               </span>
 
@@ -2234,42 +2234,42 @@ export default function ClientForm() {
               <button
                 type="button"
                 onClick={handleAddPage}
-                className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
+                className="h-5.5 w-5.5 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
                 title="Add Another Page"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
             </div>
 
             {/* Undo & Clear Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={strokes.length === 0}
-                className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
+                className="h-6 px-2 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[10px] sm:text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer shrink-0 transition-colors"
                 title="Undo Stroke"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
                 <span>Undo</span>
               </button>
 
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    disabled={strokes.length === 0}
-                    className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
-                    title="Clear All"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>Clear</span>
-                  </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={strokes.length === 0}
+                className="h-6 px-2 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[10px] sm:text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer shrink-0 transition-colors"
+                title="Clear All"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Clear</span>
+              </button>
             </div>
           </div>
 

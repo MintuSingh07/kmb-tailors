@@ -24,6 +24,7 @@ export const uploadToCloudinary = async (base64Str: string): Promise<string> => 
   try {
     const uploadResponse = await cloudinary.uploader.upload(base64Str, {
       folder: 'kmb-tailor',
+      resource_type: 'auto',
     });
     return uploadResponse.secure_url;
   } catch (error) {

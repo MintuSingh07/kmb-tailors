@@ -55,7 +55,7 @@ export async function POST(
     return NextResponse.json({ success: true, client });
   } catch (error: any) {
     console.error('Error adding images:', error);
-    return NextResponse.json({ error: 'Server error while uploading photos' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Server error while uploading photos' }, { status: 500 });
   }
 }
 
