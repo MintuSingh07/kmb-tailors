@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Ruler } from 'lucide-react';
@@ -82,6 +82,31 @@ export default function GalleryView({
 
   // Combine both handover and style images for the grid
   const allImages = [...localHandoverImages, ...localImages];
+
+  // Organize images into 3-slot rows from bottom (oldest) to top (newest).
+  // Unfilled rows retain empty space slots, allowing subsequent uploads to fill remaining slots.
+  const gridRows = useMemo(() => {
+    if (!allImages || allImages.length === 0) return [];
+
+    const chronological = [...allImages].reverse();
+    const rows: (string | null)[][] = [];
+
+    for (const img of chronological) {
+      if (rows.length === 0) {
+        rows.push([img, null, null]);
+      } else {
+        const lastRow = rows[rows.length - 1];
+        const emptyIdx = lastRow.indexOf(null);
+        if (emptyIdx !== -1) {
+          lastRow[emptyIdx] = img;
+        } else {
+          rows.push([img, null, null]);
+        }
+      }
+    }
+
+    return rows.reverse();
+  }, [allImages]);
 
   // Handle uploading photos from device storage or camera capture
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -320,48 +345,52 @@ export default function GalleryView({
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-0.5 sm:gap-1">
-            {allImages.map((imgSrc, index) => {
-              return (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setSelectedImage(imgSrc);
-                    setZoomScale(1);
-                    setPanPosition({ x: 0, y: 0 });
-                  }}
-                  className="group relative bg-white border border-slate-100 rounded-md sm:rounded-lg overflow-hidden shadow-xs hover:shadow-sm cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
-                >
-                  <img
-                    src={getOptimizedImageUrl(imgSrc, 600)}
-                    alt={`${clientName} photo ${index + 1}`}
-                    loading={index < 8 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    className="w-full h-full object-cover block transition-transform duration-350 group-hover:scale-105"
-                  />
+            {gridRows.flatMap((row, rIdx) =>
+              row.map((imgSrc, cIdx) => {
+                if (!imgSrc) return <div key={`empty-${rIdx}-${cIdx}`} className="w-full aspect-[3/4]" />;
 
-                  {/* Overlay Delete Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteImage(imgSrc);
+                return (
+                  <div
+                    key={`img-${rIdx}-${cIdx}`}
+                    onClick={() => {
+                      setSelectedImage(imgSrc);
+                      setZoomScale(1);
+                      setPanPosition({ x: 0, y: 0 });
                     }}
-                    className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer z-10 opacity-0 group-hover:opacity-100 duration-200"
-                    title="Delete Photo"
+                    className="group relative bg-white border border-slate-100 rounded-md sm:rounded-lg overflow-hidden shadow-xs hover:shadow-sm cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                  
-                  {/* View Fullscreen Hover Overlay */}
-                  <div className="absolute inset-0 bg-slate-900/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="bg-white/95 text-slate-800 border border-slate-200 text-[10px] sm:text-xs font-black tracking-wider uppercase px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
-                      View Fullscreen &rarr;
-                    </span>
+                    <img
+                      src={getOptimizedImageUrl(imgSrc, 600)}
+                      alt={`${clientName} photo ${rIdx * 3 + cIdx + 1}`}
+                      loading={rIdx < 3 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className="w-full h-full object-cover block transition-transform duration-350 group-hover:scale-105"
+                    />
+
+                    {/* Overlay Delete Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteImage(imgSrc);
+                      }}
+                      className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer z-10 opacity-0 group-hover:opacity-100 duration-200"
+                      title="Delete Photo"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                    
+                    {/* View Fullscreen Hover Overlay */}
+                    <div className="absolute inset-0 bg-slate-900/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="bg-white/95 text-slate-800 border border-slate-200 text-[10px] sm:text-xs font-black tracking-wider uppercase px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
+                        View Fullscreen &rarr;
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         )}
       </main>
