@@ -95,23 +95,60 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
       const imageUrls = Array.from(imageUrlsSet);
 
-      // Also cache individual client API endpoints in kmb-data-v2 CacheStorage
+      // Also cache individual client API endpoints and HTML pages in CacheStorage
       if ('caches' in window) {
-        const cache = await caches.open('kmb-data-v2');
+        const dataCache = await caches.open('kmb-data-v2');
+        const staticCache = await caches.open('kmb-static-v2');
+
+        const pagesToPrecache = [
+          '/',
+          '/admin',
+          '/admin/photos',
+          '/admin/pending',
+          '/admin/prepared',
+          '/admin/completed',
+          '/admin/history',
+          '/admin/new',
+        ];
+
+        pagesToPrecache.forEach((pageUrl) => {
+          fetch(pageUrl, { credentials: 'include' })
+            .then((res) => {
+              if (res.status === 200) staticCache.put(pageUrl, res);
+            })
+            .catch(() => {});
+        });
+
         clients.forEach((c: any) => {
           if (c._id) {
             const clientUrl = `/api/clients/${c._id}?by=id`;
             const blobResponse = new Response(JSON.stringify(c), {
               headers: { 'Content-Type': 'application/json' },
             });
-            cache.put(clientUrl, blobResponse).catch(() => {});
+            dataCache.put(clientUrl, blobResponse).catch(() => {});
+
+            // Pre-cache dynamic client gallery page route
+            const galleryPageUrl = `/admin/gallery/${c._id}`;
+            fetch(galleryPageUrl, { credentials: 'include' })
+              .then((res) => {
+                if (res.status === 200) staticCache.put(galleryPageUrl, res);
+              })
+              .catch(() => {});
           }
           if (c.clientNo) {
             const clientNoUrl = `/api/clients/${c.clientNo}`;
             const blobResponse = new Response(JSON.stringify(c), {
               headers: { 'Content-Type': 'application/json' },
             });
-            cache.put(clientNoUrl, blobResponse).catch(() => {});
+            dataCache.put(clientNoUrl, blobResponse).catch(() => {});
+
+            // Pre-cache dynamic client history page route
+            const historyPageUrl = `/admin/history/${c.clientNo}`;
+            fetch(historyPageUrl, { credentials: 'include' })
+              .then((res) => {
+                if (res.status === 200) staticCache.put(historyPageUrl, res);
+              })
+              .catch(() => {});
           }
         });
       }

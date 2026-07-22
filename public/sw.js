@@ -119,6 +119,8 @@ self.addEventListener('fetch', (event) => {
   // 3. PAGE NAVIGATION & OTHER GET REQUESTS
   event.respondWith(
     caches.open(STATIC_CACHE_NAME).then(async (cache) => {
+      const cachedMatch = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
+
       try {
         const networkResponse = await fetch(req);
         if (networkResponse && networkResponse.status === 200) {
@@ -127,12 +129,15 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       } catch (error) {
         console.log('[Service Worker] Offline, serving cached page for:', req.url);
-        const cachedResponse = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
-        if (cachedResponse) {
-          return cachedResponse;
+        if (cachedMatch) {
+          return cachedMatch;
         }
-        // Fallback to cached admin dashboard if available
-        return (await cache.match('/admin')) || Response.error();
+        const pathMatch = await cache.match(url.pathname, { ignoreSearch: true });
+        if (pathMatch) {
+          return pathMatch;
+        }
+        // Fallback to cached admin dashboard or photos catalog if available
+        return (await cache.match('/admin/photos')) || (await cache.match('/admin')) || Response.error();
       }
     })
   );
