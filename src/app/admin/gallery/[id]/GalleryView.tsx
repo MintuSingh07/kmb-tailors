@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Ruler } from 'lucide-react';
+import { getOptimizedImageUrl } from '../../../../lib/imageUtils';
 
 interface GalleryViewProps {
   clientId: string;
@@ -315,8 +316,10 @@ export default function GalleryView({
                   className="group relative bg-white border border-slate-100 rounded-md sm:rounded-lg overflow-hidden shadow-xs hover:shadow-sm cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
                 >
                   <img
-                    src={imgSrc}
+                    src={getOptimizedImageUrl(imgSrc, 600)}
                     alt={`${clientName} photo ${index + 1}`}
+                    loading={index < 8 ? 'eager' : 'lazy'}
+                    decoding="async"
                     className="w-full h-full object-cover block transition-transform duration-350 group-hover:scale-105"
                   />
 

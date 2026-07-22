@@ -31,3 +31,16 @@ export const uploadToCloudinary = async (base64Str: string): Promise<string> => 
     return base64Str; // Fallback to base64 on failure
   }
 };
+
+/**
+ * Transforms an image URL to serve an optimized WebP thumbnail version.
+ * For Cloudinary URLs, injects w_{width},c_limit,q_auto,f_auto parameters.
+ */
+export const getOptimizedImageUrl = (url: string, width = 600): string => {
+  if (!url) return '';
+  if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+    if (url.includes('/upload/w_')) return url;
+    return url.replace('/upload/', `/upload/w_${width},c_limit,q_auto,f_auto/`);
+  }
+  return url;
+};

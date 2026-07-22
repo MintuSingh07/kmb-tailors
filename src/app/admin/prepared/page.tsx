@@ -38,7 +38,7 @@ export default async function PreparedSuitsPage() {
   await dbConnect();
   const preparedSuits = await Client.find({
     suitStatus: 'Prepared but not handovered'
-  }).select('-measurementDrawing -measurementDrawings -strokes -handoverImages').sort({ updatedAt: -1 });
+  }).select('-measurementDrawing -measurementDrawings -strokes -handoverImages -images').sort({ updatedAt: -1 });
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">

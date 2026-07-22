@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { Ruler } from 'lucide-react';
+import { getOptimizedImageUrl } from '../../../../lib/imageUtils';
 
 interface ClientRecord {
   _id: any;
@@ -275,8 +276,10 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         className="relative w-full h-full border-r border-[#E6DFD3] overflow-hidden bg-slate-100 cursor-zoom-in group/fabric"
                       >
                         <img
-                          src={fabricImg}
+                          src={getOptimizedImageUrl(fabricImg, 600)}
                           alt="Fabric Design"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover transition-transform duration-350 group-hover:scale-105"
                         />
                       </div>
@@ -300,8 +303,10 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         className="relative w-full h-full border-r border-[#E6DFD3] overflow-hidden bg-slate-100 cursor-zoom-in group/outfit"
                       >
                         <img
-                          src={completedImg}
+                          src={getOptimizedImageUrl(completedImg, 600)}
                           alt="Completed Outfit"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover transition-transform duration-350 group-hover:scale-105"
                         />
                       </div>
@@ -325,8 +330,10 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                         className="relative w-full h-full overflow-hidden bg-white cursor-zoom-in group/sketch"
                       >
                         <img
-                          src={sketchImg}
+                          src={getOptimizedImageUrl(sketchImg, 600)}
                           alt="Measurement Sketch"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-contain p-2 transition-transform duration-350 group-hover:scale-105"
                         />
                       </div>

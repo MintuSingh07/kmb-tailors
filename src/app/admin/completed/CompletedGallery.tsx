@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Ruler } from 'lucide-react';
+import { getOptimizedImageUrl } from '../../../lib/imageUtils';
 
 interface ClientRecord {
   _id: string;
@@ -135,7 +135,7 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
                       >
                         {imgSrc ? (
                           <Image
-                            src={imgSrc}
+                            src={getOptimizedImageUrl(imgSrc, 600)}
                             alt={`${client.name} photo ${idx + 1}`}
                             fill
                             sizes="(max-width: 640px) 33vw, (max-width: 1024px) 17vw, 11vw"

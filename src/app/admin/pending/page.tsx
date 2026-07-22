@@ -38,7 +38,7 @@ export default async function PendingSuitsPage() {
   await dbConnect();
   const pendingSuits = await Client.find({
     $or: [{ suitStatus: 'Pending' }, { suitStatus: { $exists: false } }, { suitStatus: null }]
-  }).select('-measurementDrawing -measurementDrawings -strokes -handoverImages').sort({ updatedAt: -1 });
+  }).select('-measurementDrawing -measurementDrawings -strokes -handoverImages -images').sort({ updatedAt: -1 });
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">
