@@ -1,6 +1,6 @@
-const STATIC_CACHE_NAME = 'kmb-static-v3';
-const DATA_CACHE_NAME = 'kmb-data-v3';
-const IMAGE_CACHE_NAME = 'kmb-images-v3';
+const STATIC_CACHE_NAME = 'kmb-static-v2';
+const DATA_CACHE_NAME = 'kmb-data-v2';
+const IMAGE_CACHE_NAME = 'kmb-images-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -49,28 +49,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Helper to find alternate matching cached image variant
-async function findCachedImageVariant(cache, targetUrlStr) {
-  try {
-    const keys = await cache.keys();
-    const targetPath = targetUrlStr.split('/upload/').pop() || targetUrlStr.split('/').pop();
-    if (!targetPath) return null;
-
-    // Clean target filename without scale options
-    const cleanFileName = targetPath.replace(/w_\d+,c_\w+,q_\w+,f_\w+\//, '');
-
-    for (const key of keys) {
-      if (key.url.includes(cleanFileName) || key.url.endsWith(targetPath)) {
-        const match = await cache.match(key);
-        if (match) return match;
-      }
-    }
-  } catch (e) {
-    console.warn('[Service Worker] Error matching image variant:', e);
-  }
-  return null;
-}
-
 // Fetch Interceptor
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -88,17 +66,12 @@ self.addEventListener('fetch', (event) => {
   if (isImage) {
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
-        // 1. Try matching request directly
-        let cachedResponse = await cache.match(req);
-        if (cachedResponse) return cachedResponse;
-
-        // 2. Try matching ignoring search query params
-        cachedResponse = await cache.match(req, { ignoreSearch: true });
-        if (cachedResponse) return cachedResponse;
-
-        // 3. Try finding alternate cached image variant (thumbnail vs original)
-        cachedResponse = await findCachedImageVariant(cache, req.url);
-        if (cachedResponse) return cachedResponse;
+        // Try matching request directly or ignoring search params
+        const cachedResponse = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
+        if (cachedResponse) {
+          // Return cached image immediately for instant offline/online rendering
+          return cachedResponse;
+        }
 
         try {
           const networkResponse = await fetch(req);
@@ -107,9 +80,10 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         } catch (error) {
-          console.log('[Service Worker] Offline image fetch failed, searching cached variants for:', req.url);
-          const fallbackVariant = await findCachedImageVariant(cache, req.url);
-          return fallbackVariant || Response.error();
+          console.log('[Service Worker] Offline fetch failed for image:', req.url);
+          // Try matching ignoring search query
+          const fallback = await cache.match(url.pathname, { ignoreSearch: true });
+          return cachedResponse || fallback || Response.error();
         }
       })
     );

@@ -448,15 +448,13 @@ export default function GalleryView({
                 cursor: zoomScale > 1 ? (isPanningImage ? 'grabbing' : 'grab') : 'default'
               }}
             >
-              <img
+              <Image
                 src={selectedImage}
                 alt="Fullscreen View"
-                onError={(e) => {
-                  if (selectedImage) {
-                    e.currentTarget.src = getOptimizedImageUrl(selectedImage, 600);
-                  }
-                }}
-                className="w-full h-full object-contain pointer-events-none"
+                fill
+                sizes="100vw"
+                className="object-contain pointer-events-none"
+                priority
               />
             </div>
           </div>
