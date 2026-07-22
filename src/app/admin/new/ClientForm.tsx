@@ -1760,14 +1760,14 @@ export default function ClientForm() {
         <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md overflow-hidden">
           {/* Top Panel: Title & Principal Actions */}
           <div className="bg-white border-b border-[#E6DFD3] px-3 py-1.5 flex flex-row items-center justify-between shadow-sm flex-none select-none">
-            <div className="flex items-center gap-1.5 truncate pr-2">
+            <div className="flex items-center gap-2 truncate pr-2">
               {name && (
-                <span className="font-extrabold text-slate-800 text-xs sm:text-sm select-none truncate">
+                <span className="font-black text-slate-900 text-lg sm:text-xl md:text-2xl tracking-tight select-none truncate">
                   {name}
                 </span>
               )}
               {clientNo && (
-                <span className="text-[9px] sm:text-[10px] font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2 py-0.5 rounded-md shrink-0 select-none">
+                <span className="text-xs sm:text-sm font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2.5 py-0.5 rounded-lg shrink-0 select-none">
                   {clientNo}
                 </span>
               )}
