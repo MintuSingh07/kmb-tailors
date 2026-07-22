@@ -239,18 +239,27 @@ export default function ClientForm() {
       setContactNo(client.contactNo || '');
       setAddress(client.address || '');
       
+      const loadedDrawings = client.measurementDrawings || [];
+      const finalDrawings = [...loadedDrawings];
+      while (finalDrawings.length < 10) {
+        finalDrawings.push('');
+      }
+
       if (isAutofillOnly) {
-        setAlternativeNo('');
-        setCategory('Punjabi Suit');
+        setAlternativeNo(client.alternativeNo || '');
+        setCategory(client.category || 'Punjabi Suit');
         setPrice('');
         setSuitQuantity('');
         setImages([]);
         setHandoverImages([]);
-        setMeasurementDrawing('');
-        setMeasurementDrawings(new Array(10).fill(''));
-        setStrokes([]);
-        setTotalPages(10);
+        
+        // Autofill customer measurements & whiteboard sketches from previous order
+        setMeasurementDrawing(client.measurementDrawing || '');
+        setMeasurementDrawings(finalDrawings);
+        setStrokes(client.strokes || []);
+        setTotalPages(finalDrawings.length > 0 ? finalDrawings.length : 10);
         setCurrentPage(1);
+
         setSuitStatus('Pending');
         setInitialStatus('Pending');
         setDbId(''); // Clear database ID so a new record is created for autofill
@@ -261,11 +270,6 @@ export default function ClientForm() {
         setSuitQuantity(client.suitQuantity || '');
         setImages(client.images || []);
         setHandoverImages(client.handoverImages || []);
-        const loadedDrawings = client.measurementDrawings || [];
-        const finalDrawings = [...loadedDrawings];
-        while (finalDrawings.length < 10) {
-          finalDrawings.push('');
-        }
         setMeasurementDrawing(client.measurementDrawing || '');
         setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
@@ -1710,9 +1714,21 @@ export default function ClientForm() {
         <div className="fixed inset-0 bg-[#FCFAF5] z-50 flex flex-col justify-between backdrop-blur-md overflow-hidden">
           {/* Top Panel: Title & Principal Actions */}
           <div className="bg-white border-b border-[#E6DFD3] px-4 py-3 flex flex-row items-center justify-between shadow-sm flex-none select-none">
-            <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate pr-2">
-              {initialStatus === 'Completed and handovered' ? 'Measurement Board (Read Only)' : 'Measurement Board'}
-            </span>
+            <div className="flex items-center gap-2 truncate pr-2">
+              <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate">
+                {name ? `${name} — Measurement Board` : 'Measurement Board'}
+              </span>
+              {clientNo && (
+                <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2.5 py-0.5 rounded-lg shrink-0 select-none">
+                  {clientNo}
+                </span>
+              )}
+              {initialStatus === 'Completed and handovered' && (
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 select-none">
+                  (Read Only)
+                </span>
+              )}
+            </div>
 
             <div className="flex items-center gap-2 shrink-0">
               {initialStatus === 'Completed and handovered' ? (

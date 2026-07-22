@@ -4,6 +4,7 @@ import { useState, useMemo, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getGroupForCategory } from '../../../lib/categories';
+import { Ruler } from 'lucide-react';
 
 interface ClientRecord {
   _id: string;
@@ -345,12 +346,19 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                         </span>
                       </td>
 
-                      {/* Actions: Show Details and Delete */}
+                      {/* Actions: Show Details, Measurement and Delete */}
                       <td className="py-5.5 px-6 text-right">
-                        <div className="flex items-center justify-end gap-3 select-none">
+                        <div className="flex items-center justify-end gap-2.5 select-none">
+                          <Link
+                            href={`/admin/pending/measurement?code=${group.clientNo}`}
+                            className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                          >
+                            <Ruler className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
+                            Measurement
+                          </Link>
                           <Link
                             href={`/admin/history/${group.clientNo}`}
-                            className="whitespace-nowrap px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                            className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                           >
                             <svg className="h-3.5 w-3.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -415,8 +423,15 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                       
                       <div className="flex items-center gap-2 select-none">
                         <Link
+                          href={`/admin/pending/measurement?code=${group.clientNo}`}
+                          className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                        >
+                          <Ruler className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
+                          Measurement
+                        </Link>
+                        <Link
                           href={`/admin/history/${group.clientNo}`}
-                          className="whitespace-nowrap px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                          className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                         >
                           <svg className="h-3.5 w-3.5 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
