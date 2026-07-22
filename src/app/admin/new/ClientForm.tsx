@@ -111,7 +111,7 @@ export default function ClientForm() {
 
   // Drawing canvas states
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [currentColor, setCurrentColor] = useState('#1A1A1A');
+  const [currentColor, setCurrentColor] = useState('#0000FF');
   const [currentWidth, setCurrentWidth] = useState(4);
   const [eraserSize, setEraserSize] = useState(20);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -119,7 +119,7 @@ export default function ClientForm() {
   const isDrawingRef = useRef(false);
   const activePointsRef = useRef<{ x: number; y: number }[]>([]);
   const [drawMode, setDrawMode] = useState<'draw' | 'text' | 'none'>('draw');
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.83);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
@@ -181,9 +181,8 @@ export default function ClientForm() {
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // Reset zoom and pan offset when page or drawing modal changes
   useEffect(() => {
-    setScale(1);
+    setScale(0.83);
     setPanOffset({ x: 0, y: 0 });
   }, [currentPage, isDrawingOpen]);
 
@@ -1907,9 +1906,9 @@ export default function ClientForm() {
                     {/* Color Palette (only clickable to select/active Pen drawing) */}
                     <div className="flex items-center gap-2">
                       {[
+                        { hex: '#0000FF', name: 'Blue Ink' },
                         { hex: '#1A1A1A', name: 'Black' },
                         { hex: '#E53E3E', name: 'Red' },
-                        { hex: '#0000FF', name: 'Blue Ink' },
                         { hex: '#38A169', name: 'Green' },
                       ].map((c) => (
                         <button
@@ -2201,7 +2200,7 @@ export default function ClientForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setScale(1);
+                  setScale(0.83);
                   setPanOffset({ x: 0, y: 0 });
                 }}
                 className="px-2 py-0.5 text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[48px] text-center cursor-pointer shadow-sm"
