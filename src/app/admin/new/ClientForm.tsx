@@ -1798,9 +1798,9 @@ export default function ClientForm() {
 
             <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
-              <div className="w-full z-40 bg-white border-b border-slate-200 px-4 py-2 sm:py-3 flex flex-row flex-wrap justify-between items-center gap-3 sm:gap-4 select-none shrink-0">
+              <div className="w-full z-40 bg-white border-b border-slate-200 px-3 py-1.5 sm:px-4 sm:py-2 flex flex-row flex-wrap justify-between items-center gap-2 sm:gap-3 select-none shrink-0">
                   {/* Tool Selection Segmented Control */}
-                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner">
+                  <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-inner">
                     {/* Pen Button */}
                     <button
                       type="button"
@@ -1810,21 +1810,21 @@ export default function ClientForm() {
                         } else {
                           setDrawMode('draw');
                           if (currentColor === '#FFFFFF') {
-                            setCurrentColor('#1A1A1A'); // Reset from eraser to black
+                            setCurrentColor('#0000FF'); // Reset from eraser to default blue
                           }
                         }
                       }}
-                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'draw' && currentColor !== '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Pen Tool (Click to select/deselect)"
                     >
-                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                       </svg>
-                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Pen</span>
+                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Pen</span>
                     </button>
 
                     {/* Text Button */}
@@ -1837,17 +1837,17 @@ export default function ClientForm() {
                           setDrawMode('text');
                         }
                       }}
-                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'text'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Text Tool (Click to select/deselect)"
                     >
-                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 7V4h16v3M9 20h6M12 4v16" />
                       </svg>
-                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Text</span>
+                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Text</span>
                     </button>
 
                     {/* Eraser Button */}
@@ -1861,19 +1861,19 @@ export default function ClientForm() {
                           setCurrentColor('#FFFFFF');
                         }
                       }}
-                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'draw' && currentColor === '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Eraser Tool (Click to select/deselect)"
                     >
-                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                         <path d="m22 21H7" />
                         <path d="m5 11 9 9" />
                       </svg>
-                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Eraser</span>
+                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Eraser</span>
                     </button>
 
                     {/* Move / Pan Button */}
@@ -1883,30 +1883,30 @@ export default function ClientForm() {
                         if (drawMode === 'none') {
                           setDrawMode('draw'); // Toggling Move off defaults back to Pen drawing
                           if (currentColor === '#FFFFFF') {
-                            setCurrentColor('#1A1A1A');
+                            setCurrentColor('#0000FF');
                           }
                         } else {
                           setDrawMode('none');
                         }
                       }}
-                      className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         drawMode === 'none'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-105'
+                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black scale-102'
                           : 'text-slate-500 hover:text-slate-700'
                       }`}
                       title="Move Mode (Click to select/deselect)"
                     >
-                      <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 10V5a2 2 0 0 0-4 0v4H13V3a2 2 0 0 0-4 0v6H8V5a2 2 0 0 0-4 0v10a7 7 0 0 0 7 7h3a7 7 0 0 0 7-7v-5a2 2 0 0 0-4 0z" />
                       </svg>
-                      <span className="text-[12px] sm:text-[13px] ml-2 font-black tracking-wide">Move</span>
+                      <span className="text-[11px] sm:text-[12px] ml-1.5 font-black tracking-wide">Move</span>
                     </button>
                   </div>
 
                   {/* Colors & Width Options Panel */}
-                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     {/* Color Palette (only clickable to select/active Pen drawing) */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       {[
                         { hex: '#0000FF', name: 'Blue Ink' },
                         { hex: '#1A1A1A', name: 'Black' },
@@ -1925,9 +1925,9 @@ export default function ClientForm() {
                               setDrawMode('draw');
                             }
                           }}
-                          className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full border border-slate-200 transition-all duration-200 cursor-pointer ${
+                          className={`h-6.5 w-6.5 sm:h-7.5 sm:w-7.5 rounded-full border border-slate-200 transition-all duration-150 cursor-pointer ${
                             (activeTextEditor?.color || currentColor) === c.hex
-                              ? 'scale-110 ring-4 ring-[#9E7D3B]/40 border-[#9E7D3B]'
+                              ? 'scale-110 ring-2 ring-[#9E7D3B]/50 border-[#9E7D3B]'
                               : 'hover:scale-105 active:scale-95'
                           }`}
                           style={{ backgroundColor: c.hex }}
@@ -1937,21 +1937,21 @@ export default function ClientForm() {
                     </div>
 
                     {/* Vertical Divider */}
-                    <div className="hidden sm:block w-[1px] h-8 bg-slate-200 select-none" />
+                    <div className="hidden sm:block w-[1px] h-6 bg-slate-200 select-none" />
 
                     {/* Line Width / Eraser Size Segmented Control with 3 precise sizes */}
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner select-none">
+                    <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-inner select-none">
                       {currentColor === '#FFFFFF'
                         ? [
-                            { size: 15, label: 'Small Eraser', dotSize: 'h-2 w-2' },
-                            { size: 35, label: 'Medium Eraser', dotSize: 'h-3.5 w-3.5' },
-                            { size: 60, label: 'Large Eraser', dotSize: 'h-5 w-5' },
+                            { size: 15, label: 'Small Eraser', dotSize: 'h-1.5 w-1.5' },
+                            { size: 35, label: 'Medium Eraser', dotSize: 'h-2.5 w-2.5' },
+                            { size: 60, label: 'Large Eraser', dotSize: 'h-4 w-4' },
                           ].map((eSize) => (
                             <button
                               key={eSize.size}
                               type="button"
                               onClick={() => setEraserSize(eSize.size)}
-                              className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              className={`h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                                 eraserSize === eSize.size
                                   ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
                                   : 'text-slate-500 hover:text-slate-800'
@@ -1962,15 +1962,15 @@ export default function ClientForm() {
                             </button>
                           ))
                         : [
-                            { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
-                            { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
-                            { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
+                            { size: 2, label: 'Thin', dotSize: 'h-1 w-1' },
+                            { size: 4, label: 'Medium', dotSize: 'h-2 w-2' },
+                            { size: 7, label: 'Thick', dotSize: 'h-3.5 w-3.5' },
                           ].map((w) => (
                             <button
                               key={w.size}
                               type="button"
                               onClick={() => setCurrentWidth(w.size)}
-                              className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              className={`h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-md flex items-center justify-center transition-all duration-150 cursor-pointer ${
                                 currentWidth === w.size
                                   ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
                                   : 'text-slate-500 hover:text-slate-800'
