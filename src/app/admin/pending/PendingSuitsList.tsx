@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Ruler } from 'lucide-react';
 
@@ -73,63 +72,18 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {filteredSuits.map((client) => {
-        const isCompleted = client.suitStatus === 'Completed and handovered';
-        
-        let primaryImage: string | null = null;
-        let placeholderText = 'No Style Photo';
-
-        if (isCompleted) {
-          if (client.handoverImages && client.handoverImages.length > 0) {
-            primaryImage = client.handoverImages[0];
-          } else if (client.images && client.images.length > 0) {
-            primaryImage = client.images[0];
-          } else {
-            placeholderText = 'No Handover Photo';
-          }
-        } else {
-          if (client.images && client.images.length > 0) {
-            primaryImage = client.images[0];
-          }
-        }
-
-        return (
-          <div
-            key={client._id}
-            className="bg-white border border-[#E6DFD3] rounded-2xl shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between overflow-hidden group w-full max-w-sm mx-auto"
-          >
-            {/* Clickable Card Header & Body */}
-            <Link
-              href={`/admin/new?id=${client._id}`}
-              className="flex-1 flex flex-col cursor-pointer"
-              title="Click card to edit profile details"
-            >
-              {/* Card Cover Image */}
-              {primaryImage ? (
-                <div className="relative aspect-[4/5] w-full bg-slate-100 select-none border-b border-[#E6DFD3]/40 overflow-hidden">
-                  <Image
-                    src={primaryImage}
-                    alt={`${client.name} Style`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-              ) : (
-                <div className="aspect-[4/5] w-full bg-gradient-to-br from-[#FCFAF5] to-[#E6DFD3] flex flex-col items-center justify-center select-none border-b border-[#E6DFD3]/40">
-                  <div className="relative h-12 w-12 opacity-30 mb-2">
-                    <Image
-                      src="/logo.png"
-                      alt="Logo"
-                      fill
-                      sizes="48px"
-                      className="object-contain filter grayscale"
-                    />
-                  </div>
-                  <span className="text-slate-400 text-xs font-black tracking-widest uppercase">
-                    {placeholderText}
-                  </span>
-                </div>
-              )}
+            return (
+              <div
+                key={client._id}
+                className="bg-white border border-[#E6DFD3] rounded-2xl shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between overflow-hidden group w-full max-w-sm mx-auto"
+              >
+                {/* Clickable Card Header & Body */}
+                <Link
+                  href={`/admin/new?id=${client._id}`}
+                  className="flex-1 flex flex-col cursor-pointer"
+                  title="Click card to edit profile details"
+                >
+                  {/* Card Body */}
 
               {/* Card Body */}
               <div className="p-5">

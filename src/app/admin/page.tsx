@@ -87,7 +87,7 @@ export default async function AdminPage() {
       value: `Rs. ${totalEarningValue.toLocaleString('en-IN')}`,
       description: 'Overall generated revenue',
       icon: (
-        <svg className="h-8 w-8 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -102,7 +102,7 @@ export default async function AdminPage() {
       value: `Rs. ${todaysEarningValue.toLocaleString('en-IN')}`,
       description: 'Revenue collected today',
       icon: (
-        <svg className="h-8 w-8 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       ),
@@ -117,7 +117,7 @@ export default async function AdminPage() {
       value: `${pendingSuitsCount}`,
       description: 'In tailoring queue',
       icon: (
-        <svg className="h-8 w-8 text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -132,7 +132,7 @@ export default async function AdminPage() {
       value: `${completedSuitsCount}`,
       description: 'Successfully stitched & completed',
       icon: (
-        <svg className="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -147,7 +147,7 @@ export default async function AdminPage() {
       value: `${totalPhotosCount} ${totalPhotosCount === 1 ? 'Photo' : 'Photos'}`,
       description: 'Catalog & design assets',
       icon: (
-        <svg className="h-8 w-8 text-violet-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-violet-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
@@ -162,7 +162,7 @@ export default async function AdminPage() {
       value: `${preparedSuitsCount}`,
       description: 'Awaiting client pickup',
       icon: (
-        <svg className="h-8 w-8 text-rose-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-rose-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
@@ -177,7 +177,7 @@ export default async function AdminPage() {
       value: `${clientHistoryCount} ${clientHistoryCount === 1 ? 'Profile' : 'Profiles'}`,
       description: 'Measurements & client records',
       icon: (
-        <svg className="h-8 w-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <svg className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       ),
@@ -237,35 +237,35 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        {/* 7 Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Status Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
           {visibleStats.map((stat) => {
             const cardContent = (
               <>
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 bg-white rounded-xl border shadow-sm ${stat.iconClass}`}>
+                <div className="flex items-start justify-between mb-2.5 select-none">
+                  <div className={`p-2 sm:p-2.5 bg-white rounded-xl border shadow-xs ${stat.iconClass}`}>
                     {stat.icon}
                   </div>
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full border ${stat.badgeColor}`}>
+                  <span className={`px-2.5 py-0.5 text-[10px] sm:text-xs font-bold rounded-full border ${stat.badgeColor}`}>
                     {stat.badge}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-slate-500 text-sm sm:text-base font-semibold uppercase tracking-wider mb-1">
+                  <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-0.5">
                     {stat.title}
                   </h3>
-                  <p className="text-2xl sm:text-3xl font-black text-[#1A1A1A] tracking-tight mb-2">
+                  <p className="text-xl sm:text-2xl font-black text-[#1A1A1A] tracking-tight mb-0.5">
                     {stat.value}
                   </p>
-                  <p className="text-sm sm:text-base text-slate-400">
+                  <p className="text-xs text-slate-400 font-medium">
                     {stat.description}
                   </p>
                 </div>
               </>
             );
 
-            const cardClasses = `rounded-2xl border p-6 sm:p-8 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between ${stat.cardClass}`;
+            const cardClasses = `rounded-2xl border p-4 sm:p-5 shadow-xs hover:shadow-md hover:scale-[1.005] transition-all duration-200 flex flex-col justify-between ${stat.cardClass}`;
 
             if (stat.id === 'pending-suits') {
               return (
