@@ -83,29 +83,24 @@ export default function GalleryView({
   // Combine both handover and style images for the grid
   const allImages = [...localHandoverImages, ...localImages];
 
-  // Organize images into 3-slot rows from bottom (oldest) to top (newest).
-  // Unfilled rows retain empty space slots, allowing subsequent uploads to fill remaining slots.
+  // Organize images into 3-slot rows from newest to oldest.
+  // The newest image is always placed at the very first slot (index 0, top-left).
+  // Unfilled top rows retain empty space slots, allowing subsequent uploads to fill remaining slots.
   const gridRows = useMemo(() => {
     if (!allImages || allImages.length === 0) return [];
 
-    const chronological = [...allImages].reverse();
     const rows: (string | null)[][] = [];
+    const chunkSize = 3;
 
-    for (const img of chronological) {
-      if (rows.length === 0) {
-        rows.push([img, null, null]);
-      } else {
-        const lastRow = rows[rows.length - 1];
-        const emptyIdx = lastRow.indexOf(null);
-        if (emptyIdx !== -1) {
-          lastRow[emptyIdx] = img;
-        } else {
-          rows.push([img, null, null]);
-        }
+    for (let i = 0; i < allImages.length; i += chunkSize) {
+      const chunk: (string | null)[] = allImages.slice(i, i + chunkSize);
+      while (chunk.length < chunkSize) {
+        chunk.push(null);
       }
+      rows.push(chunk);
     }
 
-    return rows.reverse();
+    return rows;
   }, [allImages]);
 
   // Handle uploading photos from device storage or camera capture
