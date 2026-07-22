@@ -1761,9 +1761,11 @@ export default function ClientForm() {
           {/* Top Panel: Title & Principal Actions */}
           <div className="bg-white border-b border-[#E6DFD3] px-4 py-3 flex flex-row items-center justify-between shadow-sm flex-none select-none">
             <div className="flex items-center gap-2 truncate pr-2">
-              <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate">
-                {name ? `${name} — Measurement Board` : 'Measurement Board'}
-              </span>
+              {name && (
+                <span className="font-extrabold text-slate-800 text-sm sm:text-base md:text-lg select-none truncate">
+                  {name}
+                </span>
+              )}
               {clientNo && (
                 <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase bg-[#9E7D3B]/10 text-[#9E7D3B] border border-[#E6DFD3] px-2.5 py-0.5 rounded-lg shrink-0 select-none">
                   {clientNo}
