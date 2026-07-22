@@ -37,10 +37,16 @@ export default async function ClientGalleryPage(props: PageProps) {
 
   await dbConnect();
   
-  const clientRaw = await Client.findById(id).lean();
+  let clientRaw = null;
+  if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+    clientRaw = await Client.findById(id).lean();
+  }
+  if (!clientRaw) {
+    clientRaw = await Client.findOne({ clientNo: id }).lean();
+  }
 
   if (!clientRaw) {
-    redirect('/admin/completed');
+    redirect('/admin/photos');
   }
 
   const client = JSON.parse(JSON.stringify(clientRaw));
