@@ -30,6 +30,11 @@ const ClientSchema = new Schema(
       required: [true, 'Please select a category'],
       trim: true,
     },
+    suitQuantity: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     price: {
       type: Number,
       min: [0, 'Price cannot be negative'],

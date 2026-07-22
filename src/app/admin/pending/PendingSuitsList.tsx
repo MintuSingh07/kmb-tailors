@@ -12,6 +12,7 @@ interface ClientRecord {
   contactNo: string;
   alternativeNo?: string;
   category: string;
+  suitQuantity?: string;
   images: string[];
   handoverImages?: string[];
   suitStatus?: string;
@@ -140,6 +141,11 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
                     <span className="inline-block text-[#9E7D3B] bg-[#9E7D3B]/10 border border-[#E6DFD3] rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider mt-1 select-none">
                       {client.category}
                     </span>
+                    {client.suitQuantity && (
+                      <span className="inline-block text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider mt-1 ml-1.5 select-none">
+                        Qty: {client.suitQuantity}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[#9E7D3B] bg-[#FCFAF5] border border-[#E6DFD3] rounded-lg px-2 py-0.5 text-[10px] font-black tracking-wider select-none shrink-0">
                     {client.clientNo}

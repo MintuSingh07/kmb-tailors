@@ -12,6 +12,7 @@ interface ClientRecord {
   contactNo: string;
   alternativeNo?: string;
   category: string;
+  suitQuantity?: string;
   price: number;
   suitStatus: string;
   images: string[];
@@ -409,11 +410,11 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                           </span>
                         </div>
 
-                        {/* Fabric Photos Count */}
+                        {/* Quantity of Suits */}
                         <div>
-                          <span className="text-slate-400 font-bold uppercase tracking-wider text-xs block">Fabric Uploads</span>
-                          <span className="text-slate-600 font-bold block mt-1">
-                            {q.images ? q.images.length : 0} {q.images && q.images.length === 1 ? 'Photo' : 'Photos'}
+                          <span className="text-slate-400 font-bold uppercase tracking-wider text-xs block">Quantity of Suits</span>
+                          <span className="text-slate-700 font-black block mt-1">
+                            {q.suitQuantity || '1 Suit'}
                           </span>
                         </div>
 

@@ -76,6 +76,7 @@ export default function ClientForm() {
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [suitStatus, setSuitStatus] = useState<'Pending' | 'Prepared but not handovered' | 'Completed and handovered'>('Pending');
   const [price, setPrice] = useState('');
+  const [suitQuantity, setSuitQuantity] = useState<string>('');
   const [images, setImages] = useState<string[]>([]); // Base64 fabric data URLs
   const [handoverImages, setHandoverImages] = useState<string[]>([]); // Base64 handover data URLs
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
@@ -242,6 +243,7 @@ export default function ClientForm() {
         setAlternativeNo('');
         setCategory('Punjabi Suit');
         setPrice('');
+        setSuitQuantity('');
         setImages([]);
         setHandoverImages([]);
         setMeasurementDrawing('');
@@ -256,6 +258,7 @@ export default function ClientForm() {
         setAlternativeNo(client.alternativeNo || '');
         setCategory(client.category || 'Punjabi Suit');
         setPrice(client.price !== undefined ? String(client.price) : '');
+        setSuitQuantity(client.suitQuantity || '');
         setImages(client.images || []);
         setHandoverImages(client.handoverImages || []);
         const loadedDrawings = client.measurementDrawings || [];
@@ -1123,6 +1126,7 @@ export default function ClientForm() {
           alternativeNo,
           address,
           category,
+          suitQuantity,
           images,
           handoverImages,
           measurementDrawing,
@@ -1522,97 +1526,22 @@ export default function ClientForm() {
 
           {/* Right Column: Uploaders and Sketch previews */}
           <div className="space-y-6">
-            {/* Gallery/Camera Uploads */}
+            {/* Suit Quantity Input */}
             <div>
               <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                Fabric / Custom Style Photos
+                Quantity of Suits / Order Details
               </label>
-              
-              {initialStatus === 'Completed and handovered' ? (
-                // Read-only view for completed orders
-                images.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {images.map((imgData, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setLightboxIndex(index);
-                          setActiveLightbox({ images, title: `${name || 'Customer'} - Fabric / Design Photos` });
-                        }}
-                        className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-slate-100 cursor-zoom-in hover:opacity-90 transition-opacity"
-                      >
-                        <Image
-                          src={imgData}
-                          alt={`Fabric Photo ${index + 1}`}
-                          fill
-                          sizes="(max-width: 640px) 33vw, 25vw"
-                          className="object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs sm:text-sm text-slate-400 font-medium italic">No fabric or style photos uploaded.</p>
-                )
-              ) : (
-                // Editable view for pending/prepared orders
-                <>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      id="image-file"
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="image-file"
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
-                    >
-                      <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                        <circle cx="9" cy="9" r="2" />
-                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                      </svg>
-                      <span className="text-sm font-bold text-slate-700">Add Fabric / Design Photos</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">Upload fabric cloth photo or design references</span>
-                    </label>
-                  </div>
-
-                  {images.length > 0 && (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                      {images.map((imgData, index) => (
-                        <div
-                          key={index}
-                          className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100"
-                        >
-                          <Image
-                            src={imgData}
-                            alt={`Preview ${index + 1}`}
-                            fill
-                            sizes="(max-width: 640px) 33vw, 25vw"
-                            className="object-cover cursor-zoom-in hover:scale-105 transition-transform"
-                            onClick={() => {
-                              setLightboxIndex(index);
-                              setActiveLightbox({ images, title: `${name || 'Customer'} - Fabric / Design Photos` });
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
-                          >
-                            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+              <input
+                type="text"
+                value={suitQuantity}
+                disabled={initialStatus === 'Completed and handovered'}
+                onChange={(e) => setSuitQuantity(e.target.value)}
+                placeholder="e.g. 2 Suits, 1 Three-Piece, 3 Kurta Sets..."
+                className="w-full rounded-2xl border border-[#E6DFD3] bg-white px-5 py-4 text-base sm:text-lg font-bold text-slate-800 focus:border-[#9E7D3B] focus:outline-none focus:ring-2 focus:ring-[#9E7D3B]/20 disabled:bg-slate-100 disabled:text-slate-500 shadow-sm transition-all"
+              />
+              <p className="text-xs text-slate-400 font-medium mt-2">
+                Specify the number of suits ordered or any custom order notes.
+              </p>
             </div>
 
             {/* Canvas Sketch Board Preview - only shown for pending/new suits */}
