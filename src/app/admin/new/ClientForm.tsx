@@ -381,7 +381,7 @@ export default function ClientForm() {
   };
 
   // Drag to resize reference and pointer handlers
-  const textInputRef = useRef<HTMLInputElement>(null);
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
   const resizeStartRef = useRef<{ startX: number; startY: number; initialFontSize: number } | null>(null);
   const resizePointerIdRef = useRef<number | null>(null);
   const resizeTargetRef = useRef<Element | null>(null);
@@ -459,6 +459,51 @@ export default function ClientForm() {
       return () => clearTimeout(timer);
     }
   }, [activeTextEditor]);
+
+  // Global Paste handler for Whiteboard: preserves multi-line formatting (line 1 with line 2 beneath it)
+  useEffect(() => {
+    if (!isDrawingOpen) return;
+
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      // If user is typing inside another input field on the page, don't intercept
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        if (document.activeElement.id !== 'whiteboard-text-input') {
+          return;
+        }
+      }
+
+      const pastedText = e.clipboardData?.getData('text');
+      if (!pastedText) return;
+
+      // If activeTextEditor is already open, the textarea handles the paste natively
+      if (document.activeElement && document.activeElement.id === 'whiteboard-text-input') {
+        return;
+      }
+
+      e.preventDefault();
+
+      // Create a multi-line text stroke at center of current view
+      const baseFontSize = 24;
+      const strokeWidth = baseFontSize / 6;
+
+      const newTextStroke: Stroke = {
+        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+        width: strokeWidth,
+        points: [{ x: 150, y: 150 }],
+        page: currentPage,
+        text: pastedText, // Preserves exact line-by-line formatting!
+      };
+
+      setStrokes((prev) => [...prev, newTextStroke]);
+      setSuccess('Pasted text onto whiteboard!');
+      setTimeout(() => setSuccess(''), 2000);
+    };
+
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => {
+      window.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, [isDrawingOpen, currentPage, currentColor]);
 
   // Drawing board: initialize, resize, and redraw
   useEffect(() => {
@@ -546,8 +591,13 @@ export default function ClientForm() {
         
         const renderX = stroke.points[0].x * scaleX;
         const renderY = stroke.points[0].y * scaleY;
-        offCtx.textBaseline = 'middle';
-        offCtx.fillText(stroke.text, renderX, renderY);
+        offCtx.textBaseline = 'top';
+
+        const lines = stroke.text.split('\n');
+        const lineHeight = fontSize * 1.25;
+        lines.forEach((lineText, lineIdx) => {
+          offCtx.fillText(lineText, renderX, renderY + lineIdx * lineHeight);
+        });
       } else {
         if (stroke.points.length === 0) return;
         offCtx.beginPath();
@@ -1982,60 +2032,65 @@ export default function ClientForm() {
                 const scaleX = cssWidth / 1000;
                 const baseFontSize = Math.max(16, activeTextEditor.fontSize);
                 const inputFontSize = Math.round(baseFontSize * scaleX * scale);
+                const lineHeightPx = Math.round(inputFontSize * 1.25);
 
-                // Measure text width using canvas context to fit the input exactly to the pixel
-                let textWidth = 120;
+                const lines = (activeTextEditor.text || 'Type notes...').split('\n');
+
+                // Measure max line width using canvas context to fit multi-line input
+                let maxLineWidth = 120;
                 if (canvas) {
                   const ctx = canvas.getContext('2d');
                   if (ctx) {
                     ctx.save();
                     ctx.font = `bold ${inputFontSize}px sans-serif`;
-                    textWidth = ctx.measureText(activeTextEditor.text || 'Type notes...').width;
+                    lines.forEach((l) => {
+                      const w = ctx.measureText(l || 'Type notes...').width;
+                      if (w > maxLineWidth) maxLineWidth = w;
+                    });
                     ctx.restore();
                   }
                 }
                 
-                // Add safety padding (32px) for the caret and asymmetric padding (4px left, 24px right)
-                const inputWidthPx = Math.ceil(textWidth) + 32;
+                const inputWidthPx = Math.ceil(maxLineWidth) + 36;
+                const inputHeightPx = Math.max(lineHeightPx + 8, lines.length * lineHeightPx + 12);
 
                 return (
                   <div
                     style={{
                       left: `${pos.x}%`,
                       top: `${pos.y}%`,
-                      transform: 'translate(-5px, -50%)',
+                      transform: 'translate(-5px, -10px)',
                     }}
                     className="absolute z-30 max-w-[90%] flex items-center"
                   >
                     <div className="relative group">
-                      <input
+                      <textarea
                         ref={textInputRef}
                         id="whiteboard-text-input"
-                        type="text"
+                        rows={lines.length || 1}
                         value={activeTextEditor.text}
                         onChange={(e) => {
                           setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
                         }}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          } else if (e.key === 'Escape') {
+                          if (e.key === 'Escape') {
                             setActiveTextEditor(null);
                           }
                         }}
                         onBlur={() => commitText(activeTextEditor)}
-                        onDoubleClick={(e) => {
-                          e.currentTarget.select(); // Highlight/select all text inside the input
-                        }}
-                        placeholder="Type notes..."
+                        placeholder="Type or paste notes..."
                         style={{
                           color: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
                           caretColor: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
                           fontSize: `${inputFontSize}px`,
+                          lineHeight: `${lineHeightPx}px`,
                           width: `${inputWidthPx}px`,
+                          height: `${inputHeightPx}px`,
+                          resize: 'none',
+                          overflow: 'hidden',
                         }}
-                      className="bg-transparent pl-1 pr-6 py-0.5 border border-black text-[#1A1A1A] text-sm font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black"
-                    />
+                        className="bg-transparent pl-1 pr-6 py-0.5 border border-black text-[#1A1A1A] font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black leading-tight"
+                      />
 
                     {/* Delete button floating above the input box */}
                     <button
