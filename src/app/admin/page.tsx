@@ -188,10 +188,10 @@ export default async function AdminPage() {
     },
   ];
 
-  // Filter stats cards visibility based on user roles
+  // Filter stats cards visibility based on user roles (All operational cards enabled for all roles)
   const visibleStats = role === 'manager'
     ? stats.filter((s) => ['pending-suits', 'photos', 'prepared-not-handovered', 'completed-suits', 'client-history'].includes(s.id))
-    : stats.filter((s) => ['total-earning', 'todays-earning', 'photos', 'client-history', 'completed-suits'].includes(s.id));
+    : stats.filter((s) => ['total-earning', 'todays-earning', 'pending-suits', 'photos', 'prepared-not-handovered', 'completed-suits', 'client-history'].includes(s.id));
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-[#1A1A1A] font-sans pb-24 overflow-x-hidden">
