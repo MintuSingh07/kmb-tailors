@@ -104,10 +104,6 @@ export default async function MeasurementPage(props: PageProps) {
           
           {/* Left Side: Whiteboard Sketch Notes (Clickable Drawing Preview) */}
           <div className="lg:col-span-7 space-y-2">
-            <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 select-none">
-              Whiteboard Sketch Notes (Click to Edit)
-            </span>
-            
             <MeasurementViewer
               clientNo={client.clientNo}
               clientId={client._id.toString()}

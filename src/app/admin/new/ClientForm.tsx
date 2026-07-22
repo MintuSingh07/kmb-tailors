@@ -1175,25 +1175,54 @@ export default function ClientForm() {
     }, 10);
   };
 
-  const handleSaveDrawing = () => {
+  const handleSaveDrawing = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
     // Generate data URL of active page
     const dataUrl = canvas.toDataURL('image/png');
     
-    setMeasurementDrawings((prev) => {
-      const next = [...prev];
-      next[currentPage - 1] = dataUrl;
-      
-      // Fallback for first page to compatibility measurementDrawing
-      const firstPage = next[0] || dataUrl;
-      setMeasurementDrawing(firstPage);
-      
-      return next;
-    });
-    
+    const updatedDrawings = [...measurementDrawings];
+    updatedDrawings[currentPage - 1] = dataUrl;
+    const firstPage = updatedDrawings[0] || dataUrl;
+
+    setMeasurementDrawings(updatedDrawings);
+    setMeasurementDrawing(firstPage);
     setIsDrawingOpen(false);
+
+    // Auto-save updated drawings to MongoDB if editing existing client
+    if (dbId) {
+      try {
+        setLoading(true);
+        await fetch('/api/clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: dbId,
+            clientNo,
+            name,
+            contactNo,
+            alternativeNo,
+            address,
+            category,
+            suitQuantity,
+            images,
+            handoverImages,
+            measurementDrawing: firstPage,
+            measurementDrawings: updatedDrawings,
+            strokes,
+            price: price ? Number(price) : 0,
+            suitStatus,
+          }),
+        });
+        setSuccess('Measurements updated successfully!');
+        setTimeout(() => setSuccess(''), 2500);
+      } catch (err) {
+        console.error('Error auto-saving drawings:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const handleCancelDrawing = () => {
@@ -1723,41 +1752,24 @@ export default function ClientForm() {
                   {clientNo}
                 </span>
               )}
-              {initialStatus === 'Completed and handovered' && (
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 select-none">
-                  (Read Only)
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {initialStatus === 'Completed and handovered' ? (
-                <button
-                  type="button"
-                  onClick={handleCancelDrawing}
-                  className="h-8.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-black rounded-xl transition-colors cursor-pointer"
-                >
-                  Close View
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCancelDrawing}
-                    className="h-8.5 px-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs font-bold shadow-sm cursor-pointer"
-                  >
-                    Cancel
-                  </button>
+              <button
+                type="button"
+                onClick={handleCancelDrawing}
+                className="h-8.5 px-3 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs font-bold shadow-sm cursor-pointer"
+              >
+                Cancel
+              </button>
 
-                  <button
-                    type="button"
-                    onClick={handleSaveDrawing}
-                    className="h-8.5 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-xl text-white text-xs font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
-                  >
-                    Done
-                  </button>
-                </>
-              )}
+              <button
+                type="button"
+                onClick={handleSaveDrawing}
+                className="h-8.5 px-4 bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] rounded-xl text-white text-xs font-black shadow-md shadow-[#9E7D3B]/20 cursor-pointer"
+              >
+                Done
+              </button>
             </div>
           </div>
 
@@ -1767,8 +1779,7 @@ export default function ClientForm() {
 
             <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
-              {initialStatus !== 'Completed and handovered' && (
-                <div className="w-full z-40 bg-white border-b border-slate-200 px-4 py-2 sm:py-3 flex flex-row flex-wrap justify-between items-center gap-3 sm:gap-4 select-none shrink-0">
+              <div className="w-full z-40 bg-white border-b border-slate-200 px-4 py-2 sm:py-3 flex flex-row flex-wrap justify-between items-center gap-3 sm:gap-4 select-none shrink-0">
                   {/* Tool Selection Segmented Control */}
                   <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner">
                     {/* Pen Button */}
@@ -1953,7 +1964,6 @@ export default function ClientForm() {
                     </div>
                   </div>
                 </div>
-              )}
 
               {/* Inner wrapper container to align canvas and absolute overlays (positioned below the toolbar) */}
               <div 
@@ -2033,9 +2043,7 @@ export default function ClientForm() {
                 width={1000}
                 height={750}
                 className={`w-full h-full touch-none bg-white ${
-                  initialStatus === 'Completed and handovered'
-                    ? 'pointer-events-none'
-                    : drawMode === 'text'
+                  drawMode === 'text'
                     ? 'cursor-text'
                     : drawMode === 'none'
                     ? 'cursor-grab active:cursor-grabbing'
@@ -2204,36 +2212,32 @@ export default function ClientForm() {
               </span>
 
               {/* Plus Sign Button to Add Page */}
-              {initialStatus !== 'Completed and handovered' && (
-                <button
-                  type="button"
-                  onClick={handleAddPage}
-                  className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
-                  title="Add Another Page"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleAddPage}
+                className="h-8 w-8 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
+                title="Add Another Page"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
             </div>
 
             {/* Undo & Clear Action Buttons */}
             <div className="flex items-center gap-2 shrink-0">
-              {initialStatus !== 'Completed and handovered' && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleUndo}
-                    disabled={strokes.length === 0}
-                    className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
-                    title="Undo Stroke"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                    <span>Undo</span>
-                  </button>
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={strokes.length === 0}
+                className="h-9 px-3 bg-white rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0 transition-colors"
+                title="Undo Stroke"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                <span>Undo</span>
+              </button>
 
                   <button
                     type="button"
@@ -2247,8 +2251,6 @@ export default function ClientForm() {
                     </svg>
                     <span>Clear</span>
                   </button>
-                </>
-              )}
             </div>
           </div>
 

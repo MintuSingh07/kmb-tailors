@@ -137,7 +137,7 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
             <div className="border-t border-slate-100 px-5 py-3 flex items-center justify-between bg-slate-50/50">
               {client.suitStatus !== 'Prepared but not handovered' && client.suitStatus !== 'Completed and handovered' ? (
                 <Link
-                  href={`/admin/pending/measurement?id=${client._id}`}
+                  href={`/admin/new?id=${client._id}&draw=true`}
                   className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-flex items-center justify-center gap-1.5 tracking-wider"
                 >
                   <Ruler className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />

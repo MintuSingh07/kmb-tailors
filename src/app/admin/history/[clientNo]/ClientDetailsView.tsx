@@ -424,7 +424,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
                     {/* Action buttons */}
                     <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 border-t border-slate-100 select-none">
                       <Link
-                        href={`/admin/pending/measurement?id=${q._id}`}
+                        href={`/admin/new?id=${q._id}&draw=true`}
                         className="w-full sm:flex-1 text-center py-3.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-xs sm:text-sm font-black rounded-2xl transition-all duration-150 cursor-pointer shadow-sm bg-white inline-flex items-center justify-center gap-2"
                       >
                         <Ruler className="h-4.5 w-4.5 shrink-0" strokeWidth={2.5} />

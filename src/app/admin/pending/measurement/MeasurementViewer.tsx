@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Ruler } from 'lucide-react';
 
 interface MeasurementViewerProps {
   clientNo: string;
@@ -45,6 +46,19 @@ export default function MeasurementViewer({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 select-none">
+        <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider select-none">
+          Whiteboard Sketch Notes
+        </span>
+        <Link
+          href={`/admin/new?id=${encodeURIComponent(clientId)}&draw=true`}
+          className="px-3 py-1.5 bg-[#9E7D3B] hover:bg-[#C5A85C] text-white text-xs font-black rounded-xl shadow-sm hover:shadow transition-all inline-flex items-center gap-1.5"
+        >
+          <Ruler className="h-3.5 w-3.5" strokeWidth={2.5} />
+          Edit Measurement
+        </Link>
+      </div>
+
       {/* Clickable Image Frame */}
       <Link
         href={`/admin/new?id=${encodeURIComponent(clientId)}&draw=true`}

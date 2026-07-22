@@ -350,7 +350,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                       <td className="py-5.5 px-6 text-right">
                         <div className="flex items-center justify-end gap-2.5 select-none">
                           <Link
-                            href={`/admin/pending/measurement?code=${group.clientNo}`}
+                            href={`/admin/new?code=${encodeURIComponent(group.clientNo)}&draw=true`}
                             className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                           >
                             <Ruler className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
@@ -423,7 +423,7 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                       
                       <div className="flex items-center gap-2 select-none">
                         <Link
-                          href={`/admin/pending/measurement?code=${group.clientNo}`}
+                          href={`/admin/new?code=${encodeURIComponent(group.clientNo)}&draw=true`}
                           className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                         >
                           <Ruler className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />

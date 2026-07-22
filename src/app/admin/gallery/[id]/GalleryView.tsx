@@ -262,7 +262,7 @@ export default function GalleryView({
           </button>
 
           <Link
-            href={`/admin/pending/measurement?id=${clientId}`}
+            href={`/admin/new?id=${clientId}&draw=true`}
             className="px-5 py-2.5 bg-white border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-xs sm:text-sm font-black rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer inline-flex items-center gap-2"
           >
             <Ruler className="h-4.5 w-4.5 text-[#9E7D3B]" strokeWidth={2.5} />
