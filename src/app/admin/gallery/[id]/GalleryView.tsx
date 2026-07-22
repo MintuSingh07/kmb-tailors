@@ -32,6 +32,52 @@ export default function GalleryView({
   const [isPanningImage, setIsPanningImage] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
+  // Helper function to compress large camera photos client-side before sending to server
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new (window.Image || HTMLImageElement)();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => {
+          resolve(event.target?.result as string);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Combine both handover and style images for the grid
   const allImages = [...localHandoverImages, ...localImages];
 
@@ -42,18 +88,8 @@ export default function GalleryView({
 
     setLoading(true);
 
-    const base64Promises = Array.from(files).map((file) => {
-      return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          resolve(event.target?.result as string);
-        };
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-      });
-    });
-
     try {
+      const base64Promises = Array.from(files).map((file) => compressImage(file));
       const base64Images = await Promise.all(base64Promises);
       const res = await fetch(`/api/clients/${clientId}/images`, {
         method: 'POST',
@@ -66,7 +102,8 @@ export default function GalleryView({
         setLocalHandoverImages(data.client.handoverImages || []);
         setLocalImages(data.client.images || []);
       } else {
-        alert('Failed to upload photos. Please try again.');
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to upload photos. Please try again.');
       }
     } catch (err) {
       console.error('Error uploading photos:', err);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import dbConnect from '../../../../../lib/db';
 import Client from '../../../../../models/Client';
 import { uploadToCloudinary } from '../../../../../lib/cloudinary';
@@ -30,7 +31,13 @@ export async function POST(
     }
 
     await dbConnect();
-    const client = await Client.findById(clientNo);
+    let client = null;
+    if (mongoose.Types.ObjectId.isValid(clientNo)) {
+      client = await Client.findById(clientNo);
+    }
+    if (!client) {
+      client = await Client.findOne({ clientNo }).sort({ updatedAt: -1 });
+    }
     if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
@@ -76,7 +83,13 @@ export async function DELETE(
     }
 
     await dbConnect();
-    const client = await Client.findById(clientNo);
+    let client = null;
+    if (mongoose.Types.ObjectId.isValid(clientNo)) {
+      client = await Client.findById(clientNo);
+    }
+    if (!client) {
+      client = await Client.findOne({ clientNo }).sort({ updatedAt: -1 });
+    }
     if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
