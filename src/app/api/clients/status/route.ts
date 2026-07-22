@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         const url = await uploadToCloudinary(img);
         uploadedHandoverImages.push(url);
       }
-      client.handoverImages = [...(client.handoverImages || []), ...uploadedHandoverImages];
+      client.handoverImages = [...uploadedHandoverImages, ...(client.handoverImages || [])];
     }
     await client.save();
 

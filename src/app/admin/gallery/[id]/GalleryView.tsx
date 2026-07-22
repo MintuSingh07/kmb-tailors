@@ -256,7 +256,7 @@ export default function GalleryView({
             <p className="text-slate-500 font-semibold">This client has no design or handover photos loaded.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5 lg:gap-2">
             {allImages.map((imgSrc, index) => {
               return (
                 <div
@@ -266,12 +266,12 @@ export default function GalleryView({
                     setZoomScale(1);
                     setPanPosition({ x: 0, y: 0 });
                   }}
-                  className="group relative bg-transparent border-none rounded-none overflow-hidden shadow-none cursor-pointer flex flex-col w-full h-auto select-none"
+                  className="group relative bg-white border border-slate-200/80 rounded-lg sm:rounded-xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
                 >
                   <img
                     src={imgSrc}
                     alt={`${clientName} photo ${index + 1}`}
-                    className="w-full h-auto block rounded-none border-none shadow-none transition-transform duration-500 group-hover:scale-[1.02]"
+                    className="w-full h-full object-cover block transition-transform duration-350 group-hover:scale-105"
                   />
 
                   {/* Overlay Delete Button */}
@@ -280,17 +280,17 @@ export default function GalleryView({
                       e.stopPropagation();
                       handleDeleteImage(imgSrc);
                     }}
-                    className="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer z-10 opacity-0 group-hover:opacity-100 duration-200"
+                    className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer z-10 opacity-0 group-hover:opacity-100 duration-200"
                     title="Delete Photo"
                   >
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                   
                   {/* View Fullscreen Hover Overlay */}
-                  <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="bg-white/95 text-slate-800 border border-[#E6DFD3] text-xs font-black tracking-wider uppercase px-4.5 py-2.5 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
+                  <div className="absolute inset-0 bg-slate-900/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="bg-white/95 text-slate-800 border border-slate-200 text-[10px] sm:text-xs font-black tracking-wider uppercase px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 select-none">
                       View Fullscreen &rarr;
                     </span>
                   </div>

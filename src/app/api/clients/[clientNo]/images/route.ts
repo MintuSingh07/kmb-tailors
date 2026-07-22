@@ -41,8 +41,8 @@ export async function POST(
       uploadedUrls.push(url);
     }
 
-    // Append to handoverImages since they are completed gallery uploads
-    client.handoverImages = [...(client.handoverImages || []), ...uploadedUrls];
+    // Prepend to handoverImages so newest uploaded photos appear first
+    client.handoverImages = [...uploadedUrls, ...(client.handoverImages || [])];
     await client.save();
 
     return NextResponse.json({ success: true, client });
