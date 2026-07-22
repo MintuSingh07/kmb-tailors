@@ -1,6 +1,6 @@
-const STATIC_CACHE_NAME = 'kmb-static-v1';
-const DATA_CACHE_NAME = 'kmb-data-v1';
-const IMAGE_CACHE_NAME = 'kmb-images-v1';
+const STATIC_CACHE_NAME = 'kmb-static-v2';
+const DATA_CACHE_NAME = 'kmb-data-v2';
+const IMAGE_CACHE_NAME = 'kmb-images-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -66,23 +66,24 @@ self.addEventListener('fetch', (event) => {
   if (isImage) {
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
-        const cachedResponse = await cache.match(req);
+        // Try matching request directly or ignoring search params
+        const cachedResponse = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
         if (cachedResponse) {
-          // Serve from cache immediately when offline or online
+          // Return cached image immediately for instant offline/online rendering
           return cachedResponse;
         }
 
         try {
           const networkResponse = await fetch(req);
-          if (networkResponse && networkResponse.status === 200) {
-            // Cache a copy of the image for offline use
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             cache.put(req, networkResponse.clone());
           }
           return networkResponse;
         } catch (error) {
           console.log('[Service Worker] Offline fetch failed for image:', req.url);
-          // Return cached version or fallback
-          return cachedResponse || Response.error();
+          // Try matching ignoring search query
+          const fallback = await cache.match(url.pathname, { ignoreSearch: true });
+          return cachedResponse || fallback || Response.error();
         }
       })
     );
@@ -101,7 +102,7 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         } catch (error) {
           console.log('[Service Worker] Network offline, serving cached API data for:', req.url);
-          const cachedResponse = await cache.match(req);
+          const cachedResponse = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
           if (cachedResponse) {
             return cachedResponse;
           }
@@ -126,12 +127,12 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       } catch (error) {
         console.log('[Service Worker] Offline, serving cached page for:', req.url);
-        const cachedResponse = await cache.match(req);
+        const cachedResponse = (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true }));
         if (cachedResponse) {
           return cachedResponse;
         }
         // Fallback to cached admin dashboard if available
-        return cache.match('/admin') || Response.error();
+        return (await cache.match('/admin')) || Response.error();
       }
     })
   );
@@ -146,14 +147,17 @@ self.addEventListener('message', (event) => {
     caches.open(IMAGE_CACHE_NAME).then((cache) => {
       urls.forEach((url) => {
         if (!url || typeof url !== 'string') return;
-        fetch(url, { mode: 'cors' })
+        if (url.startsWith('data:image/')) return; // Skip embedded base64 strings
+
+        // Fetch with no-cors so cross-origin Cloudinary photos are cached as opaque responses
+        fetch(url, { mode: 'no-cors' })
           .then((response) => {
-            if (response && response.status === 200) {
+            if (response) {
               cache.put(url, response);
             }
           })
           .catch((err) => {
-            // Ignore pre-fetch failures silently
+            // Ignore pre-fetch failures
           });
       });
     });

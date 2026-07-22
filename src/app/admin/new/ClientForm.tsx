@@ -225,15 +225,33 @@ export default function ClientForm() {
     setSuggestions([]);
     
     try {
-      const url = loadById 
-        ? `/api/clients/${encodeURIComponent(selectedClientNo)}?by=id`
-        : `/api/clients/${encodeURIComponent(selectedClientNo)}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to load client details');
+      let client = null;
+      try {
+        const url = loadById 
+          ? `/api/clients/${encodeURIComponent(selectedClientNo)}?by=id`
+          : `/api/clients/${encodeURIComponent(selectedClientNo)}`;
+        const response = await fetch(url);
+        if (response.ok) {
+          client = await response.json();
+        }
+      } catch (e) {
+        console.warn('Network error loading client, trying offline storage fallback:', e);
       }
-      
-      const client = await response.json();
+
+      // Offline Fallback from localStorage
+      if (!client) {
+        const offlineKey = `kmb_client_${selectedClientNo}`;
+        const cachedStr = typeof window !== 'undefined' ? localStorage.getItem(offlineKey) : null;
+        if (cachedStr) {
+          try {
+            client = JSON.parse(cachedStr);
+          } catch (e) {}
+        }
+      }
+
+      if (!client) {
+        throw new Error('Failed to load client details (Offline and not cached yet)');
+      }
       
       setName(client.name || '');
       setContactNo(client.contactNo || '');

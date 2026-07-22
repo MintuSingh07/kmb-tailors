@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getOptimizedImageUrl } from '../lib/imageUtils';
 
 export default function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false);
@@ -52,7 +53,7 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
       setPrecacheStatus('Syncing offline data...');
       
       // Fetch all client records from server
-      const res = await fetch('/api/clients/search?limit=1000');
+      const res = await fetch('/api/clients/all');
       if (!res.ok) return;
 
       const clients = await res.json();
@@ -62,11 +63,27 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
       const imageUrlsSet = new Set<string>();
 
       clients.forEach((client: any) => {
+        // Store client details in localStorage for offline fallback
+        try {
+          if (client._id) localStorage.setItem(`kmb_client_${client._id}`, JSON.stringify(client));
+          if (client.clientNo) localStorage.setItem(`kmb_client_${client.clientNo}`, JSON.stringify(client));
+        } catch (e) {}
+
         if (client.images && Array.isArray(client.images)) {
-          client.images.forEach((url: string) => url && imageUrlsSet.add(url));
+          client.images.forEach((url: string) => {
+            if (url) {
+              imageUrlsSet.add(url);
+              imageUrlsSet.add(getOptimizedImageUrl(url, 600));
+            }
+          });
         }
         if (client.handoverImages && Array.isArray(client.handoverImages)) {
-          client.handoverImages.forEach((url: string) => url && imageUrlsSet.add(url));
+          client.handoverImages.forEach((url: string) => {
+            if (url) {
+              imageUrlsSet.add(url);
+              imageUrlsSet.add(getOptimizedImageUrl(url, 600));
+            }
+          });
         }
         if (client.measurementDrawing) {
           imageUrlsSet.add(client.measurementDrawing);
@@ -78,17 +95,23 @@ export default function PWAProvider({ children }: { children: React.ReactNode })
 
       const imageUrls = Array.from(imageUrlsSet);
 
-      // Also cache individual client API endpoints
+      // Also cache individual client API endpoints in kmb-data-v2 CacheStorage
       if ('caches' in window) {
-        const cache = await caches.open('kmb-data-v1');
+        const cache = await caches.open('kmb-data-v2');
         clients.forEach((c: any) => {
           if (c._id) {
             const clientUrl = `/api/clients/${c._id}?by=id`;
-            cache.add(clientUrl).catch(() => {});
+            const blobResponse = new Response(JSON.stringify(c), {
+              headers: { 'Content-Type': 'application/json' },
+            });
+            cache.put(clientUrl, blobResponse).catch(() => {});
           }
           if (c.clientNo) {
             const clientNoUrl = `/api/clients/${c.clientNo}`;
-            cache.add(clientNoUrl).catch(() => {});
+            const blobResponse = new Response(JSON.stringify(c), {
+              headers: { 'Content-Type': 'application/json' },
+            });
+            cache.put(clientNoUrl, blobResponse).catch(() => {});
           }
         });
       }
