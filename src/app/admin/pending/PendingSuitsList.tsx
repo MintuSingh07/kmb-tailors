@@ -175,13 +175,15 @@ export default function PendingSuitsList({ initialSuits }: { initialSuits: Clien
 
             {/* Card Footer */}
             <div className="border-t border-slate-100 px-5 py-3 flex items-center justify-between bg-slate-50/50">
-              <Link
-                href={`/admin/pending/measurement?id=${client._id}`}
-                className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-flex items-center justify-center gap-1.5 tracking-wider"
-              >
-                <Ruler className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
-                Measurement
-              </Link>
+              {client.suitStatus !== 'Prepared but not handovered' && client.suitStatus !== 'Completed and handovered' ? (
+                <Link
+                  href={`/admin/pending/measurement?id=${client._id}`}
+                  className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-flex items-center justify-center gap-1.5 tracking-wider"
+                >
+                  <Ruler className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+                  Measurement
+                </Link>
+              ) : <div />}
               
               <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider select-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 Click card to edit &rarr;

@@ -93,7 +93,7 @@ export default async function CompletedSuitsPage() {
             Completed & Handovered
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            History of all delivered orders. Click cards to view details or select Measurement to view sketches.
+            History of all delivered orders. Click cards to view details.
           </p>
         </div>
 

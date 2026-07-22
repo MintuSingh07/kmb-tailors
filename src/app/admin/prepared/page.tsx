@@ -94,7 +94,7 @@ export default async function PreparedSuitsPage() {
             Prepared Suits
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            Ready to be delivered. Click card to edit profile details or select Measurement to view sketches.
+            Ready to be delivered. Click card to edit profile details.
           </p>
         </div>
 

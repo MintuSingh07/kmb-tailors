@@ -177,14 +177,7 @@ export default function CompletedGallery({ initialSuits }: { initialSuits: Clien
                   </div>
 
                   {/* Actions Row */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-50 gap-2">
-                     <Link
-                       href={`/admin/pending/measurement?id=${client._id}`}
-                       className="px-3.5 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] bg-white hover:bg-[#FCFAF5] text-slate-700 hover:text-[#9E7D3B] text-[10px] font-black rounded-full transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer inline-flex items-center justify-center gap-1.5 tracking-wider"
-                     >
-                       <Ruler className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
-                       Measurement
-                     </Link>
+                  <div className="flex items-center justify-end pt-3 border-t border-slate-50 gap-2">
                     <Link
                       href={`/admin/new?id=${client._id}`}
                       className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-black rounded-full transition-all border border-slate-100 hover:scale-[1.02] active:scale-[0.98] select-none text-center cursor-pointer tracking-wider"

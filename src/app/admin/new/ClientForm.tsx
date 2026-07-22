@@ -1615,48 +1615,50 @@ export default function ClientForm() {
               )}
             </div>
 
-            {/* Canvas Sketch Board Preview */}
-            <div>
-              <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                Measurement Sketch (White Board)
-              </label>
+            {/* Canvas Sketch Board Preview - only shown for pending/new suits */}
+            {suitStatus !== 'Completed and handovered' && suitStatus !== 'Prepared but not handovered' && initialStatus !== 'Completed and handovered' && initialStatus !== 'Prepared but not handovered' && (
+              <div>
+                <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
+                  Measurement Sketch (White Board)
+                </label>
 
-              {/* Preview Container: Opens Modal Drawing Board on click */}
-              <div
-                onClick={() => setIsDrawingOpen(true)}
-                className="relative w-full aspect-[4/3] bg-white border border-[#E6DFD3] hover:border-[#C5A85C] rounded-2xl overflow-hidden cursor-pointer shadow-sm flex items-center justify-center group transition-all duration-200"
-              >
-                {measurementDrawing ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={measurementDrawing}
-                      alt="Canvas Preview"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      className="object-contain p-2"
-                    />
-                    <div className="absolute inset-0 bg-[#1A1A1A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
-                      <span className="bg-white/95 text-slate-800 text-sm font-extrabold px-4 py-2 rounded-xl shadow-md flex items-center gap-2">
-                        <svg className="h-4 w-4 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                {/* Preview Container: Opens Modal Drawing Board on click */}
+                <div
+                  onClick={() => setIsDrawingOpen(true)}
+                  className="relative w-full aspect-[4/3] bg-white border border-[#E6DFD3] hover:border-[#C5A85C] rounded-2xl overflow-hidden cursor-pointer shadow-sm flex items-center justify-center group transition-all duration-200"
+                >
+                  {measurementDrawing ? (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={measurementDrawing}
+                        alt="Canvas Preview"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        className="object-contain p-2"
+                      />
+                      <div className="absolute inset-0 bg-[#1A1A1A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                        <span className="bg-white/95 text-slate-800 text-sm font-extrabold px-4 py-2 rounded-xl shadow-md flex items-center gap-2">
+                          <svg className="h-4 w-4 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Edit White Board
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-8 text-center">
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3 group-hover:scale-110 transition-transform">
+                        <svg className="h-10 w-10 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                        Edit White Board
-                      </span>
+                      </div>
+                      <span className="text-base font-bold text-slate-700">Tap to draw measurements</span>
+                      <span className="text-xs text-slate-400 mt-1">Supports touch, mouse, & stylus S-Pen</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3 group-hover:scale-110 transition-transform">
-                      <svg className="h-10 w-10 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </div>
-                    <span className="text-base font-bold text-slate-700">Tap to draw measurements</span>
-                    <span className="text-xs text-slate-400 mt-1">Supports touch, mouse, & stylus S-Pen</span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Submitting buttons */}

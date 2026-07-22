@@ -93,7 +93,7 @@ export default async function ClientHistoryPage() {
             Client History
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-semibold">
-            Complete database of registered customer measurements. Click card to edit profile details or select Measurement to view sketches.
+            Complete database of registered customer profiles. Click card to edit profile details.
           </p>
         </div>
 
