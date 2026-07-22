@@ -256,7 +256,7 @@ export default function GalleryView({
             <p className="text-slate-500 font-semibold">This client has no design or handover photos loaded.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-1 sm:gap-1.5 lg:gap-2">
+          <div className="grid grid-cols-3 gap-0.5 sm:gap-1">
             {allImages.map((imgSrc, index) => {
               return (
                 <div
@@ -266,7 +266,7 @@ export default function GalleryView({
                     setZoomScale(1);
                     setPanPosition({ x: 0, y: 0 });
                   }}
-                  className="group relative bg-white border border-slate-200/80 rounded-lg sm:rounded-xl overflow-hidden shadow-sm hover:shadow-md cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
+                  className="group relative bg-white border border-slate-100 rounded-md sm:rounded-lg overflow-hidden shadow-xs hover:shadow-sm cursor-pointer flex flex-col w-full aspect-[3/4] select-none transition-all duration-200"
                 >
                   <img
                     src={imgSrc}

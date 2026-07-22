@@ -1110,6 +1110,56 @@ export default function ClientForm() {
     }
   };
 
+  // Touch Swipe Gesture for Page Navigation
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
+  const isTouchDrawingRef = useRef<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 1) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+      touchStartTimeRef.current = Date.now();
+      isTouchDrawingRef.current = false;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isDrawingRef.current || (activePointsRef.current && activePointsRef.current.length > 1)) {
+      isTouchDrawingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartXRef.current;
+    const deltaY = touchEndY - touchStartYRef.current;
+    const duration = Date.now() - touchStartTimeRef.current;
+
+    const wasDrawing = isTouchDrawingRef.current || isDrawingRef.current || (activePointsRef.current && activePointsRef.current.length > 1);
+
+    // Reset touch refs
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    isTouchDrawingRef.current = false;
+
+    // Check if horizontal swipe gesture (fast < 800ms, distance > 50px, horizontal > vertical)
+    if (!wasDrawing && duration < 800 && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (deltaX < -50) {
+        // Swiped Left -> Next Page
+        handleNextPage();
+      } else if (deltaX > 50) {
+        // Swiped Right -> Previous Page
+        handlePrevPage();
+      }
+    }
+  };
+
   const handleAddPage = () => {
     savePageDataUrl();
     const newPageNum = totalPages + 1;
@@ -1697,31 +1747,7 @@ export default function ClientForm() {
 
           {/* Center Drawing Area (Note occupies the full space) */}
           <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-0 relative bg-white">
-            {/* Left Page Arrow */}
-            <button
-              type="button"
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="absolute left-4 z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white hover:bg-slate-50 border border-[#E6DFD3] shadow-lg flex items-center justify-center text-slate-750 disabled:opacity-20 disabled:hover:bg-white disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shrink-0 select-none cursor-pointer"
-              title="Previous Page"
-            >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
 
-            {/* Right Page Arrow */}
-            <button
-              type="button"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="absolute right-4 z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white hover:bg-slate-50 border border-[#E6DFD3] shadow-lg flex items-center justify-center text-slate-750 disabled:opacity-20 disabled:hover:bg-white disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shrink-0 select-none cursor-pointer"
-              title="Next Page"
-            >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
 
             <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
@@ -1867,34 +1893,59 @@ export default function ClientForm() {
                     {/* Vertical Divider */}
                     <div className="hidden sm:block w-[1px] h-8 bg-slate-200 select-none" />
 
-                    {/* Line Width Segmented Control with visual dots */}
+                    {/* Line Width / Eraser Size Segmented Control with 3 precise sizes */}
                     <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-inner select-none">
-                      {[
-                        { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
-                        { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
-                        { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
-                      ].map((w) => (
-                        <button
-                          key={w.size}
-                          type="button"
-                          onClick={() => setCurrentWidth(w.size)}
-                          className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                            currentWidth === w.size
-                              ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
-                              : 'text-slate-500 hover:text-slate-800'
-                          }`}
-                          title={`${w.label} Line Width`}
-                        >
-                          <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
-                        </button>
-                      ))}
+                      {currentColor === '#FFFFFF'
+                        ? [
+                            { size: 15, label: 'Small Eraser', dotSize: 'h-2 w-2' },
+                            { size: 35, label: 'Medium Eraser', dotSize: 'h-3.5 w-3.5' },
+                            { size: 60, label: 'Large Eraser', dotSize: 'h-5 w-5' },
+                          ].map((eSize) => (
+                            <button
+                              key={eSize.size}
+                              type="button"
+                              onClick={() => setEraserSize(eSize.size)}
+                              className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                                eraserSize === eSize.size
+                                  ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
+                                  : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                              title={`${eSize.label} (${eSize.size}px)`}
+                            >
+                              <div className={`rounded-full bg-slate-800 ${eSize.dotSize}`} />
+                            </button>
+                          ))
+                        : [
+                            { size: 2, label: 'Thin', dotSize: 'h-1.5 w-1.5' },
+                            { size: 4, label: 'Medium', dotSize: 'h-3 w-3' },
+                            { size: 7, label: 'Thick', dotSize: 'h-4.5 w-4.5' },
+                          ].map((w) => (
+                            <button
+                              key={w.size}
+                              type="button"
+                              onClick={() => setCurrentWidth(w.size)}
+                              className={`h-9 w-9 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                                currentWidth === w.size
+                                  ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
+                                  : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                              title={`${w.label} Line Width`}
+                            >
+                              <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
+                            </button>
+                          ))}
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Inner wrapper container to align canvas and absolute overlays (positioned below the toolbar) */}
-              <div className="relative flex-grow min-h-0 w-full bg-[#FCFAF5]">
+              <div 
+                className="relative flex-grow min-h-0 w-full bg-[#FCFAF5]"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
                 {/* Transition sliding page overlay */}
                 {isTransitioning && prevPageSnapshot && (
                  <div className="absolute inset-0 z-30 bg-[#FCFAF5] overflow-hidden pointer-events-none flex items-center justify-center">
@@ -1980,49 +2031,7 @@ export default function ClientForm() {
                 onWheel={handleWheel}
               />
 
-              {/* Eraser Size Vertical Slider Overlay */}
-              {drawMode === 'draw' && currentColor === '#FFFFFF' && (
-                <div 
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onPointerMove={(e) => e.stopPropagation()}
-                  onPointerUp={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center bg-white/95 backdrop-blur-md px-3 py-5 rounded-2xl border border-[#E6DFD3] shadow-xl gap-4 select-none animate-in fade-in slide-in-from-left-4 duration-200"
-                >
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
-                    Size
-                  </div>
-                  {/* Indicator Circle showing current thickness */}
-                  <div className="h-8 w-8 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-lg">
-                    <div
-                      style={{
-                        width: `${Math.max(2, Math.min(28, eraserSize * 0.4))}px`,
-                        height: `${Math.max(2, Math.min(28, eraserSize * 0.4))}px`,
-                      }}
-                      className="bg-[#9E7D3B] rounded-full transition-all duration-100"
-                    />
-                  </div>
-                  {/* Vertical Range Slider container */}
-                  <div className="h-28 w-6 flex items-center justify-center relative">
-                    <input
-                      type="range"
-                      min="5"
-                      max="100"
-                      step="1"
-                      value={eraserSize}
-                      onChange={(e) => setEraserSize(Number(e.target.value))}
-                      className="h-1.5 w-24 cursor-pointer accent-[#9E7D3B] bg-slate-200 rounded-lg appearance-none"
-                      style={{
-                        transform: 'rotate(-90deg)',
-                        transformOrigin: 'center',
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs font-black text-slate-700 font-mono select-none">
-                    {eraserSize}px
-                  </span>
-                </div>
-              )}
+
 
               {activeTextEditor && (() => {
                 const pos = getTextEditorPosition();
@@ -2172,37 +2181,11 @@ export default function ClientForm() {
             </div>
 
             {/* Page Navigation Indicator */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner select-none shrink-0">
-              {/* Left Arrow */}
-              <button
-                type="button"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
-                title="Previous Page"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 px-3 rounded-2xl border border-slate-200 shadow-inner select-none shrink-0">
               {/* Concise Page Indicator */}
-              <span className="text-xs font-black text-slate-700 px-2.5 min-w-[72px] text-center select-none">
+              <span className="text-xs font-black text-slate-700 min-w-[72px] text-center select-none">
                 Page {currentPage} / {totalPages}
               </span>
-
-              {/* Right Arrow */}
-              <button
-                type="button"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
-                title="Next Page"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
 
               {/* Plus Sign Button to Add Page */}
               {initialStatus !== 'Completed and handovered' && (
