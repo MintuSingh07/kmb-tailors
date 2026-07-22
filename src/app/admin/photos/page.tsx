@@ -29,7 +29,6 @@ export default async function PhotosGalleryPage() {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
     username = decoded.username;
-    if ((decoded as any).role === 'admin') redirect('/admin');
   } catch (err) {
     redirect('/login');
   }
