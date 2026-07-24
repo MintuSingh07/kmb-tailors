@@ -1512,7 +1512,7 @@ export default function ClientForm() {
           Back to Dashboard
         </Link>
         <span className="text-slate-400 text-sm font-semibold sm:text-base select-none">
-          KMB Boutique Form
+          KBM Boutique Form
         </span>
       </div>
 

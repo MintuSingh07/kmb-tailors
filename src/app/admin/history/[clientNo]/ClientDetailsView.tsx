@@ -108,7 +108,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 select-none">
             <NextImage
               src="/logo.png"
-              alt="KMB Boutique Logo"
+              alt="KBM Boutique Logo"
               fill
               sizes="(max-width: 640px) 40px, 48px"
               priority
@@ -117,7 +117,7 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
-              KMB Boutique
+              KBM Boutique
             </h1>
             <span className="text-[10px] text-[#9E7D3B] font-black uppercase tracking-wider mt-1 block">
               Luxury Stitching Studio

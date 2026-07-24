@@ -1,6 +1,6 @@
 {
-  "name": "KMB Boutique",
-  "short_name": "KMB Boutique",
+  "name": "KBM Boutique",
+  "short_name": "KBM Boutique",
   "description": "Boutique tailoring measurement management and client gallery portal",
   "start_url": "/admin",
   "display": "standalone",

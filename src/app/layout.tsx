@@ -22,13 +22,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "KMB Boutique",
+  title: "KBM Boutique",
   description: "Boutique tailoring measurement management and client gallery portal",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "KMB Boutique",
+    title: "KBM Boutique",
   },
 };
 
@@ -49,7 +49,7 @@ export default function RootLayout({
         <PWAProvider>
           <div className="flex-grow flex flex-col">{children}</div>
           <footer className="w-full bg-white border-t border-slate-100 py-4 sm:py-6 text-center text-xs sm:text-sm text-slate-400 font-bold select-none mt-auto flex-none">
-            ©️ 2026 KMB Boutique. All Rights Reserved. Designed & Developed by
+            ©️ 2026 KBM Boutique. All Rights Reserved. Designed & Developed by
             Sivora Digital
           </footer>
         </PWAProvider>
