@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "KMB Boutique - Tailoring & Client Management",
+  title: "KMB Boutique",
   description: "Boutique tailoring measurement management and client gallery portal",
   manifest: "/manifest.json",
   appleWebApp: {

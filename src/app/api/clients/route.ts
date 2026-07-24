@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
 
     if (existingClient) {
       // Update existing client
+      if (clientNo) existingClient.clientNo = clientNo;
       existingClient.name = name;
       existingClient.contactNo = contactNo;
       existingClient.alternativeNo = alternativeNo;

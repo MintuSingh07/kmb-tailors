@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { CATEGORY_GROUPS } from '../../../lib/categories';
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { CATEGORY_GROUPS } from "../../../lib/categories";
 
 interface Stroke {
   color: string;
@@ -14,13 +14,18 @@ interface Stroke {
   text?: string;
 }
 
-const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.7): Promise<string> => {
+const compressImage = (
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 1200,
+  quality = 0.7,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = document.createElement('img');
+      const img = document.createElement("img");
       img.onload = () => {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         let width = img.width;
         let height = img.height;
 
@@ -39,55 +44,125 @@ const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
           resolve(event.target?.result as string);
           return;
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
         resolve(dataUrl);
       };
       img.onerror = () => {
-        reject(new Error('Failed to load image for compression'));
+        reject(new Error("Failed to load image for compression"));
       };
       img.src = event.target?.result as string;
     };
     reader.onerror = () => {
-      reject(new Error('Failed to read file'));
+      reject(new Error("Failed to read file"));
     };
     reader.readAsDataURL(file);
   });
+};
+
+// Helper function to get default background text elements for whiteboard pages
+const getPageDefaultText = (pageNum: number) => {
+  if (pageNum === 1) {
+    return [
+      { text: "FL-", x: 35, y: 36 },
+      { text: "P-", x: 660, y: 36 },
+
+      { text: "L", x: 35, y: 116 },
+      { text: "B", x: 35, y: 196 },
+      { text: "W", x: 35, y: 276 },
+      { text: "H", x: 35, y: 356 },
+      { text: "Ss", x: 35, y: 436 },
+      { text: "T", x: 35, y: 516 },
+      { text: "N", x: 35, y: 596 },
+      { text: "Gh", x: 35, y: 676 },
+      { text: "Ch", x: 35, y: 756 },
+      { text: "Salwar-", x: 35, y: 836 },
+    ];
+  }
+  if (pageNum === 2) {
+    return [
+      { text: "Th-", x: 35, y: 36 },
+      { text: "Tw-", x: 35, y: 76 },
+
+      { text: "L", x: 35, y: 156 },
+      { text: "Cut-", x: 390, y: 156 },
+      { text: "A", x: 690, y: 156 },
+      { text: "F", x: 690, y: 196 },
+      { text: "B", x: 690, y: 236 },
+
+      { text: "L", x: 35, y: 276 },
+      { text: "Cut-", x: 390, y: 276 },
+      { text: "A", x: 690, y: 276 },
+      { text: "F", x: 690, y: 316 },
+      { text: "B", x: 690, y: 356 },
+
+      { text: "Blouse", x: 35, y: 436 },
+      { text: "Bs-", x: 390, y: 436 },
+      { text: "P-", x: 660, y: 436 },
+
+      { text: "L", x: 35, y: 516 },
+      { text: "B", x: 35, y: 596 },
+      { text: "W", x: 35, y: 676 },
+      { text: "T", x: 35, y: 756 },
+      { text: "Ss", x: 35, y: 836 },
+      { text: "N", x: 35, y: 916 },
+    ];
+  }
+  if (pageNum === 3) {
+    return [
+      { text: "Note-", x: 35, y: 36 },
+
+      { text: "Ph-", x: 35, y: 396 },
+      { text: "Ph-", x: 35, y: 436 },
+      { text: "Ph-", x: 35, y: 476 },
+      { text: "Ph-", x: 35, y: 516 },
+    ];
+  }
+  if (pageNum === 4) {
+    return [
+      { text: "Relation-", x: 35, y: 36 },
+    ];
+  }
+  return [];
 };
 
 export default function ClientForm() {
   const router = useRouter();
 
   // Form states
-  const [clientNo, setClientNo] = useState('');
-  const [dbId, setDbId] = useState('');
-  const [name, setName] = useState('');
-  const [contactNo, setContactNo] = useState('');
-  const [alternativeNo, setAlternativeNo] = useState('');
-  const [address, setAddress] = useState('');
-  const [category, setCategory] = useState('Punjabi Suit');
+  const [clientNo, setClientNo] = useState("");
+  const [dbId, setDbId] = useState("");
+  const [name, setName] = useState("");
+  const [contactNo, setContactNo] = useState("");
+  const [alternativeNo, setAlternativeNo] = useState("");
+  const [address, setAddress] = useState("");
+  const [category, setCategory] = useState("Punjabi Suit");
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [categorySearchQuery, setCategorySearchQuery] = useState('');
-  const [suitStatus, setSuitStatus] = useState<'Pending' | 'Prepared but not handovered' | 'Completed and handovered'>('Pending');
-  const [price, setPrice] = useState('');
-  const [suitQuantity, setSuitQuantity] = useState<string>('');
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
+  const [suitStatus, setSuitStatus] = useState<
+    "Pending" | "Prepared but not handovered" | "Completed and handovered"
+  >("Pending");
+  const [price, setPrice] = useState("");
+  const [suitQuantity, setSuitQuantity] = useState<string>("");
   const [images, setImages] = useState<string[]>([]); // Base64 fabric data URLs
   const [handoverImages, setHandoverImages] = useState<string[]>([]); // Base64 handover data URLs
-  const [measurementDrawing, setMeasurementDrawing] = useState<string>(''); // Base64 canvas URL fallback (Page 1)
+  const [measurementDrawing, setMeasurementDrawing] = useState<string>(""); // Base64 canvas URL fallback (Page 1)
   const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right'>('left');
-  const [prevPageSnapshot, setPrevPageSnapshot] = useState('');
-  const [currentPageSnapshot, setCurrentPageSnapshot] = useState('');
-  const [initialStatus, setInitialStatus] = useState<string>('Pending');
+  const [transitionDirection, setTransitionDirection] = useState<
+    "left" | "right"
+  >("left");
+  const [prevPageSnapshot, setPrevPageSnapshot] = useState("");
+  const [currentPageSnapshot, setCurrentPageSnapshot] = useState("");
+  const [initialStatus, setInitialStatus] = useState<string>("Pending");
 
   // Lightbox viewer state
   const [activeLightbox, setActiveLightbox] = useState<{
@@ -95,30 +170,32 @@ export default function ClientForm() {
     title: string;
   } | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  
+
   // UI states
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isDrawingOpen, setIsDrawingOpen] = useState(false);
 
   // Autocomplete suggestions states
   const [justSelected, setJustSelected] = useState(false);
-  const [suggestions, setSuggestions] = useState<{ clientNo: string; name: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    { clientNo: string; name: string }[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement | null>(null);
 
   // Drawing canvas states
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [currentColor, setCurrentColor] = useState('#0000FF');
+  const [currentColor, setCurrentColor] = useState("#0000FF");
   const [currentWidth, setCurrentWidth] = useState(4);
   const [eraserSize, setEraserSize] = useState(20);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const isDrawingRef = useRef(false);
   const activePointsRef = useRef<{ x: number; y: number }[]>([]);
-  const [drawMode, setDrawMode] = useState<'draw' | 'text' | 'none'>('draw');
+  const [drawMode, setDrawMode] = useState<"draw" | "text" | "none">("draw");
   const [scale, setScale] = useState(0.83);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const isPanningRef = useRef(false);
@@ -151,10 +228,10 @@ export default function ClientForm() {
   // Load query parameter on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const queryId = params.get('id');
-    const queryCode = params.get('code');
-    const autoDraw = params.get('draw') === 'true';
-    
+    const queryId = params.get("id");
+    const queryCode = params.get("code");
+    const autoDraw = params.get("draw") === "true";
+
     if (queryId) {
       handleSelectClient(queryId, false, true);
       if (autoDraw) {
@@ -173,12 +250,15 @@ export default function ClientForm() {
   // Hide suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
+      if (
+        autocompleteRef.current &&
+        !autocompleteRef.current.contains(e.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -201,14 +281,16 @@ export default function ClientForm() {
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/clients/search?query=${encodeURIComponent(clientNo)}`);
+        const response = await fetch(
+          `/api/clients/search?query=${encodeURIComponent(clientNo)}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setSuggestions(data);
           setShowSuggestions(data.length > 0);
         }
       } catch (err) {
-        console.error('Error fetching suggestions:', err);
+        console.error("Error fetching suggestions:", err);
       }
     }, 250);
 
@@ -216,17 +298,21 @@ export default function ClientForm() {
   }, [clientNo]);
 
   // Load full client details and autofill the form
-  async function handleSelectClient(selectedClientNo: string, isAutofillOnly = false, loadById = false) {
+  async function handleSelectClient(
+    selectedClientNo: string,
+    isAutofillOnly = false,
+    loadById = false,
+  ) {
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setShowSuggestions(false);
     setSuggestions([]);
-    
+
     try {
       let client = null;
       try {
-        const url = loadById 
+        const url = loadById
           ? `/api/clients/${encodeURIComponent(selectedClientNo)}?by=id`
           : `/api/clients/${encodeURIComponent(selectedClientNo)}`;
         const response = await fetch(url);
@@ -234,13 +320,19 @@ export default function ClientForm() {
           client = await response.json();
         }
       } catch (e) {
-        console.warn('Network error loading client, trying offline storage fallback:', e);
+        console.warn(
+          "Network error loading client, trying offline storage fallback:",
+          e,
+        );
       }
 
       // Offline Fallback from localStorage
       if (!client) {
         const offlineKey = `kmb_client_${selectedClientNo}`;
-        const cachedStr = typeof window !== 'undefined' ? localStorage.getItem(offlineKey) : null;
+        const cachedStr =
+          typeof window !== "undefined"
+            ? localStorage.getItem(offlineKey)
+            : null;
         if (cachedStr) {
           try {
             client = JSON.parse(cachedStr);
@@ -249,70 +341,72 @@ export default function ClientForm() {
       }
 
       if (!client) {
-        throw new Error('Failed to load client details (Offline and not cached yet)');
+        throw new Error(
+          "Failed to load client details (Offline and not cached yet)",
+        );
       }
-      
-      setName(client.name || '');
-      setContactNo(client.contactNo || '');
-      setAddress(client.address || '');
-      
+
+      setName(client.name || "");
+      setContactNo(client.contactNo || "");
+      setAddress(client.address || "");
+
       const loadedDrawings = client.measurementDrawings || [];
       const finalDrawings = [...loadedDrawings];
       while (finalDrawings.length < 10) {
-        finalDrawings.push('');
+        finalDrawings.push("");
       }
 
       if (isAutofillOnly) {
-        setAlternativeNo(client.alternativeNo || '');
-        setCategory(client.category || 'Punjabi Suit');
-        setPrice('');
-        setSuitQuantity('');
+        setAlternativeNo(client.alternativeNo || "");
+        setCategory(client.category || "Punjabi Suit");
+        setPrice("");
+        setSuitQuantity("");
         setImages([]);
         setHandoverImages([]);
-        
+
         // Autofill customer measurements & whiteboard sketches from previous order
-        setMeasurementDrawing(client.measurementDrawing || '');
+        setMeasurementDrawing(client.measurementDrawing || "");
         setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
         setTotalPages(finalDrawings.length > 0 ? finalDrawings.length : 10);
         setCurrentPage(1);
 
-        setSuitStatus('Pending');
-        setInitialStatus('Pending');
-        setDbId(''); // Clear database ID so a new record is created for autofill
+        setSuitStatus("Pending");
+        setInitialStatus("Pending");
+        setDbId(""); // Clear database ID so a new record is created for autofill
       } else {
-        setAlternativeNo(client.alternativeNo || '');
-        setCategory(client.category || 'Punjabi Suit');
-        setPrice(client.price !== undefined ? String(client.price) : '');
-        setSuitQuantity(client.suitQuantity || '');
+        setAlternativeNo(client.alternativeNo || "");
+        setCategory(client.category || "Punjabi Suit");
+        setPrice(client.price !== undefined ? String(client.price) : "");
+        setSuitQuantity(client.suitQuantity || "");
         setImages(client.images || []);
         setHandoverImages(client.handoverImages || []);
-        setMeasurementDrawing(client.measurementDrawing || '');
+        setMeasurementDrawing(client.measurementDrawing || "");
         setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
         setTotalPages(finalDrawings.length);
         setCurrentPage(1);
-        setSuitStatus(client.suitStatus || 'Pending');
-        setInitialStatus(client.suitStatus || 'Pending');
+        setSuitStatus(client.suitStatus || "Pending");
+        setInitialStatus(client.suitStatus || "Pending");
         setDbId(client._id); // Set database ID to update existing query
       }
-      
+
       setJustSelected(true);
       setClientNo(client.clientNo);
       setIsEditMode(!isAutofillOnly);
-      
+
       if (isAutofillOnly) {
         setSuccess(`Autofilled customer details for ${client.name}!`);
       } else {
         setSuccess(`Loaded measurements for ${client.name}!`);
       }
-      setTimeout(() => setSuccess(''), 2000);
+      setTimeout(() => setSuccess(""), 2000);
     } catch (err: any) {
-      setError(err.message || 'Error loading client data');
+      setError(err.message || "Error loading client data");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   // Multi-image change handler
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,11 +418,11 @@ export default function ClientForm() {
         const compressedDataUrl = await compressImage(file);
         setImages((prev) => [...prev, compressedDataUrl]);
       } catch (err) {
-        console.error('Error compressing image:', err);
+        console.error("Error compressing image:", err);
         // Fallback to original read
         const reader = new FileReader();
         reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
+          if (typeof reader.result === "string") {
             setImages((prev) => [...prev, reader.result as string]);
           }
         };
@@ -343,7 +437,9 @@ export default function ClientForm() {
   };
 
   // Handover image uploader handler
-  const handleHandoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHandoverImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
 
@@ -352,11 +448,11 @@ export default function ClientForm() {
         const compressedDataUrl = await compressImage(file);
         setHandoverImages((prev) => [...prev, compressedDataUrl]);
       } catch (err) {
-        console.error('Error compressing image:', err);
+        console.error("Error compressing image:", err);
         // Fallback to original read
         const reader = new FileReader();
         reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
+          if (typeof reader.result === "string") {
             setHandoverImages((prev) => [...prev, reader.result as string]);
           }
         };
@@ -379,7 +475,9 @@ export default function ClientForm() {
       const calculatedWidth = editor.fontSize / 6;
 
       const textStroke: Stroke = {
-        color: editor.color || (currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor),
+        color:
+          editor.color ||
+          (currentColor === "#FFFFFF" ? "#1A1A1A" : currentColor),
         width: calculatedWidth,
         points: [{ x: editor.canvasX, y: editor.canvasY }],
         page: currentPage,
@@ -388,22 +486,30 @@ export default function ClientForm() {
       setStrokes((prev) => [...prev, textStroke]);
     }
     setActiveTextEditor(null);
-    setDrawMode('draw');
+    setDrawMode("draw");
   };
 
   const prevLightboxPhoto = () => {
     if (!activeLightbox) return;
-    setLightboxIndex((prev) => (prev === 0 ? activeLightbox.images.length - 1 : prev - 1));
+    setLightboxIndex((prev) =>
+      prev === 0 ? activeLightbox.images.length - 1 : prev - 1,
+    );
   };
 
   const nextLightboxPhoto = () => {
     if (!activeLightbox) return;
-    setLightboxIndex((prev) => (prev === activeLightbox.images.length - 1 ? 0 : prev + 1));
+    setLightboxIndex((prev) =>
+      prev === activeLightbox.images.length - 1 ? 0 : prev + 1,
+    );
   };
 
   // Drag to resize reference and pointer handlers
   const textInputRef = useRef<HTMLTextAreaElement>(null);
-  const resizeStartRef = useRef<{ startX: number; startY: number; initialFontSize: number } | null>(null);
+  const resizeStartRef = useRef<{
+    startX: number;
+    startY: number;
+    initialFontSize: number;
+  } | null>(null);
   const resizePointerIdRef = useRef<number | null>(null);
   const resizeTargetRef = useRef<Element | null>(null);
 
@@ -411,7 +517,7 @@ export default function ClientForm() {
     e.stopPropagation();
     e.preventDefault();
     if (!activeTextEditor) return;
-    
+
     // Capture the pointer so touch move events keep firing even when finger leaves the element
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
@@ -432,7 +538,7 @@ export default function ClientForm() {
 
     const handleGlobalPointerMove = (e: PointerEvent) => {
       if (!resizeStartRef.current || !activeTextEditor) return;
-      
+
       // Use diagonal drag distance for smooth, precise control
       // Dragging down-right increases size, up-left decreases
       const deltaX = e.clientX - resizeStartRef.current.startX;
@@ -441,18 +547,27 @@ export default function ClientForm() {
       const diagonal = (deltaX + deltaY) / 2;
       // 0.5px of drag = 1px of font size change for precise control
       const newFontSize = Math.round(
-        Math.min(200, Math.max(10, resizeStartRef.current.initialFontSize + diagonal * 0.5))
+        Math.min(
+          200,
+          Math.max(10, resizeStartRef.current.initialFontSize + diagonal * 0.5),
+        ),
       );
-      
-      setActiveTextEditor(prev => prev ? { ...prev, fontSize: newFontSize } : null);
+
+      setActiveTextEditor((prev) =>
+        prev ? { ...prev, fontSize: newFontSize } : null,
+      );
     };
 
     const handleGlobalPointerUp = () => {
       // Release pointer capture if active
       if (resizePointerIdRef.current !== null && resizeTargetRef.current) {
         try {
-          resizeTargetRef.current.releasePointerCapture(resizePointerIdRef.current);
-        } catch (_) { /* already released */ }
+          resizeTargetRef.current.releasePointerCapture(
+            resizePointerIdRef.current,
+          );
+        } catch (_) {
+          /* already released */
+        }
       }
       resizePointerIdRef.current = null;
       resizeTargetRef.current = null;
@@ -460,12 +575,14 @@ export default function ClientForm() {
       resizeStartRef.current = null;
     };
 
-    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: true });
-    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener("pointermove", handleGlobalPointerMove, {
+      passive: true,
+    });
+    window.addEventListener("pointerup", handleGlobalPointerUp);
 
     return () => {
-      window.removeEventListener('pointermove', handleGlobalPointerMove);
-      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener("pointermove", handleGlobalPointerMove);
+      window.removeEventListener("pointerup", handleGlobalPointerUp);
     };
   }, [isResizingText, activeTextEditor]);
 
@@ -487,17 +604,23 @@ export default function ClientForm() {
 
     const handleGlobalPaste = (e: ClipboardEvent) => {
       // If user is typing inside another input field on the page, don't intercept
-      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        if (document.activeElement.id !== 'whiteboard-text-input') {
+      if (
+        document.activeElement &&
+        ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+      ) {
+        if (document.activeElement.id !== "whiteboard-text-input") {
           return;
         }
       }
 
-      const pastedText = e.clipboardData?.getData('text');
+      const pastedText = e.clipboardData?.getData("text");
       if (!pastedText) return;
 
       // If activeTextEditor is already open, the textarea handles the paste natively
-      if (document.activeElement && document.activeElement.id === 'whiteboard-text-input') {
+      if (
+        document.activeElement &&
+        document.activeElement.id === "whiteboard-text-input"
+      ) {
         return;
       }
 
@@ -508,7 +631,7 @@ export default function ClientForm() {
       const strokeWidth = baseFontSize / 6;
 
       const newTextStroke: Stroke = {
-        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+        color: currentColor === "#FFFFFF" ? "#1A1A1A" : currentColor,
         width: strokeWidth,
         points: [{ x: 150, y: 150 }],
         page: currentPage,
@@ -516,13 +639,13 @@ export default function ClientForm() {
       };
 
       setStrokes((prev) => [...prev, newTextStroke]);
-      setSuccess('Pasted text onto whiteboard!');
-      setTimeout(() => setSuccess(''), 2000);
+      setSuccess("Pasted text onto whiteboard!");
+      setTimeout(() => setSuccess(""), 2000);
     };
 
-    window.addEventListener('paste', handleGlobalPaste);
+    window.addEventListener("paste", handleGlobalPaste);
     return () => {
-      window.removeEventListener('paste', handleGlobalPaste);
+      window.removeEventListener("paste", handleGlobalPaste);
     };
   }, [isDrawingOpen, currentPage, currentColor]);
 
@@ -532,15 +655,15 @@ export default function ClientForm() {
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      
+
       // Prevent upscaling and stretching by aligning canvas backing store size with DPR physical pixels
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
       }
       redrawCanvas();
     }
@@ -559,14 +682,14 @@ export default function ClientForm() {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isDrawingOpen, strokes, currentPage, scale, panOffset]);
 
   const redrawCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -579,16 +702,16 @@ export default function ClientForm() {
     const scaleY = cssHeight / 750;
 
     // 1. Create an offscreen canvas matching the current physical high-DPI size
-    const offscreen = document.createElement('canvas');
+    const offscreen = document.createElement("canvas");
     offscreen.width = canvas.width;
     offscreen.height = canvas.height;
-    const offCtx = offscreen.getContext('2d');
+    const offCtx = offscreen.getContext("2d");
     if (!offCtx) return;
 
     // Scale offCtx by dpr so we can draw vector elements in CSS units
     offCtx.scale(dpr, dpr);
-    offCtx.lineCap = 'round';
-    offCtx.lineJoin = 'round';
+    offCtx.lineCap = "round";
+    offCtx.lineJoin = "round";
 
     // Apply pan and zoom context transformations to offscreen canvas
     offCtx.save();
@@ -596,25 +719,26 @@ export default function ClientForm() {
     offCtx.scale(scale, scale);
 
     const activeStrokes = strokes.filter(
-      (stroke) => stroke.page === currentPage || (!stroke.page && currentPage === 1)
+      (stroke) =>
+        stroke.page === currentPage || (!stroke.page && currentPage === 1),
     );
 
     activeStrokes.forEach((stroke) => {
       if (stroke.text) {
         offCtx.beginPath();
         offCtx.fillStyle = stroke.color;
-        offCtx.globalCompositeOperation = 'source-over';
-        
+        offCtx.globalCompositeOperation = "source-over";
+
         // Scale font size and coordinates proportionally in CSS coordinates
         const baseFontSize = Math.max(16, stroke.width * 6);
         const fontSize = Math.round(baseFontSize * scaleX);
         offCtx.font = `bold ${fontSize}px sans-serif`;
-        
+
         const renderX = stroke.points[0].x * scaleX;
         const renderY = stroke.points[0].y * scaleY;
-        offCtx.textBaseline = 'top';
+        offCtx.textBaseline = "top";
 
-        const lines = stroke.text.split('\n');
+        const lines = stroke.text.split("\n");
         const lineHeight = fontSize * 1.25;
         lines.forEach((lineText, lineIdx) => {
           offCtx.fillText(lineText, renderX, renderY + lineIdx * lineHeight);
@@ -623,19 +747,22 @@ export default function ClientForm() {
         if (stroke.points.length === 0) return;
         offCtx.beginPath();
         offCtx.strokeStyle = stroke.color;
-        
+
         // Scale line width proportionally in CSS coordinates
         offCtx.lineWidth = stroke.width * scaleX;
 
-        if (stroke.color === '#FFFFFF') {
-          offCtx.globalCompositeOperation = 'destination-out';
+        if (stroke.color === "#FFFFFF") {
+          offCtx.globalCompositeOperation = "destination-out";
         } else {
-          offCtx.globalCompositeOperation = 'source-over';
+          offCtx.globalCompositeOperation = "source-over";
         }
 
         offCtx.moveTo(stroke.points[0].x * scaleX, stroke.points[0].y * scaleY);
         for (let i = 1; i < stroke.points.length; i++) {
-          offCtx.lineTo(stroke.points[i].x * scaleX, stroke.points[i].y * scaleY);
+          offCtx.lineTo(
+            stroke.points[i].x * scaleX,
+            stroke.points[i].y * scaleY,
+          );
         }
         offCtx.stroke();
       }
@@ -649,15 +776,15 @@ export default function ClientForm() {
 
     // 3. Draw visible canvas components (guidelines) in CSS scale
     ctx.scale(dpr, dpr);
-    
+
     // Apply pan and zoom to guidelines as well so they zoom/pan properly
     ctx.save();
     ctx.translate(panOffset.x * scaleX, panOffset.y * scaleY);
     ctx.scale(scale, scale);
 
-    ctx.strokeStyle = '#F0E7D5';
+    ctx.strokeStyle = "#F0E7D5";
     ctx.lineWidth = 1.5 / scale; // Prevent lines getting too thick when zooming in
-    
+
     // Calculate visible viewport range in logical coordinates to fill entire visible area
     const yMin = -panOffset.y / scale;
     const yMax = (750 - panOffset.y) / scale;
@@ -673,12 +800,26 @@ export default function ClientForm() {
       ctx.lineTo(xMax * scaleX, ly * scaleY);
       ctx.stroke();
     }
+
+    // Draw Default Page Template Text
+    const defaultTextItems = getPageDefaultText(currentPage);
+    if (defaultTextItems.length > 0) {
+      ctx.save();
+      const fontSize = Math.max(34, Math.round(50 * scaleX));
+      ctx.font = `900 ${fontSize}px systemx-ui, -apple-system, sans-serif`;
+      ctx.fillStyle = "#1A1A1A";
+      ctx.textBaseline = "alphabetic";
+      defaultTextItems.forEach((item) => {
+        ctx.fillText(item.text, item.x * scaleX, item.y * scaleY);
+      });
+      ctx.restore();
+    }
     ctx.restore();
 
     // 4. Draw offscreen canvas 1:1 onto visible canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset to copy physical buffer 1-to-1
     ctx.drawImage(offscreen, 0, 0);
-    
+
     ctx.restore(); // Restore context state
   };
 
@@ -687,11 +828,11 @@ export default function ClientForm() {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    
+
     // Normalize coordinates in CSS pixels
     const cssX = e.clientX - rect.left;
     const cssY = e.clientY - rect.top;
-    
+
     // Map to base 1000x750 layout
     let x = (cssX / rect.width) * 1000;
     let y = (cssY / rect.height) * 750;
@@ -705,7 +846,8 @@ export default function ClientForm() {
 
   const getTextEditorPosition = () => {
     if (!activeTextEditor) return { x: 0, y: 0 };
-    const xCSS = ((activeTextEditor.canvasX * scale + panOffset.x) / 1000) * 100;
+    const xCSS =
+      ((activeTextEditor.canvasX * scale + panOffset.x) / 1000) * 100;
     const yCSS = ((activeTextEditor.canvasY * scale + panOffset.y) / 750) * 100;
     return { x: xCSS, y: yCSS };
   };
@@ -714,15 +856,15 @@ export default function ClientForm() {
     e.preventDefault();
 
     // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
-    if (e.pointerType === 'touch' && drawMode !== 'none') {
+    if (e.pointerType === "touch" && drawMode !== "none") {
       return;
     }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     // Check if we should pan
-    if (drawMode === 'none') {
+    if (drawMode === "none") {
       isPanningRef.current = true;
       panStartRef.current = { x: e.clientX, y: e.clientY };
       panInitialOffsetRef.current = { ...panOffset };
@@ -740,14 +882,16 @@ export default function ClientForm() {
 
     // 1. ALWAYS check hit-test for existing text strokes first (even in draw mode!)
     const activeStrokes = strokes.filter(
-      (stroke) => stroke.page === currentPage || (!stroke.page && currentPage === 1)
+      (stroke) =>
+        stroke.page === currentPage || (!stroke.page && currentPage === 1),
     );
 
     let matchedStroke = null;
     let matchedStrokeIndex = -1;
     for (let i = 0; i < strokes.length; i++) {
       const stroke = strokes[i];
-      const isCurrentPage = stroke.page === currentPage || (!stroke.page && currentPage === 1);
+      const isCurrentPage =
+        stroke.page === currentPage || (!stroke.page && currentPage === 1);
       if (isCurrentPage && stroke.text) {
         const fontSize = Math.max(16, stroke.width * 6);
         const textWidth = stroke.text.length * (fontSize * 0.65);
@@ -783,11 +927,11 @@ export default function ClientForm() {
     }
 
     // 2. If no matched stroke and in text mode, create a new text editor overlay
-    if (drawMode === 'text') {
+    if (drawMode === "text") {
       if (activeTextEditor) {
         commitText(activeTextEditor);
       }
-      
+
       const rect = canvas.getBoundingClientRect();
       const percentX = ((e.clientX - rect.left) / rect.width) * 100;
       const percentY = ((e.clientY - rect.top) / rect.height) * 100;
@@ -799,22 +943,22 @@ export default function ClientForm() {
         y: percentY,
         canvasX: coords.x,
         canvasY: coords.y,
-        text: '',
+        text: "",
         fontSize: initialFontSize,
-        color: currentColor === '#FFFFFF' ? '#1A1A1A' : currentColor,
+        color: currentColor === "#FFFFFF" ? "#1A1A1A" : currentColor,
       });
       return;
     }
 
     // Only allow drawing if Pen/Eraser mode is active (drawMode === 'draw')
-    if (drawMode === 'draw') {
+    if (drawMode === "draw") {
       canvas.setPointerCapture(e.pointerId);
       setIsDrawing(true);
       isDrawingRef.current = true;
       activePointsRef.current = [coords];
 
       // Draw initial dot
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         const dpr = window.devicePixelRatio || 1;
         const cssWidth = canvas.width / dpr;
@@ -825,19 +969,20 @@ export default function ClientForm() {
         const px = (coords.x * scale + panOffset.x) * scaleX * dpr;
         const py = (coords.y * scale + panOffset.y) * scaleY * dpr;
 
-        const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
+        const actualWidth =
+          currentColor === "#FFFFFF" ? eraserSize : currentWidth;
         const physicalLineWidth = actualWidth * scaleX * scale * dpr;
 
         ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
         ctx.lineWidth = physicalLineWidth;
         ctx.strokeStyle = currentColor;
 
-        if (currentColor === '#FFFFFF') {
-          ctx.globalCompositeOperation = 'destination-out';
+        if (currentColor === "#FFFFFF") {
+          ctx.globalCompositeOperation = "destination-out";
         } else {
-          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalCompositeOperation = "source-over";
         }
 
         ctx.beginPath();
@@ -851,7 +996,7 @@ export default function ClientForm() {
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
-    if (e.pointerType === 'touch' && drawMode !== 'none') {
+    if (e.pointerType === "touch" && drawMode !== "none") {
       return;
     }
 
@@ -873,13 +1018,13 @@ export default function ClientForm() {
 
     if (!isDrawingRef.current) return;
     e.preventDefault();
-    
+
     const coords = getCanvasCoords(e);
 
     if (draggingText) {
       const dx = coords.x - draggingText.pointerStartX;
       const dy = coords.y - draggingText.pointerStartY;
-      
+
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
         setHasDraggedText(true);
       }
@@ -888,22 +1033,25 @@ export default function ClientForm() {
         const copy = [...prev];
         const stroke = copy[draggingText.strokeIndex];
         if (stroke) {
-          stroke.points = [{
-            x: draggingText.startX + dx,
-            y: draggingText.startY + dy,
-          }];
+          stroke.points = [
+            {
+              x: draggingText.startX + dx,
+              y: draggingText.startY + dy,
+            },
+          ];
         }
         return copy;
       });
       return;
     }
 
-    if (drawMode !== 'draw') return;
-    
-    const ctx = canvas.getContext('2d');
+    if (drawMode !== "draw") return;
+
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const lastPoint = activePointsRef.current[activePointsRef.current.length - 1];
+    const lastPoint =
+      activePointsRef.current[activePointsRef.current.length - 1];
     if (!lastPoint || lastPoint.x !== coords.x || lastPoint.y !== coords.y) {
       activePointsRef.current.push(coords);
 
@@ -913,27 +1061,30 @@ export default function ClientForm() {
       const scaleX = cssWidth / 1000;
       const scaleY = cssHeight / 750;
 
-      const toPhysicalX = (val: number) => (val * scale + panOffset.x) * scaleX * dpr;
-      const toPhysicalY = (val: number) => (val * scale + panOffset.y) * scaleY * dpr;
+      const toPhysicalX = (val: number) =>
+        (val * scale + panOffset.x) * scaleX * dpr;
+      const toPhysicalY = (val: number) =>
+        (val * scale + panOffset.y) * scaleY * dpr;
 
       const p1x = toPhysicalX(lastPoint.x);
       const p1y = toPhysicalY(lastPoint.y);
       const p2x = toPhysicalX(coords.x);
       const p2y = toPhysicalY(coords.y);
 
-      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
+      const actualWidth =
+        currentColor === "#FFFFFF" ? eraserSize : currentWidth;
       const physicalLineWidth = actualWidth * scaleX * scale * dpr;
 
       ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.lineWidth = physicalLineWidth;
       ctx.strokeStyle = currentColor;
 
-      if (currentColor === '#FFFFFF') {
-        ctx.globalCompositeOperation = 'destination-out';
+      if (currentColor === "#FFFFFF") {
+        ctx.globalCompositeOperation = "destination-out";
       } else {
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalCompositeOperation = "source-over";
       }
 
       ctx.beginPath();
@@ -946,7 +1097,7 @@ export default function ClientForm() {
 
   const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     // Ignore touch/finger events for drawing/editing (only allow touch for panning in 'none' mode)
-    if (e.pointerType === 'touch' && drawMode !== 'none') {
+    if (e.pointerType === "touch" && drawMode !== "none") {
       return;
     }
 
@@ -963,7 +1114,7 @@ export default function ClientForm() {
 
     if (!isDrawingRef.current) return;
     e.preventDefault();
-    
+
     isDrawingRef.current = false;
     setIsDrawing(false);
 
@@ -977,7 +1128,9 @@ export default function ClientForm() {
           const strokeFontSize = Math.max(16, strokeToEdit.width * 6);
 
           // Remove from list so it doesn't double-render during typing
-          setStrokes((prev) => prev.filter((_, idx) => idx !== draggingText.strokeIndex));
+          setStrokes((prev) =>
+            prev.filter((_, idx) => idx !== draggingText.strokeIndex),
+          );
 
           // Sync current active color with the stroke color
           setCurrentColor(strokeToEdit.color);
@@ -987,23 +1140,24 @@ export default function ClientForm() {
             y: strokeY,
             canvasX: strokeToEdit.points[0].x,
             canvasY: strokeToEdit.points[0].y,
-            text: strokeToEdit.text || '',
+            text: strokeToEdit.text || "",
             fontSize: strokeFontSize,
             color: strokeToEdit.color,
           });
         }
       } else {
         // User dragged text: toggle text option off back to draw
-        setDrawMode('draw');
+        setDrawMode("draw");
       }
       setDraggingText(null);
       setHasDraggedText(false);
       return;
     }
 
-    if (drawMode === 'draw' && activePointsRef.current.length > 0) {
+    if (drawMode === "draw" && activePointsRef.current.length > 0) {
       // Commit active stroke to React state
-      const actualWidth = currentColor === '#FFFFFF' ? eraserSize : currentWidth;
+      const actualWidth =
+        currentColor === "#FFFFFF" ? eraserSize : currentWidth;
       const newStroke: Stroke = {
         color: currentColor,
         width: actualWidth,
@@ -1031,9 +1185,10 @@ export default function ClientForm() {
     const cursorY = (cursorCSSY / rect.height) * 750;
 
     // Calculate new scale
-    const newScale = e.deltaY < 0 
-      ? Math.min(scale * zoomFactor, 5) 
-      : Math.max(scale / zoomFactor, 0.5);
+    const newScale =
+      e.deltaY < 0
+        ? Math.min(scale * zoomFactor, 5)
+        : Math.max(scale / zoomFactor, 0.5);
 
     if (newScale !== scale) {
       const scaleRatio = newScale / scale;
@@ -1065,7 +1220,10 @@ export default function ClientForm() {
 
   const executeClear = () => {
     setStrokes((prev) =>
-      prev.filter((s) => s.page !== currentPage && (s.page !== undefined || currentPage !== 1))
+      prev.filter(
+        (s) =>
+          s.page !== currentPage && (s.page !== undefined || currentPage !== 1),
+      ),
     );
     setShowClearConfirm(false);
   };
@@ -1075,11 +1233,11 @@ export default function ClientForm() {
   const savePageDataUrl = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL("image/png");
     setMeasurementDrawings((prev) => {
       const next = [...prev];
       while (next.length < totalPages) {
-        next.push('');
+        next.push("");
       }
       next[currentPage - 1] = dataUrl;
       return next;
@@ -1087,31 +1245,32 @@ export default function ClientForm() {
   };
 
   const changePageWithTransition = (targetPage: number) => {
-    if (targetPage < 1 || targetPage > totalPages || targetPage === currentPage) return;
-    
+    if (targetPage < 1 || targetPage > totalPages || targetPage === currentPage)
+      return;
+
     const canvas = canvasRef.current;
     if (!canvas) {
       setCurrentPage(targetPage);
       return;
     }
-    
+
     // Save current strokes to database array
     savePageDataUrl();
-    const oldSnapshot = canvas.toDataURL('image/png');
-    
+    const oldSnapshot = canvas.toDataURL("image/png");
+
     setPrevPageSnapshot(oldSnapshot);
-    setTransitionDirection(targetPage > currentPage ? 'left' : 'right');
+    setTransitionDirection(targetPage > currentPage ? "left" : "right");
     setIsTransitioning(true);
-    setCurrentPageSnapshot(''); // Clear new snapshot to mark start of capture tick
+    setCurrentPageSnapshot(""); // Clear new snapshot to mark start of capture tick
     setCurrentPage(targetPage);
-    
+
     // Allow canvas redrawing lifecycle to render target strokes before taking snap
     setTimeout(() => {
       if (canvasRef.current) {
-        const nextSnapshot = canvasRef.current.toDataURL('image/png');
+        const nextSnapshot = canvasRef.current.toDataURL("image/png");
         setCurrentPageSnapshot(nextSnapshot);
       }
-      
+
       // Keep transition sliding view on top for 750ms duration
       setTimeout(() => {
         setIsTransitioning(false);
@@ -1147,13 +1306,17 @@ export default function ClientForm() {
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (isDrawingRef.current || (activePointsRef.current && activePointsRef.current.length > 1)) {
+    if (
+      isDrawingRef.current ||
+      (activePointsRef.current && activePointsRef.current.length > 1)
+    ) {
       isTouchDrawingRef.current = true;
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (touchStartXRef.current === null || touchStartYRef.current === null)
+      return;
     if (!e.changedTouches || e.changedTouches.length === 0) return;
 
     const touchEndX = e.changedTouches[0].clientX;
@@ -1162,7 +1325,10 @@ export default function ClientForm() {
     const deltaY = touchEndY - touchStartYRef.current;
     const duration = Date.now() - touchStartTimeRef.current;
 
-    const wasDrawing = isTouchDrawingRef.current || isDrawingRef.current || (activePointsRef.current && activePointsRef.current.length > 1);
+    const wasDrawing =
+      isTouchDrawingRef.current ||
+      isDrawingRef.current ||
+      (activePointsRef.current && activePointsRef.current.length > 1);
 
     // Reset touch refs
     touchStartXRef.current = null;
@@ -1170,7 +1336,12 @@ export default function ClientForm() {
     isTouchDrawingRef.current = false;
 
     // Check if horizontal swipe gesture (fast < 800ms, distance > 50px, horizontal > vertical)
-    if (!wasDrawing && duration < 800 && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+    if (
+      !wasDrawing &&
+      duration < 800 &&
+      Math.abs(deltaX) > 50 &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+    ) {
       if (deltaX < -50) {
         // Swiped Left -> Next Page
         handleNextPage();
@@ -1185,7 +1356,7 @@ export default function ClientForm() {
     savePageDataUrl();
     const newPageNum = totalPages + 1;
     setTotalPages(newPageNum);
-    
+
     // Run slide transition to newly created page
     setTimeout(() => {
       changePageWithTransition(newPageNum);
@@ -1195,10 +1366,10 @@ export default function ClientForm() {
   const handleSaveDrawing = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     // Generate data URL of active page
-    const dataUrl = canvas.toDataURL('image/png');
-    
+    const dataUrl = canvas.toDataURL("image/png");
+
     const updatedDrawings = [...measurementDrawings];
     updatedDrawings[currentPage - 1] = dataUrl;
     const firstPage = updatedDrawings[0] || dataUrl;
@@ -1211,9 +1382,9 @@ export default function ClientForm() {
     if (dbId) {
       try {
         setLoading(true);
-        await fetch('/api/clients', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: dbId,
             clientNo,
@@ -1232,10 +1403,10 @@ export default function ClientForm() {
             suitStatus,
           }),
         });
-        setSuccess('Measurements updated successfully!');
-        setTimeout(() => setSuccess(''), 2500);
+        setSuccess("Measurements updated successfully!");
+        setTimeout(() => setSuccess(""), 2500);
       } catch (err) {
-        console.error('Error auto-saving drawings:', err);
+        console.error("Error auto-saving drawings:", err);
       } finally {
         setLoading(false);
       }
@@ -1250,24 +1421,34 @@ export default function ClientForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (suitStatus === 'Completed and handovered' && (!handoverImages || handoverImages.length === 0)) {
-      setError('Please upload at least one handover photo before marking as Completed.');
+    if (
+      suitStatus === "Completed and handovered" &&
+      (!handoverImages || handoverImages.length === 0)
+    ) {
+      setError(
+        "Please upload at least one handover photo before marking as Completed.",
+      );
       return;
     }
 
-    if (suitStatus === 'Completed and handovered' && (!price || Number(price) <= 0)) {
-      setError('Please enter the stitching price when marking the order as Completed.');
+    if (
+      suitStatus === "Completed and handovered" &&
+      (!price || Number(price) <= 0)
+    ) {
+      setError(
+        "Please enter the stitching price when marking the order as Completed.",
+      );
       return;
     }
 
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch('/api/clients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: dbId,
           clientNo,
@@ -1289,17 +1470,19 @@ export default function ClientForm() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to register client measurements');
+        throw new Error(data.error || "Failed to register client measurements");
       }
 
-      setSuccess(data.message || 'Client measurement profile saved successfully!');
+      setSuccess(
+        data.message || "Client measurement profile saved successfully!",
+      );
       setIsEditMode(false);
-      setDbId('');
+      setDbId("");
       setTimeout(() => {
-        router.push('/admin');
+        router.push("/admin");
       }, 1500);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -1313,12 +1496,24 @@ export default function ClientForm() {
           href="/admin"
           className="flex items-center gap-2 text-slate-500 hover:text-[#9E7D3B] text-base sm:text-lg font-semibold transition-colors duration-150"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Dashboard
         </Link>
-        <span className="text-slate-400 text-sm font-semibold sm:text-base select-none">KMB Boutique Form</span>
+        <span className="text-slate-400 text-sm font-semibold sm:text-base select-none">
+          KMB Boutique Form
+        </span>
       </div>
 
       <div className="rounded-3xl border border-[#E6DFD3] bg-[#FCFAF5] p-6 sm:p-10 shadow-xl shadow-slate-200/40">
@@ -1344,7 +1539,10 @@ export default function ClientForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12"
+        >
           {/* Left Column: Form Inputs */}
           <div className="space-y-6">
             <div ref={autocompleteRef} className="relative">
@@ -1400,8 +1598,7 @@ export default function ClientForm() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Enter client's full name"
-                disabled={initialStatus === 'Completed and handovered'}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
               />
             </div>
 
@@ -1416,8 +1613,7 @@ export default function ClientForm() {
                   onChange={(e) => setContactNo(e.target.value)}
                   required
                   placeholder="Primary phone number"
-                  disabled={initialStatus === 'Completed and handovered'}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
                 />
               </div>
               <div>
@@ -1429,8 +1625,7 @@ export default function ClientForm() {
                   value={alternativeNo}
                   onChange={(e) => setAlternativeNo(e.target.value)}
                   placeholder="Optional backup number"
-                  disabled={initialStatus === 'Completed and handovered'}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
                 />
               </div>
             </div>
@@ -1443,9 +1638,8 @@ export default function ClientForm() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter client's address"
-                disabled={initialStatus === 'Completed and handovered'}
                 rows={2}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed resize-none"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150 resize-none"
               />
             </div>
 
@@ -1455,21 +1649,34 @@ export default function ClientForm() {
               </label>
               <button
                 type="button"
-                onClick={() => {
-                  if (initialStatus !== 'Completed and handovered') {
-                    setIsCategoryModalOpen(true);
-                  }
-                }}
-                disabled={initialStatus === 'Completed and handovered'}
-                className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="w-full flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm hover:border-[#C5A85C] focus:outline-none transition-all duration-150 text-left cursor-pointer"
               >
-                <span className="truncate">{category || 'Select Category'}</span>
+                <span className="truncate">
+                  {category || "Select Category"}
+                </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="h-4.5 w-4.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.3-4.3" />
                   </svg>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </span>
@@ -1478,197 +1685,216 @@ export default function ClientForm() {
 
             {isEditMode && (
               <div className="pt-6 border-t border-[#E6DFD3]/60 space-y-4">
-                {initialStatus === 'Completed and handovered' ? (
-                  <div className="space-y-4">
-                    <label className="block text-base sm:text-lg font-bold text-slate-700">
-                      Handover Photos
-                    </label>
-                    <p className="text-xs sm:text-sm text-emerald-600 font-bold flex items-center gap-1.5">
-                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                <label className="block text-base sm:text-lg font-bold text-slate-700">
+                  Update Suit Status
+                </label>
+                <p className="text-xs sm:text-sm text-slate-500 font-semibold mb-3">
+                  Select where this suit order belongs. Updating will transfer
+                  the record to the selected queue.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Option 1: Prepared but not handovered */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSuitStatus(
+                        suitStatus === "Prepared but not handovered"
+                          ? "Pending"
+                          : "Prepared but not handovered",
+                      )
+                    }
+                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                      suitStatus === "Prepared but not handovered"
+                        ? "bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20"
+                        : "bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400"
+                    }`}
+                  >
+                    <div className="p-3 bg-amber-100/50 rounded-full mb-3 text-amber-700">
+                      <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
                       </svg>
-                      This order has been completed and handed over to the client.
+                    </div>
+                    <span className="text-sm sm:text-base font-black text-slate-800">
+                      Prepared but not handovered
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                      Ready for Delivery
+                    </span>
+                  </button>
+
+                  {/* Option 2: Completed and handovered */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSuitStatus(
+                        suitStatus === "Completed and handovered"
+                          ? "Pending"
+                          : "Completed and handovered",
+                      )
+                    }
+                    className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
+                      suitStatus === "Completed and handovered"
+                        ? "bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20"
+                        : "bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400"
+                    }`}
+                  >
+                    <div className="p-3 bg-emerald-100/50 rounded-full mb-3 text-emerald-700">
+                      <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </div>
+                    <span className="text-sm sm:text-base font-black text-slate-800">
+                      Completed and handovered
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                      Completed & Delivered
+                    </span>
+                  </button>
+                </div>
+
+                {/* Current State indicator */}
+                <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">
+                  Current State:{" "}
+                  <span className="text-[#9E7D3B] font-extrabold">
+                    {suitStatus === "Pending"
+                      ? "PENDING (IN QUEUE)"
+                      : suitStatus.toUpperCase()}
+                  </span>
+                </div>
+
+                {suitStatus === "Completed and handovered" && (
+                  <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
+                    <label className="block text-sm sm:text-base font-bold text-slate-700">
+                      Add Handover Photos
+                    </label>
+                    <p className="text-xs text-slate-500 font-bold mb-2">
+                      Upload photos of the completed suit given to the client.
                     </p>
 
-                    {/* Static Read-only Handover Photos Previews Grid */}
-                    {handoverImages.length > 0 ? (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-2">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleHandoverImageChange}
+                        id="handover-image-file"
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="handover-image-file"
+                        className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
+                      >
+                        <svg
+                          className="h-8 w-8 text-[#9E7D3B] mb-2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect
+                            width="18"
+                            height="18"
+                            x="3"
+                            y="3"
+                            rx="2"
+                            ry="2"
+                          />
+                          <circle cx="9" cy="9" r="2" />
+                          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                        </svg>
+                        <span className="text-sm font-bold text-slate-700">
+                          Add Photos
+                        </span>
+                        <span className="text-[10px] text-slate-400 mt-0.5">
+                          Select from library or tap camera
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Handover Photos Previews Grid */}
+                    {handoverImages.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
                         {handoverImages.map((imgData, index) => (
                           <div
                             key={index}
-                            onClick={() => {
-                              setLightboxIndex(index);
-                              setActiveLightbox({ images: handoverImages, title: `${name || 'Customer'} - Handover Photos` });
-                            }}
-                            className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-slate-100 cursor-zoom-in hover:opacity-90 transition-opacity"
+                            className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100 animate-in zoom-in-95 duration-150"
                           >
                             <Image
                               src={imgData}
                               alt={`Handover Preview ${index + 1}`}
                               fill
                               sizes="(max-width: 640px) 33vw, 25vw"
-                              className="object-cover"
+                              className="object-cover cursor-zoom-in hover:scale-105 transition-transform"
+                              onClick={() => {
+                                setLightboxIndex(index);
+                                setActiveLightbox({
+                                  images: handoverImages,
+                                  title: `${name || "Customer"} - Handover Photos`,
+                                });
+                              }}
                             />
+                            <button
+                              type="button"
+                              onClick={() => removeHandoverImage(index)}
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
+                            >
+                              <svg
+                                className="h-4.5 w-4.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M18 6 6 18M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
                         ))}
                       </div>
-                    ) : (
-                      <p className="text-xs sm:text-sm text-slate-400 font-medium italic">No handover photos uploaded.</p>
                     )}
 
-                    {/* Read-only price display in completed view */}
-                    <div className="pt-4 border-t border-slate-100">
-                      <label className="block text-base sm:text-lg font-bold text-slate-700 mb-1.5">
+                    {/* Stitching Price Input for Handover State */}
+                    <div className="pt-4 border-t border-[#E6DFD3]/60 space-y-2">
+                      <label className="block text-sm sm:text-base font-bold text-slate-700">
                         Stitching Price (Rs.)
                       </label>
-                      <div className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 shadow-sm select-none">
-                        Rs. {price || '0'}
-                      </div>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={price}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/[^0-9]/g, "");
+                          setPrice(cleaned);
+                        }}
+                        placeholder="e.g. 8500"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
+                      />
                     </div>
                   </div>
-                ) : (
-                  <>
-                    <label className="block text-base sm:text-lg font-bold text-slate-700">
-                      Update Suit Status
-                    </label>
-                    <p className="text-xs sm:text-sm text-slate-500 font-semibold mb-3">
-                      Select where this suit order belongs. Updating will transfer the record to the selected queue.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Option 1: Prepared but not handovered */}
-                      <button
-                        type="button"
-                        onClick={() => setSuitStatus(suitStatus === 'Prepared but not handovered' ? 'Pending' : 'Prepared but not handovered')}
-                        className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
-                          suitStatus === 'Prepared but not handovered'
-                            ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
-                            : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
-                        }`}
-                      >
-                        <div className="p-3 bg-amber-100/50 rounded-full mb-3 text-amber-700">
-                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-                            <path d="m3.3 7 8.7 5 8.7-5" />
-                            <path d="M12 22V12" />
-                          </svg>
-                        </div>
-                        <span className="text-sm sm:text-base font-black text-slate-800">Prepared but not handovered</span>
-                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Ready for Delivery</span>
-                      </button>
-
-                      {/* Option 2: Completed and handovered */}
-                      <button
-                        type="button"
-                        onClick={() => setSuitStatus(suitStatus === 'Completed and handovered' ? 'Pending' : 'Completed and handovered')}
-                        className={`flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none ${
-                          suitStatus === 'Completed and handovered'
-                            ? 'bg-[#9E7D3B]/5 border-[#9E7D3B] ring-2 ring-[#9E7D3B]/20'
-                            : 'bg-[#FCFAF5] border-[#E6DFD3] hover:border-slate-400'
-                        }`}
-                      >
-                        <div className="p-3 bg-emerald-100/50 rounded-full mb-3 text-emerald-700">
-                          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="m9 12 2 2 4-4" />
-                          </svg>
-                        </div>
-                        <span className="text-sm sm:text-base font-black text-slate-800">Completed and handovered</span>
-                        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Completed & Delivered</span>
-                      </button>
-                    </div>
-                    
-                    {/* Current State indicator */}
-                    <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">
-                      Current State: <span className="text-[#9E7D3B] font-extrabold">{suitStatus === 'Pending' ? 'PENDING (IN QUEUE)' : suitStatus.toUpperCase()}</span>
-                    </div>
-
-                    {suitStatus === 'Completed and handovered' && (
-                      <div className="space-y-3 pt-2 bg-[#9E7D3B]/5 border border-[#9E7D3B]/20 rounded-2xl p-4 animate-in fade-in duration-200">
-                        <label className="block text-sm sm:text-base font-bold text-slate-700">
-                          Add Handover Photos <span className="text-rose-600 font-extrabold">(Required)</span>
-                        </label>
-                        <p className="text-xs text-rose-500/80 font-bold mb-2">
-                          You must snap or upload at least one photo of the completed suit before giving it to the client.
-                        </p>
-                        
-                        <div className="relative">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleHandoverImageChange}
-                            id="handover-image-file"
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="handover-image-file"
-                            className="flex flex-col items-center justify-center border-2 border-dashed border-[#E6DFD3] hover:border-[#C5A85C] bg-white rounded-2xl p-6 cursor-pointer shadow-sm transition-all duration-200"
-                          >
-                            <svg className="h-8 w-8 text-[#9E7D3B] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                              <circle cx="9" cy="9" r="2" />
-                              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                            </svg>
-                            <span className="text-sm font-bold text-slate-700">Add Photos</span>
-                            <span className="text-[10px] text-slate-400 mt-0.5">Select from library or tap camera</span>
-                          </label>
-                        </div>
-
-                        {/* Handover Photos Previews Grid */}
-                        {handoverImages.length > 0 && (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
-                            {handoverImages.map((imgData, index) => (
-                              <div
-                                key={index}
-                                className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group shadow-sm bg-slate-100 animate-in zoom-in-95 duration-150"
-                              >
-                                <Image
-                                  src={imgData}
-                                  alt={`Handover Preview ${index + 1}`}
-                                  fill
-                                  sizes="(max-width: 640px) 33vw, 25vw"
-                                  className="object-cover cursor-zoom-in hover:scale-105 transition-transform"
-                                  onClick={() => {
-                                    setLightboxIndex(index);
-                                    setActiveLightbox({ images: handoverImages, title: `${name || 'Customer'} - Handover Photos` });
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeHandoverImage(index)}
-                                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/95 transition-colors focus:outline-none"
-                                >
-                                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M18 6 6 18M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Stitching Price Input for Handover State */}
-                        <div className="pt-4 border-t border-[#E6DFD3]/60 space-y-2">
-                          <label className="block text-sm sm:text-base font-bold text-slate-700">
-                            Stitching Price (Rs.) <span className="text-rose-600 font-extrabold">(Required)</span>
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={price}
-                            onChange={(e) => {
-                              const cleaned = e.target.value.replace(/[^0-9]/g, '');
-                              setPrice(cleaned);
-                            }}
-                            required
-                            placeholder="e.g. 8500"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 placeholder-slate-400 shadow-sm focus:border-[#C5A85C] focus:outline-none transition-all duration-150"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </>
                 )}
               </div>
             )}
@@ -1684,74 +1910,97 @@ export default function ClientForm() {
               <input
                 type="text"
                 value={suitQuantity}
-                disabled={initialStatus === 'Completed and handovered'}
                 onChange={(e) => setSuitQuantity(e.target.value)}
                 placeholder="e.g. 2 Suits, 1 Three-Piece, 3 Kurta Sets..."
-                className="w-full rounded-2xl border border-[#E6DFD3] bg-white px-5 py-4 text-base sm:text-lg font-bold text-slate-800 focus:border-[#9E7D3B] focus:outline-none focus:ring-2 focus:ring-[#9E7D3B]/20 disabled:bg-slate-100 disabled:text-slate-500 shadow-sm transition-all"
+                className="w-full rounded-2xl border border-[#E6DFD3] bg-white px-5 py-4 text-base sm:text-lg font-bold text-slate-800 focus:border-[#9E7D3B] focus:outline-none focus:ring-2 focus:ring-[#9E7D3B]/20 shadow-sm transition-all"
               />
               <p className="text-xs text-slate-400 font-medium mt-2">
                 Specify the number of suits ordered or any custom order notes.
               </p>
             </div>
 
-            {/* Canvas Sketch Board Preview - only shown for pending/new suits */}
-            {suitStatus !== 'Completed and handovered' && suitStatus !== 'Prepared but not handovered' && initialStatus !== 'Completed and handovered' && initialStatus !== 'Prepared but not handovered' && (
-              <div>
-                <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
-                  Measurement Sketch (White Board)
-                </label>
+            {/* Canvas Sketch Board Preview - shown for all suits */}
+            <div>
+              <label className="block text-base sm:text-lg font-bold text-slate-600 mb-2">
+                Measurement Sketch (White Board)
+              </label>
 
-                {/* Preview Container: Opens Modal Drawing Board on click */}
-                <div
-                  onClick={() => setIsDrawingOpen(true)}
-                  className="relative w-full aspect-[4/3] bg-white border border-[#E6DFD3] hover:border-[#C5A85C] rounded-2xl overflow-hidden cursor-pointer shadow-sm flex items-center justify-center group transition-all duration-200"
-                >
-                  {measurementDrawing ? (
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={measurementDrawing}
-                        alt="Canvas Preview"
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-contain p-2"
-                      />
-                      <div className="absolute inset-0 bg-[#1A1A1A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
-                        <span className="bg-white/95 text-slate-800 text-sm font-extrabold px-4 py-2 rounded-xl shadow-md flex items-center gap-2">
-                          <svg className="h-4 w-4 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                          Edit White Board
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center p-8 text-center">
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3 group-hover:scale-110 transition-transform">
-                        <svg className="h-10 w-10 text-[#9E7D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              {/* Preview Container: Opens Modal Drawing Board on click */}
+              <div
+                onClick={() => setIsDrawingOpen(true)}
+                className="relative w-full aspect-[4/3] bg-white border border-[#E6DFD3] hover:border-[#C5A85C] rounded-2xl overflow-hidden cursor-pointer shadow-sm flex items-center justify-center group transition-all duration-200"
+              >
+                {measurementDrawing ? (
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={measurementDrawing}
+                      alt="Canvas Preview"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-contain p-2"
+                    />
+                    <div className="absolute inset-0 bg-[#1A1A1A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                      <span className="bg-white/95 text-slate-800 text-sm font-extrabold px-4 py-2 rounded-xl shadow-md flex items-center gap-2">
+                        <svg
+                          className="h-4 w-4 text-[#9E7D3B]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
                         </svg>
-                      </div>
-                      <span className="text-base font-bold text-slate-700">Tap to draw measurements</span>
-                      <span className="text-xs text-slate-400 mt-1">Supports touch, mouse, & stylus S-Pen</span>
+                        Edit White Board
+                      </span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3 group-hover:scale-110 transition-transform">
+                      <svg
+                        className="h-10 w-10 text-[#9E7D3B]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-base font-bold text-slate-700">
+                      Tap to draw measurements
+                    </span>
+                    <span className="text-xs text-slate-400 mt-1">
+                      Supports touch, mouse, & stylus S-Pen
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Submitting buttons */}
-          {initialStatus !== 'Completed and handovered' && (
-            <div className="lg:col-span-2 pt-6 border-t border-[#E6DFD3]/60">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] py-4 text-base sm:text-lg font-black text-white shadow-lg shadow-[#9E7D3B]/20 transition-all duration-150 disabled:opacity-50 hover:scale-[1.01]"
-              >
-                {loading ? 'Registering File...' : 'Save Customer File'}
-              </button>
-            </div>
-          )}
+          <div className="lg:col-span-2 pt-6 border-t border-[#E6DFD3]/60">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-gradient-to-r from-[#DFBA6B] to-[#9E7D3B] hover:from-[#E3C277] hover:to-[#A78542] py-4 text-base sm:text-lg font-black text-white shadow-lg shadow-[#9E7D3B]/20 transition-all duration-150 disabled:opacity-50 hover:scale-[1.01]"
+            >
+              {loading
+                ? "Saving Profile..."
+                : isEditMode
+                  ? "Update Customer Profile"
+                  : "Save Customer File"}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -1791,201 +2040,373 @@ export default function ClientForm() {
               </button>
             </div>
           </div>
-
           {/* Center Drawing Area (Note occupies the full space) */}
           <div className="flex-grow flex-1 w-full min-h-0 flex items-center justify-center p-0 relative bg-white">
-
-
             <div className="relative bg-white overflow-hidden w-full h-full flex flex-col">
               {/* Pinned full-width toolbar at the top */}
               <div className="w-full z-40 bg-white border-b border-slate-200 px-2 py-1 sm:px-3 sm:py-1 flex flex-row flex-wrap justify-between items-center gap-1.5 sm:gap-2 select-none shrink-0">
+                {/* Left Controls: Tool Selection, Colors & Width Options Panel */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   {/* Tool Selection Segmented Control */}
                   <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 shadow-inner">
                     {/* Pen Button */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (drawMode === 'draw' && currentColor !== '#FFFFFF') {
-                          setDrawMode('none');
+                        if (drawMode === "draw" && currentColor !== "#FFFFFF") {
+                          setDrawMode("none");
                         } else {
-                          setDrawMode('draw');
-                          if (currentColor === '#FFFFFF') {
-                            setCurrentColor('#0000FF'); // Reset from eraser to default blue
+                          setDrawMode("draw");
+                          if (currentColor === "#FFFFFF") {
+                            setCurrentColor("#0000FF"); // Reset from eraser to default blue
                           }
                         }
                       }}
                       className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                        drawMode === 'draw' && currentColor !== '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
-                          : 'text-slate-500 hover:text-slate-700'
+                        drawMode === "draw" && currentColor !== "#FFFFFF"
+                          ? "bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                       title="Pen Tool (Click to select/deselect)"
                     >
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        className="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                       </svg>
-                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Pen</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">
+                        Pen
+                      </span>
                     </button>
 
                     {/* Text Button */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (drawMode === 'text') {
-                          setDrawMode('none');
+                        if (drawMode === "text") {
+                          setDrawMode("none");
                         } else {
-                          setDrawMode('text');
+                          setDrawMode("text");
                         }
                       }}
                       className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                        drawMode === 'text'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
-                          : 'text-slate-500 hover:text-slate-700'
+                        drawMode === "text"
+                          ? "bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                       title="Text Tool (Click to select/deselect)"
                     >
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        className="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <path d="M4 7V4h16v3M9 20h6M12 4v16" />
                       </svg>
-                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Text</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">
+                        Text
+                      </span>
                     </button>
 
                     {/* Eraser Button */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (drawMode === 'draw' && currentColor === '#FFFFFF') {
-                          setDrawMode('none');
+                        if (drawMode === "draw" && currentColor === "#FFFFFF") {
+                          setDrawMode("none");
                         } else {
-                          setDrawMode('draw');
-                          setCurrentColor('#FFFFFF');
+                          setDrawMode("draw");
+                          setCurrentColor("#FFFFFF");
                         }
                       }}
                       className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                        drawMode === 'draw' && currentColor === '#FFFFFF'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
-                          : 'text-slate-500 hover:text-slate-700'
+                        drawMode === "draw" && currentColor === "#FFFFFF"
+                          ? "bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                       title="Eraser Tool (Click to select/deselect)"
                     >
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        className="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                         <path d="m22 21H7" />
                         <path d="m5 11 9 9" />
                       </svg>
-                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Eraser</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">
+                        Eraser
+                      </span>
                     </button>
 
                     {/* Move / Pan Button */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (drawMode === 'none') {
-                          setDrawMode('draw'); // Toggling Move off defaults back to Pen drawing
-                          if (currentColor === '#FFFFFF') {
-                            setCurrentColor('#0000FF');
+                        if (drawMode === "none") {
+                          setDrawMode("draw"); // Toggling Move off defaults back to Pen drawing
+                          if (currentColor === "#FFFFFF") {
+                            setCurrentColor("#0000FF");
                           }
                         } else {
-                          setDrawMode('none');
+                          setDrawMode("none");
                         }
                       }}
                       className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                        drawMode === 'none'
-                          ? 'bg-white text-[#9E7D3B] border border-slate-200 shadow-sm font-black'
-                          : 'text-slate-500 hover:text-slate-700'
+                        drawMode === "none"
+                          ? "bg-white text-[#9E7D3B] border border-[#E6DFD3] shadow-sm font-black"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                       title="Move Mode (Click to select/deselect)"
                     >
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        className="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <path d="M18 10V5a2 2 0 0 0-4 0v4H13V3a2 2 0 0 0-4 0v6H8V5a2 2 0 0 0-4 0v10a7 7 0 0 0 7 7h3a7 7 0 0 0 7-7v-5a2 2 0 0 0-4 0z" />
                       </svg>
-                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">Move</span>
+                      <span className="text-[9px] sm:text-[10px] ml-1 font-black tracking-wide">
+                        Move
+                      </span>
                     </button>
                   </div>
 
-                  {/* Colors & Width Options Panel */}
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    {/* Color Palette (only clickable to select/active Pen drawing) */}
-                    <div className="flex items-center gap-1">
-                      {[
-                        { hex: '#0000FF', name: 'Blue Ink' },
-                        { hex: '#1A1A1A', name: 'Black' },
-                        { hex: '#E53E3E', name: 'Red' },
-                        { hex: '#38A169', name: 'Green' },
-                      ].map((c) => (
-                        <button
-                          key={c.hex}
-                          type="button"
-                          onPointerDown={(e) => {
-                            e.preventDefault(); // Prevents input focus theft/blur
-                            setCurrentColor(c.hex);
-                            if (activeTextEditor) {
-                              setActiveTextEditor(prev => prev ? { ...prev, color: c.hex } : null);
-                            } else {
-                              setDrawMode('draw');
-                            }
-                          }}
-                          className={`h-4.5 w-4.5 sm:h-5 sm:w-5 rounded-full border border-slate-200 transition-all duration-150 cursor-pointer ${
-                            (activeTextEditor?.color || currentColor) === c.hex
-                              ? 'scale-110 ring-2 ring-[#9E7D3B]/50 border-[#9E7D3B]'
-                              : 'hover:scale-105 active:scale-95'
-                          }`}
-                          style={{ backgroundColor: c.hex }}
-                          title={c.name}
-                        />
-                      ))}
-                    </div>
+                  {/* Color Palette (only clickable to select/active Pen drawing) */}
+                  <div className="flex items-center gap-1">
+                    {[
+                      { hex: "#0000FF", name: "Blue Ink" },
+                      { hex: "#1A1A1A", name: "Black" },
+                      { hex: "#E53E3E", name: "Red" },
+                      { hex: "#38A169", name: "Green" },
+                    ].map((c) => (
+                      <button
+                        key={c.hex}
+                        type="button"
+                        onPointerDown={(e) => {
+                          e.preventDefault(); // Prevents input focus theft/blur
+                          setCurrentColor(c.hex);
+                          if (activeTextEditor) {
+                            setActiveTextEditor((prev) =>
+                              prev ? { ...prev, color: c.hex } : null,
+                            );
+                          } else {
+                            setDrawMode("draw");
+                          }
+                        }}
+                        className={`h-4.5 w-4.5 sm:h-5 sm:w-5 rounded-full border border-slate-200 transition-all duration-150 cursor-pointer ${
+                          (activeTextEditor?.color || currentColor) === c.hex
+                            ? "scale-110 ring-2 ring-[#9E7D3B]/50 border-[#9E7D3B]"
+                            : "hover:scale-105 active:scale-95"
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
 
-                    {/* Vertical Divider */}
-                    <div className="hidden sm:block w-[1px] h-4 bg-slate-200 select-none" />
+                  {/* Vertical Divider */}
+                  <div className="hidden sm:block w-[1px] h-4 bg-slate-200 select-none" />
 
-                    {/* Line Width / Eraser Size Segmented Control with 3 precise sizes */}
-                    <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 shadow-inner select-none">
-                      {currentColor === '#FFFFFF'
-                        ? [
-                            { size: 15, label: 'Small Eraser', dotSize: 'h-1 w-1' },
-                            { size: 35, label: 'Medium Eraser', dotSize: 'h-2 w-2' },
-                            { size: 60, label: 'Large Eraser', dotSize: 'h-3 w-3' },
-                          ].map((eSize) => (
-                            <button
-                              key={eSize.size}
-                              type="button"
-                              onClick={() => setEraserSize(eSize.size)}
-                              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                                eraserSize === eSize.size
-                                  ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
-                                  : 'text-slate-500 hover:text-slate-800'
-                              }`}
-                              title={`${eSize.label} (${eSize.size}px)`}
-                            >
-                              <div className={`rounded-full bg-slate-800 ${eSize.dotSize}`} />
-                            </button>
-                          ))
-                        : [
-                            { size: 2, label: 'Thin', dotSize: 'h-0.5 w-0.5' },
-                            { size: 4, label: 'Medium', dotSize: 'h-1.5 w-1.5' },
-                            { size: 7, label: 'Thick', dotSize: 'h-2.5 w-2.5' },
-                          ].map((w) => (
-                            <button
-                              key={w.size}
-                              type="button"
-                              onClick={() => setCurrentWidth(w.size)}
-                              className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                                currentWidth === w.size
-                                  ? 'bg-white text-slate-850 shadow-sm scale-105 border border-slate-200'
-                                  : 'text-slate-500 hover:text-slate-800'
-                              }`}
-                              title={`${w.label} Line Width`}
-                            >
-                              <div className={`rounded-full bg-slate-800 ${w.dotSize}`} />
-                            </button>
-                          ))}
-                    </div>
+                  {/* Line Width / Eraser Size Segmented Control with 3 precise sizes */}
+                  <div className="flex bg-slate-100 p-0.5 rounded-md border border-slate-200 shadow-inner select-none">
+                    {currentColor === "#FFFFFF"
+                      ? [
+                          {
+                            size: 15,
+                            label: "Small Eraser",
+                            dotSize: "h-1 w-1",
+                          },
+                          {
+                            size: 35,
+                            label: "Medium Eraser",
+                            dotSize: "h-2 w-2",
+                          },
+                          {
+                            size: 60,
+                            label: "Large Eraser",
+                            dotSize: "h-3 w-3",
+                          },
+                        ].map((eSize) => (
+                          <button
+                            key={eSize.size}
+                            type="button"
+                            onClick={() => setEraserSize(eSize.size)}
+                            className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              eraserSize === eSize.size
+                                ? "bg-white text-slate-850 shadow-sm scale-105 border border-slate-200"
+                                : "text-slate-500 hover:text-slate-800"
+                            }`}
+                            title={`${eSize.label} (${eSize.size}px)`}
+                          >
+                            <div
+                              className={`rounded-full bg-slate-800 ${eSize.dotSize}`}
+                            />
+                          </button>
+                        ))
+                      : [
+                          { size: 2, label: "Thin", dotSize: "h-0.5 w-0.5" },
+                          { size: 4, label: "Medium", dotSize: "h-1.5 w-1.5" },
+                          { size: 7, label: "Thick", dotSize: "h-2.5 w-2.5" },
+                        ].map((w) => (
+                          <button
+                            key={w.size}
+                            type="button"
+                            onClick={() => setCurrentWidth(w.size)}
+                            className={`h-5 w-5 sm:h-5.5 sm:w-5.5 rounded flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                              currentWidth === w.size
+                                ? "bg-white text-slate-850 shadow-sm scale-105 border border-slate-200"
+                                : "text-slate-500 hover:text-slate-800"
+                            }`}
+                            title={`${w.label} Line Width`}
+                          >
+                            <div
+                              className={`rounded-full bg-slate-800 ${w.dotSize}`}
+                            />
+                          </button>
+                        ))}
                   </div>
                 </div>
 
+                {/* Right Controls: Page Navigation, Zoom Controls, Undo & Clear */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  {/* Page Navigation Indicator */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-0.5 px-2 rounded-xl border border-slate-200 shadow-inner select-none shrink-0">
+                    <span className="text-[10px] sm:text-xs font-black text-slate-700 min-w-[60px] text-center select-none">
+                      Page {currentPage} / {totalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleAddPage}
+                      className="h-5.5 w-5.5 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
+                      title="Add Another Page"
+                    >
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Zoom Controls */}
+                  <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setScale((prev) => Math.max(prev / 1.2, 0.5))
+                      }
+                      className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M18 12H6"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setScale(0.83);
+                        setPanOffset({ x: 0, y: 0 });
+                      }}
+                      className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[40px] text-center cursor-pointer shadow-sm"
+                      title="Reset Zoom & Pan"
+                    >
+                      {Math.round(scale * 100)}%
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setScale((prev) => Math.min(prev * 1.2, 5))
+                      }
+                      className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
+                      title="Zoom In"
+                    >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Undo Action Button */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleUndo}
+                      disabled={strokes.length === 0}
+                      className="h-6 px-2 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[10px] sm:text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer shrink-0 transition-colors"
+                      title="Undo Stroke"
+                    >
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                        />
+                      </svg>
+                      <span>Undo</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
               {/* Inner wrapper container to align canvas and absolute overlays (positioned below the toolbar) */}
-              <div 
+              <div
                 className="relative flex-grow min-h-0 w-full bg-[#FCFAF5]"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
@@ -1993,8 +2414,10 @@ export default function ClientForm() {
               >
                 {/* Transition sliding page overlay */}
                 {isTransitioning && prevPageSnapshot && (
-                 <div className="absolute inset-0 z-30 bg-[#FCFAF5] overflow-hidden pointer-events-none flex items-center justify-center">
-                   <style dangerouslySetInnerHTML={{__html: `
+                  <div className="absolute inset-0 z-30 bg-[#FCFAF5] overflow-hidden pointer-events-none flex items-center justify-center">
+                    <style
+                      dangerouslySetInnerHTML={{
+                        __html: `
                      @keyframes shrinkAndExpand {
                        0% { transform: scale(1); }
                        20% { transform: scale(0.9); }
@@ -2013,267 +2436,249 @@ export default function ClientForm() {
                        80% { transform: translateX(0%); }
                        100% { transform: translateX(0%); }
                      }
-                   `}} />
-                   <div 
-                     className="w-full h-full"
-                     style={{
-                       animation: 'shrinkAndExpand 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards',
-                       transformOrigin: 'center'
-                     }}
-                   >
-                     <div 
-                       className="flex h-full w-[200%]"
-                       style={
-                         currentPageSnapshot 
-                           ? {
-                               transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)',
-                               animation: `slidePage-${transitionDirection} 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards`
-                             }
-                           : {
-                               transform: transitionDirection === 'left' ? 'translateX(0%)' : 'translateX(-50%)'
-                             }
-                       }
-                     >
-                       <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
-                         <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
-                           <img 
-                             src={transitionDirection === 'left' ? prevPageSnapshot : (currentPageSnapshot || prevPageSnapshot)} 
-                             className="w-full h-full object-contain bg-white" 
-                             alt="Page Transition Out"
-                           />
-                         </div>
-                       </div>
-                       <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
-                         <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
-                           <img 
-                             src={transitionDirection === 'left' ? (currentPageSnapshot || prevPageSnapshot) : prevPageSnapshot} 
-                             className="w-full h-full object-contain bg-white" 
-                             alt="Page Transition In"
-                           />
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               )}
-
-              <canvas
-                ref={canvasRef}
-                width={1000}
-                height={750}
-                className={`w-full h-full touch-none bg-white ${
-                  drawMode === 'text'
-                    ? 'cursor-text'
-                    : drawMode === 'none'
-                    ? 'cursor-grab active:cursor-grabbing'
-                    : 'cursor-crosshair'
-                }`}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onWheel={handleWheel}
-              />
-
-
-
-              {activeTextEditor && (() => {
-                const pos = getTextEditorPosition();
-                const canvas = canvasRef.current;
-                const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-                const cssWidth = canvas ? canvas.width / dpr : 1000;
-                const scaleX = cssWidth / 1000;
-                const baseFontSize = Math.max(16, activeTextEditor.fontSize);
-                const inputFontSize = Math.round(baseFontSize * scaleX * scale);
-                const lineHeightPx = Math.round(inputFontSize * 1.25);
-
-                const lines = (activeTextEditor.text || 'Type notes...').split('\n');
-
-                // Measure max line width using canvas context to fit multi-line input
-                let maxLineWidth = 120;
-                if (canvas) {
-                  const ctx = canvas.getContext('2d');
-                  if (ctx) {
-                    ctx.save();
-                    ctx.font = `bold ${inputFontSize}px sans-serif`;
-                    lines.forEach((l) => {
-                      const w = ctx.measureText(l || 'Type notes...').width;
-                      if (w > maxLineWidth) maxLineWidth = w;
-                    });
-                    ctx.restore();
-                  }
-                }
-                
-                const inputWidthPx = Math.ceil(maxLineWidth) + 36;
-                const inputHeightPx = Math.max(lineHeightPx + 8, lines.length * lineHeightPx + 12);
-
-                return (
-                  <div
-                    style={{
-                      left: `${pos.x}%`,
-                      top: `${pos.y}%`,
-                      transform: 'translate(-5px, -10px)',
-                    }}
-                    className="absolute z-30 max-w-[90%] flex items-center"
-                  >
-                    <div className="relative group">
-                      <textarea
-                        ref={textInputRef}
-                        id="whiteboard-text-input"
-                        rows={lines.length || 1}
-                        value={activeTextEditor.text}
-                        onChange={(e) => {
-                          setActiveTextEditor(prev => prev ? { ...prev, text: e.target.value } : null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setActiveTextEditor(null);
-                          }
-                        }}
-                        onBlur={() => commitText(activeTextEditor)}
-                        placeholder="Type or paste notes..."
-                        style={{
-                          color: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
-                          caretColor: (activeTextEditor.color || currentColor) === '#FFFFFF' ? '#1A1A1A' : (activeTextEditor.color || currentColor),
-                          fontSize: `${inputFontSize}px`,
-                          lineHeight: `${lineHeightPx}px`,
-                          width: `${inputWidthPx}px`,
-                          height: `${inputHeightPx}px`,
-                          resize: 'none',
-                          overflow: 'hidden',
-                        }}
-                        className="bg-transparent pl-1 pr-6 py-0.5 border border-black text-[#1A1A1A] font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black leading-tight"
-                      />
-
-                    {/* Delete button floating above the input box */}
-                    <button
-                      type="button"
-                      onPointerDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setActiveTextEditor(null);
-                        setDrawMode('draw');
+                   `,
                       }}
-                      className="absolute bottom-full right-0 mb-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded px-2 py-0.5 text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
-                      title="Delete Text"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
-                    </button>
-
-                    {/* Drag handle at bottom-right corner — premium pull/drag icon */}
+                    />
                     <div
-                      onPointerDown={handleResizePointerDown}
-                      className="absolute -bottom-4 -right-4 h-11 w-11 flex items-center justify-center cursor-se-resize z-40 touch-none"
-                      title="Drag to resize text"
+                      className="w-full h-full"
+                      style={{
+                        animation:
+                          "shrinkAndExpand 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards",
+                        transformOrigin: "center",
+                      }}
                     >
-                      <div className="h-7 w-7 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg shadow-lg flex items-center justify-center pointer-events-none ring-1 ring-white/30">
-                        <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 16 16" fill="none">
-                          <path d="M4 12L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M4 8V12H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M12 8V4H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                      <div
+                        className="flex h-full w-[200%]"
+                        style={
+                          currentPageSnapshot
+                            ? {
+                                transform:
+                                  transitionDirection === "left"
+                                    ? "translateX(0%)"
+                                    : "translateX(-50%)",
+                                animation: `slidePage-${transitionDirection} 750ms cubic-bezier(0.25, 1, 0.5, 1) forwards`,
+                              }
+                            : {
+                                transform:
+                                  transitionDirection === "left"
+                                    ? "translateX(0%)"
+                                    : "translateX(-50%)",
+                              }
+                        }
+                      >
+                        <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
+                          <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
+                            <img
+                              src={
+                                transitionDirection === "left"
+                                  ? prevPageSnapshot
+                                  : currentPageSnapshot || prevPageSnapshot
+                              }
+                              className="w-full h-full object-contain bg-white"
+                              alt="Page Transition Out"
+                            />
+                          </div>
+                        </div>
+                        <div className="w-1/2 h-full p-2 sm:p-4 flex items-center justify-center">
+                          <div className="bg-white rounded-2xl border border-[#E6DFD3] shadow-2xl overflow-hidden w-full h-full">
+                            <img
+                              src={
+                                transitionDirection === "left"
+                                  ? currentPageSnapshot || prevPageSnapshot
+                                  : prevPageSnapshot
+                              }
+                              className="w-full h-full object-contain bg-white"
+                              alt="Page Transition In"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })()}
-            </div> {/* Closes inner wrapper container */}
-            </div> {/* Closes Note Page flex container */}
-          </div> {/* Closes Center Drawing Area */}
+                )}
 
-          {/* Bottom Panel: Zoom, Navigation, and Whiteboard editing options */}
-          <div className="bg-white border-t border-[#E6DFD3] px-3 py-1.5 flex flex-row flex-wrap items-center justify-between gap-2 flex-none select-none w-full shadow-inner">
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-full border border-slate-200 shadow-inner select-none shrink-0 scale-75 origin-left sm:scale-85">
-              <button
-                type="button"
-                onClick={() => setScale(prev => Math.max(prev / 1.2, 0.5))}
-                className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
-                title="Zoom Out"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
-                </svg>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  setScale(0.83);
-                  setPanOffset({ x: 0, y: 0 });
-                }}
-                className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all min-w-[40px] text-center cursor-pointer shadow-sm"
-                title="Reset Zoom & Pan"
-              >
-                {Math.round(scale * 100)}%
-              </button>
+                <canvas
+                  ref={canvasRef}
+                  width={1000}
+                  height={750}
+                  className={`w-full h-full touch-none bg-white ${
+                    drawMode === "text"
+                      ? "cursor-text"
+                      : drawMode === "none"
+                        ? "cursor-grab active:cursor-grabbing"
+                        : "cursor-crosshair"
+                  }`}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onWheel={handleWheel}
+                />
 
-              <button
-                type="button"
-                onClick={() => setScale(prev => Math.min(prev * 1.2, 5))}
-                className="p-0.5 rounded-full text-slate-500 hover:text-slate-800 hover:bg-white transition-all cursor-pointer"
-                title="Zoom In"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
+                {activeTextEditor &&
+                  (() => {
+                    const pos = getTextEditorPosition();
+                    const canvas = canvasRef.current;
+                    const dpr =
+                      typeof window !== "undefined"
+                        ? window.devicePixelRatio || 1
+                        : 1;
+                    const cssWidth = canvas ? canvas.width / dpr : 1000;
+                    const scaleX = cssWidth / 1000;
+                    const baseFontSize = Math.max(
+                      16,
+                      activeTextEditor.fontSize,
+                    );
+                    const inputFontSize = Math.round(
+                      baseFontSize * scaleX * scale,
+                    );
+                    const lineHeightPx = Math.round(inputFontSize * 1.25);
 
-            {/* Page Navigation Indicator */}
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 px-2 rounded-xl border border-slate-200 shadow-inner select-none shrink-0">
-              {/* Concise Page Indicator */}
-              <span className="text-[10px] sm:text-xs font-black text-slate-700 min-w-[60px] text-center select-none">
-                Page {currentPage} / {totalPages}
-              </span>
+                    const lines = (
+                      activeTextEditor.text || "Type notes..."
+                    ).split("\n");
 
-              {/* Plus Sign Button to Add Page */}
-              <button
-                type="button"
-                onClick={handleAddPage}
-                className="h-5.5 w-5.5 bg-[#9E7D3B] hover:bg-[#A78542] text-white rounded-lg hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm flex items-center justify-center shrink-0"
-                title="Add Another Page"
-              >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
+                    // Measure max line width using canvas context to fit multi-line input
+                    let maxLineWidth = 120;
+                    if (canvas) {
+                      const ctx = canvas.getContext("2d");
+                      if (ctx) {
+                        ctx.save();
+                        ctx.font = `bold ${inputFontSize}px sans-serif`;
+                        lines.forEach((l) => {
+                          const w = ctx.measureText(l || "Type notes...").width;
+                          if (w > maxLineWidth) maxLineWidth = w;
+                        });
+                        ctx.restore();
+                      }
+                    }
 
-            {/* Undo & Clear Action Buttons */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={strokes.length === 0}
-                className="h-6 px-2 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[10px] sm:text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer shrink-0 transition-colors"
-                title="Undo Stroke"
-              >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                </svg>
-                <span>Undo</span>
-              </button>
+                    const inputWidthPx = Math.ceil(maxLineWidth) + 36;
+                    const inputHeightPx = Math.max(
+                      lineHeightPx + 8,
+                      lines.length * lineHeightPx + 12,
+                    );
 
-              <button
-                type="button"
-                onClick={handleClear}
-                disabled={strokes.length === 0}
-                className="h-6 px-2 bg-white rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-[10px] sm:text-xs font-bold flex items-center gap-1 shadow-sm cursor-pointer shrink-0 transition-colors"
-                title="Clear All"
-              >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Clear</span>
-              </button>
-            </div>
-          </div>
+                    return (
+                      <div
+                        style={{
+                          left: `${pos.x}%`,
+                          top: `${pos.y}%`,
+                          transform: "translate(-5px, -10px)",
+                        }}
+                        className="absolute z-30 max-w-[90%] flex items-center"
+                      >
+                        <div className="relative group">
+                          <textarea
+                            ref={textInputRef}
+                            id="whiteboard-text-input"
+                            rows={lines.length || 1}
+                            value={activeTextEditor.text}
+                            onChange={(e) => {
+                              setActiveTextEditor((prev) =>
+                                prev ? { ...prev, text: e.target.value } : null,
+                              );
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setActiveTextEditor(null);
+                              }
+                            }}
+                            onBlur={() => commitText(activeTextEditor)}
+                            placeholder="Type or paste notes..."
+                            style={{
+                              color:
+                                (activeTextEditor.color || currentColor) ===
+                                "#FFFFFF"
+                                  ? "#1A1A1A"
+                                  : activeTextEditor.color || currentColor,
+                              caretColor:
+                                (activeTextEditor.color || currentColor) ===
+                                "#FFFFFF"
+                                  ? "#1A1A1A"
+                                  : activeTextEditor.color || currentColor,
+                              fontSize: `${inputFontSize}px`,
+                              lineHeight: `${lineHeightPx}px`,
+                              width: `${inputWidthPx}px`,
+                              height: `${inputHeightPx}px`,
+                              resize: "none",
+                              overflow: "hidden",
+                            }}
+                            className="bg-transparent pl-1 pr-6 py-0.5 border border-black text-[#1A1A1A] font-semibold focus:outline-none focus:ring-0 focus:border-black rounded-none shadow-none caret-black leading-tight"
+                          />
 
+                          {/* Delete button floating above the input box */}
+                          <button
+                            type="button"
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setActiveTextEditor(null);
+                              setDrawMode("draw");
+                            }}
+                            className="absolute bottom-full right-0 mb-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:text-red-700 rounded px-2 py-0.5 text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                            title="Delete Text"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Delete
+                          </button>
 
+                          {/* Drag handle at bottom-right corner — premium pull/drag icon */}
+                          <div
+                            onPointerDown={handleResizePointerDown}
+                            className="absolute -bottom-4 -right-4 h-11 w-11 flex items-center justify-center cursor-se-resize z-40 touch-none"
+                            title="Drag to resize text"
+                          >
+                            <div className="h-7 w-7 bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg shadow-lg flex items-center justify-center pointer-events-none ring-1 ring-white/30">
+                              <svg
+                                className="h-3.5 w-3.5 text-white"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                              >
+                                <path
+                                  d="M4 12L12 4"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M4 8V12H8"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 8V4H8"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+              </div>{" "}
+              {/* Closes inner wrapper container */}
+            </div>{" "}
+            {/* Closes Note Page flex container */}
+          </div>{" "}
+          {/* Closes Center Drawing Area */}
         </div>
       )}
 
@@ -2281,23 +2686,39 @@ export default function ClientForm() {
       {showClearConfirm && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-[#E6DFD3] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-6">
-            
             {/* Modal Header/Icon */}
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-800">Clear Sketch Canvas</h3>
-                <p className="text-xs text-[#9E7D3B] font-bold uppercase tracking-wider">Warning: Permanent Action</p>
+                <h3 className="text-lg font-black text-slate-800">
+                  Clear Sketch Canvas
+                </h3>
+                <p className="text-xs text-[#9E7D3B] font-bold uppercase tracking-wider">
+                  Warning: Permanent Action
+                </p>
               </div>
             </div>
 
             {/* Body copy */}
             <p className="text-sm font-semibold text-[#1A1A1A] leading-relaxed">
-              Are you sure you want to clear all drawings, sketches, and notes on <strong className="text-[#1A1A1A] font-black">Page {currentPage}</strong>? This action cannot be undone.
+              Are you sure you want to clear all drawings, sketches, and notes
+              on{" "}
+              <strong className="text-[#1A1A1A] font-black">
+                Page {currentPage}
+              </strong>
+              ? This action cannot be undone.
             </p>
 
             {/* Modal Action Controls */}
@@ -2327,16 +2748,26 @@ export default function ClientForm() {
           <div className="bg-white rounded-3xl border border-[#E6DFD3] shadow-2xl w-full max-w-lg max-h-[80vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-lg font-extrabold text-slate-800">Select Category</h3>
+              <h3 className="text-lg font-extrabold text-slate-800">
+                Select Category
+              </h3>
               <button
                 type="button"
                 onClick={() => {
                   setIsCategoryModalOpen(false);
-                  setCategorySearchQuery('');
+                  setCategorySearchQuery("");
                 }}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
@@ -2346,7 +2777,15 @@ export default function ClientForm() {
             <div className="px-6 py-3 border-b border-slate-100 bg-[#FCFAF5]/50">
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.3-4.3" />
                   </svg>
@@ -2362,10 +2801,18 @@ export default function ClientForm() {
                 {categorySearchQuery && (
                   <button
                     type="button"
-                    onClick={() => setCategorySearchQuery('')}
+                    onClick={() => setCategorySearchQuery("")}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
                   </button>
@@ -2379,18 +2826,22 @@ export default function ClientForm() {
                 const searchLower = categorySearchQuery.toLowerCase().trim();
                 let hasResults = false;
 
-                const filteredGroups = Object.entries(CATEGORY_GROUPS).map(([groupName, options]) => {
-                  const filteredOptions = options.filter(opt => 
-                    opt.toLowerCase().includes(searchLower)
-                  );
-                  if (filteredOptions.length > 0) hasResults = true;
-                  return { groupName, filteredOptions };
-                });
+                const filteredGroups = Object.entries(CATEGORY_GROUPS).map(
+                  ([groupName, options]) => {
+                    const filteredOptions = options.filter((opt) =>
+                      opt.toLowerCase().includes(searchLower),
+                    );
+                    if (filteredOptions.length > 0) hasResults = true;
+                    return { groupName, filteredOptions };
+                  },
+                );
 
                 if (!hasResults) {
                   return (
                     <div className="text-center py-8">
-                      <p className="text-slate-400 font-medium">No matching categories found.</p>
+                      <p className="text-slate-400 font-medium">
+                        No matching categories found.
+                      </p>
                     </div>
                   );
                 }
@@ -2412,17 +2863,25 @@ export default function ClientForm() {
                               onClick={() => {
                                 setCategory(opt);
                                 setIsCategoryModalOpen(false);
-                                setCategorySearchQuery('');
+                                setCategorySearchQuery("");
                               }}
                               className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-sm font-bold transition-all flex items-center justify-between cursor-pointer ${
                                 isSelected
-                                  ? 'bg-[#9E7D3B] border-[#9E7D3B] text-white shadow-md shadow-[#9E7D3B]/10'
-                                  : 'bg-white border-slate-100 hover:border-slate-300 text-slate-700 hover:bg-slate-50'
+                                  ? "bg-[#9E7D3B] border-[#9E7D3B] text-white shadow-md shadow-[#9E7D3B]/10"
+                                  : "bg-white border-slate-100 hover:border-slate-300 text-slate-700 hover:bg-slate-50"
                               }`}
                             >
                               <span className="truncate">{opt}</span>
                               {isSelected && (
-                                <svg className="h-4 w-4 text-white flex-shrink-0 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                  className="h-4 w-4 text-white flex-shrink-0 ml-1.5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
                                   <path d="M20 6 9 17l-5-5" />
                                 </svg>
                               )}
@@ -2445,7 +2904,9 @@ export default function ClientForm() {
           {/* Lightbox Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent flex-none">
             <div>
-              <h4 className="text-white font-extrabold text-sm sm:text-base">{activeLightbox.title}</h4>
+              <h4 className="text-white font-extrabold text-sm sm:text-base">
+                {activeLightbox.title}
+              </h4>
             </div>
             <button
               onClick={() => setActiveLightbox(null)}
@@ -2506,7 +2967,9 @@ export default function ClientForm() {
                     key={idx}
                     onClick={() => setLightboxIndex(idx)}
                     className={`relative h-12 w-12 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                      lightboxIndex === idx ? 'border-[#9E7D3B] scale-105' : 'border-white/20 opacity-60 hover:opacity-100'
+                      lightboxIndex === idx
+                        ? "border-[#9E7D3B] scale-105"
+                        : "border-white/20 opacity-60 hover:opacity-100"
                     }`}
                   >
                     <Image

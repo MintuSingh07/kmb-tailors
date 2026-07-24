@@ -4,7 +4,7 @@ import { useState, useMemo, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getGroupForCategory } from '../../../lib/categories';
-import { Ruler } from 'lucide-react';
+import { Ruler, Pencil } from 'lucide-react';
 
 interface ClientRecord {
   _id: string;
@@ -357,6 +357,13 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                             Measurement
                           </Link>
                           <Link
+                            href={`/admin/new?code=${encodeURIComponent(group.clientNo)}`}
+                            className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
+                            Edit
+                          </Link>
+                          <Link
                             href={`/admin/history/${group.clientNo}`}
                             className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
                           >
@@ -428,6 +435,13 @@ export default function ClientHistoryList({ initialClients }: { initialClients: 
                         >
                           <Ruler className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
                           Measurement
+                        </Link>
+                        <Link
+                          href={`/admin/new?code=${encodeURIComponent(group.clientNo)}`}
+                          className="whitespace-nowrap px-3 py-1.5 border border-[#E6DFD3] hover:border-[#9E7D3B] hover:bg-[#9E7D3B]/5 text-slate-700 hover:text-[#9E7D3B] text-[11px] font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-sm bg-white cursor-pointer"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-[#9E7D3B]" strokeWidth={2.5} />
+                          Edit
                         </Link>
                         <Link
                           href={`/admin/history/${group.clientNo}`}

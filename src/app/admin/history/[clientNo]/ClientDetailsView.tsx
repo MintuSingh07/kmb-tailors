@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { Ruler } from 'lucide-react';
+import { Ruler, Pencil } from 'lucide-react';
 import { getOptimizedImageUrl } from '../../../../lib/imageUtils';
 
 interface ClientRecord {
@@ -172,9 +172,18 @@ export default function ClientDetailsView({ clientRecords, profile, username }: 
               <span className="text-[10px] font-black text-[#9E7D3B] uppercase tracking-widest block mb-1">
                 Customer Profile File
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
-                {profile.name || 'N/A'}
-              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-tight">
+                  {profile.name || 'N/A'}
+                </h2>
+                <Link
+                  href={`/admin/new?code=${encodeURIComponent(profile.clientNo)}`}
+                  className="whitespace-nowrap px-3 py-1 bg-amber-50 border border-[#E6DFD3] hover:border-[#9E7D3B] text-[#9E7D3B] hover:bg-[#9E7D3B]/10 text-xs font-black rounded-xl transition-all duration-150 inline-flex items-center gap-1.5 shadow-xs cursor-pointer select-none"
+                >
+                  <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  Edit Profile
+                </Link>
+              </div>
               <span className="inline-block mt-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Code: <strong className="text-[#9E7D3B] font-black">{profile.clientNo}</strong>
               </span>
