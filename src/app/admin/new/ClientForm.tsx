@@ -71,60 +71,59 @@ const getPageDefaultText = (pageNum: number) => {
   if (pageNum === 1) {
     return [
       { text: "FL-", x: 35, y: 36 },
-      { text: "P-", x: 660, y: 36 },
-
-      { text: "L", x: 35, y: 116 },
-      { text: "B", x: 35, y: 196 },
-      { text: "W", x: 35, y: 276 },
-      { text: "H", x: 35, y: 356 },
-      { text: "Ss", x: 35, y: 436 },
-      { text: "T", x: 35, y: 516 },
-      { text: "N", x: 35, y: 596 },
-      { text: "Gh", x: 35, y: 676 },
-      { text: "Ch", x: 35, y: 756 },
-      { text: "Salwar-", x: 35, y: 836 },
+      { text: "P-", x: 35, y: 116 },
+      { text: "L", x: 35, y: 196 },
+      { text: "B", x: 35, y: 276 },
+      { text: "W", x: 35, y: 356 },
+      { text: "H", x: 35, y: 436 },
+      { text: "Ss", x: 35, y: 516 },
+      { text: "T", x: 35, y: 596 },
+      { text: "N", x: 35, y: 676 },
+      { text: "Gh", x: 35, y: 756 },
+      { text: "Ch", x: 35, y: 836 },
+      { text: "Salwar-", x: 35, y: 916 },
     ];
   }
   if (pageNum === 2) {
     return [
       { text: "Th-", x: 35, y: 36 },
-      { text: "Tw-", x: 35, y: 76 },
-
-      { text: "L", x: 35, y: 156 },
-      { text: "Cut-", x: 390, y: 156 },
-      { text: "A", x: 690, y: 156 },
-      { text: "F", x: 690, y: 196 },
-      { text: "B", x: 690, y: 236 },
-
-      { text: "L", x: 35, y: 276 },
-      { text: "Cut-", x: 390, y: 276 },
-      { text: "A", x: 690, y: 276 },
-      { text: "F", x: 690, y: 316 },
-      { text: "B", x: 690, y: 356 },
-
-      { text: "Blouse", x: 35, y: 436 },
-      { text: "Bs-", x: 390, y: 436 },
-      { text: "P-", x: 660, y: 436 },
-
-      { text: "L", x: 35, y: 516 },
-      { text: "B", x: 35, y: 596 },
-      { text: "W", x: 35, y: 676 },
-      { text: "T", x: 35, y: 756 },
-      { text: "Ss", x: 35, y: 836 },
-      { text: "N", x: 35, y: 916 },
+      { text: "Tw-", x: 35, y: 116 },
+      { text: "L", x: 35, y: 196 },
+      { text: "Cut-", x: 35, y: 276 },
+      { text: "A", x: 35, y: 356 },
+      { text: "F", x: 35, y: 436 },
+      { text: "B", x: 35, y: 516 },
+      { text: "L", x: 35, y: 596 },
+      { text: "Cut-", x: 35, y: 676 },
+      { text: "A", x: 35, y: 756 },
+      { text: "F", x: 35, y: 836 },
+      { text: "B", x: 35, y: 916 },
     ];
   }
   if (pageNum === 3) {
     return [
-      { text: "Note-", x: 35, y: 36 },
-
-      { text: "Ph-", x: 35, y: 396 },
-      { text: "Ph-", x: 35, y: 436 },
-      { text: "Ph-", x: 35, y: 476 },
-      { text: "Ph-", x: 35, y: 516 },
+      { text: "Blouse", x: 35, y: 36 },
+      { text: "Bs-", x: 35, y: 116 },
+      { text: "P-", x: 35, y: 196 },
+      { text: "L", x: 35, y: 276 },
+      { text: "B", x: 35, y: 356 },
+      { text: "W", x: 35, y: 436 },
+      { text: "T", x: 35, y: 516 },
+      { text: "Ss", x: 35, y: 596 },
+      { text: "N", x: 35, y: 676 },
     ];
   }
   if (pageNum === 4) {
+    return [
+      { text: "Note-", x: 35, y: 36 },
+
+      { text: "Ph-", x: 35, y: 396 },
+      { text: "Ph-", x: 35, y: 476 },
+      { text: "Ph-", x: 35, y: 556 },
+      { text: "Ph-", x: 35, y: 636 },
+    ];
+  }
+  if (pageNum === 5) {
     return [
       { text: "Relation-", x: 35, y: 36 },
     ];
@@ -816,8 +815,8 @@ export default function ClientForm() {
     const defaultTextItems = getPageDefaultText(currentPage);
     if (defaultTextItems.length > 0) {
       ctx.save();
-      const fontSize = Math.max(34, Math.round(50 * scaleX));
-      ctx.font = `900 ${fontSize}px systemx-ui, -apple-system, sans-serif`;
+      const fontSize = Math.max(26, Math.round(40 * scaleX));
+      ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
       ctx.fillStyle = "#1A1A1A";
       ctx.textBaseline = "alphabetic";
       defaultTextItems.forEach((item) => {
