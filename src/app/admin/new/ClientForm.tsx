@@ -198,6 +198,17 @@ export default function ClientForm() {
   const [drawMode, setDrawMode] = useState<"draw" | "text" | "none">("draw");
   const [scale, setScale] = useState(0.83);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const scaleRef = useRef(scale);
+  const panOffsetRef = useRef(panOffset);
+
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
+  useEffect(() => {
+    panOffsetRef.current = panOffset;
+  }, [panOffset]);
+
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
   const panInitialOffsetRef = useRef({ x: 0, y: 0 });
@@ -1169,36 +1180,121 @@ export default function ClientForm() {
     }
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const zoomFactor = 1.1;
+  // Native touch & wheel event listeners on canvas for smooth 2-finger pinch-zoom, 2-finger panning, and wheel zoom
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
 
-    // Get cursor position in CSS pixels relative to canvas
-    const cursorCSSX = e.clientX - rect.left;
-    const cursorCSSY = e.clientY - rect.top;
+    let initialPinchDist: number | null = null;
+    let initialPinchScale = 1;
+    let initialPinchPan = { x: 0, y: 0 };
+    let initialPinchCenter = { x: 0, y: 0 };
 
-    // Translate CSS pixels to logical coordinates
-    const cursorX = (cursorCSSX / rect.width) * 1000;
-    const cursorY = (cursorCSSY / rect.height) * 750;
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = 1.1;
+      const rect = canvas.getBoundingClientRect();
 
-    // Calculate new scale
-    const newScale =
-      e.deltaY < 0
-        ? Math.min(scale * zoomFactor, 5)
-        : Math.max(scale / zoomFactor, 0.5);
+      // Get cursor position in CSS pixels relative to canvas
+      const cursorCSSX = e.clientX - rect.left;
+      const cursorCSSY = e.clientY - rect.top;
 
-    if (newScale !== scale) {
-      const scaleRatio = newScale / scale;
-      const newPanX = cursorX - (cursorX - panOffset.x) * scaleRatio;
-      const newPanY = cursorY - (cursorY - panOffset.y) * scaleRatio;
+      // Translate CSS pixels to logical coordinates
+      const cursorX = (cursorCSSX / rect.width) * 1000;
+      const cursorY = (cursorCSSY / rect.height) * 750;
 
-      setScale(newScale);
-      setPanOffset({ x: newPanX, y: newPanY });
-    }
-  };
+      const currentScale = scaleRef.current;
+      const currentPan = panOffsetRef.current;
+
+      const newScale =
+        e.deltaY < 0
+          ? Math.min(currentScale * zoomFactor, 5)
+          : Math.max(currentScale / zoomFactor, 0.5);
+
+      if (newScale !== currentScale) {
+        const scaleRatio = newScale / currentScale;
+        setScale(newScale);
+        setPanOffset({
+          x: cursorX - (cursorX - currentPan.x) * scaleRatio,
+          y: cursorY - (cursorY - currentPan.y) * scaleRatio,
+        });
+      }
+    };
+
+    const handleTouchStartNative = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        // Interrupt/cancel active single finger drawing stroke
+        isDrawingRef.current = false;
+        activePointsRef.current = [];
+
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        initialPinchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        initialPinchScale = scaleRef.current;
+        initialPinchPan = { ...panOffsetRef.current };
+        initialPinchCenter = {
+          x: (t0.clientX + t1.clientX) / 2,
+          y: (t0.clientY + t1.clientY) / 2,
+        };
+      }
+    };
+
+    const handleTouchMoveNative = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialPinchDist && initialPinchDist > 0) {
+        e.preventDefault();
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const currentDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        const distRatio = currentDist / initialPinchDist;
+
+        const currentCenter = {
+          x: (t0.clientX + t1.clientX) / 2,
+          y: (t0.clientY + t1.clientY) / 2,
+        };
+
+        const rect = canvas.getBoundingClientRect();
+        const pivotCSSX = initialPinchCenter.x - rect.left;
+        const pivotCSSY = initialPinchCenter.y - rect.top;
+        const cursorX = (pivotCSSX / rect.width) * 1000;
+        const cursorY = (pivotCSSY / rect.height) * 750;
+
+        const dxCSS = currentCenter.x - initialPinchCenter.x;
+        const dyCSS = currentCenter.y - initialPinchCenter.y;
+        const dxCanvas = (dxCSS / rect.width) * 1000;
+        const dyCanvas = (dyCSS / rect.height) * 750;
+
+        const targetScale = Math.min(Math.max(initialPinchScale * distRatio, 0.5), 5);
+        const scaleRatio = targetScale / initialPinchScale;
+
+        const newPanX = cursorX - (cursorX - initialPinchPan.x) * scaleRatio + dxCanvas;
+        const newPanY = cursorY - (cursorY - initialPinchPan.y) * scaleRatio + dyCanvas;
+
+        setScale(targetScale);
+        setPanOffset({ x: newPanX, y: newPanY });
+      }
+    };
+
+    const handleTouchEndNative = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialPinchDist = null;
+      }
+    };
+
+    canvas.addEventListener("wheel", handleWheelNative, { passive: false });
+    canvas.addEventListener("touchstart", handleTouchStartNative, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMoveNative, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEndNative, { passive: false });
+    canvas.addEventListener("touchcancel", handleTouchEndNative, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("wheel", handleWheelNative);
+      canvas.removeEventListener("touchstart", handleTouchStartNative);
+      canvas.removeEventListener("touchmove", handleTouchMoveNative);
+      canvas.removeEventListener("touchend", handleTouchEndNative);
+      canvas.removeEventListener("touchcancel", handleTouchEndNative);
+    };
+  }, []);
 
   // Whiteboard controls
   const handleUndo = () => {
@@ -2511,7 +2607,6 @@ export default function ClientForm() {
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
-                  onWheel={handleWheel}
                 />
 
                 {activeTextEditor &&
