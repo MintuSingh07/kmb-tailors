@@ -70,62 +70,33 @@ const compressImage = (
 const getPageDefaultText = (pageNum: number) => {
   if (pageNum === 1) {
     return [
-      { text: "FL-", x: 35, y: 36 },
-      { text: "P-", x: 35, y: 116 },
-      { text: "L", x: 35, y: 196 },
-      { text: "B", x: 35, y: 276 },
-      { text: "W", x: 35, y: 356 },
-      { text: "H", x: 35, y: 436 },
-      { text: "Ss", x: 35, y: 516 },
-      { text: "T", x: 35, y: 596 },
-      { text: "N", x: 35, y: 676 },
-      { text: "Gh", x: 35, y: 756 },
-      { text: "Ch", x: 35, y: 836 },
-      { text: "Salwar-", x: 35, y: 916 },
+      { text: "Th-", x: 35, y: 20 },
+      { text: "Tw-", x: 35, y: 100 },
+      { text: "L", x: 35, y: 180 },
+      { text: "Cut-", x: 35, y: 260 },
+      { text: "A", x: 35, y: 340 },
+      { text: "F", x: 35, y: 420 },
+      { text: "B", x: 35, y: 500 },
+      { text: "L", x: 35, y: 580 },
+      { text: "Cut-", x: 35, y: 660 },
+      { text: "A", x: 35, y: 740 },
+      { text: "F", x: 35, y: 820 },
+      { text: "B", x: 35, y: 900 },
     ];
   }
   if (pageNum === 2) {
     return [
-      { text: "Th-", x: 35, y: 36 },
-      { text: "Tw-", x: 35, y: 116 },
-      { text: "L", x: 35, y: 196 },
-      { text: "Cut-", x: 35, y: 276 },
-      { text: "A", x: 35, y: 356 },
-      { text: "F", x: 35, y: 436 },
-      { text: "B", x: 35, y: 516 },
-      { text: "L", x: 35, y: 596 },
-      { text: "Cut-", x: 35, y: 676 },
-      { text: "A", x: 35, y: 756 },
-      { text: "F", x: 35, y: 836 },
-      { text: "B", x: 35, y: 916 },
+      { text: "Note-", x: 35, y: 20 },
+
+      { text: "Ph-", x: 35, y: 380 },
+      { text: "Ph-", x: 35, y: 460 },
+      { text: "Ph-", x: 35, y: 540 },
+      { text: "Ph-", x: 35, y: 620 },
     ];
   }
   if (pageNum === 3) {
     return [
-      { text: "Blouse", x: 35, y: 36 },
-      { text: "Bs-", x: 35, y: 116 },
-      { text: "P-", x: 35, y: 196 },
-      { text: "L", x: 35, y: 276 },
-      { text: "B", x: 35, y: 356 },
-      { text: "W", x: 35, y: 436 },
-      { text: "T", x: 35, y: 516 },
-      { text: "Ss", x: 35, y: 596 },
-      { text: "N", x: 35, y: 676 },
-    ];
-  }
-  if (pageNum === 4) {
-    return [
-      { text: "Note-", x: 35, y: 36 },
-
-      { text: "Ph-", x: 35, y: 396 },
-      { text: "Ph-", x: 35, y: 476 },
-      { text: "Ph-", x: 35, y: 556 },
-      { text: "Ph-", x: 35, y: 636 },
-    ];
-  }
-  if (pageNum === 5) {
-    return [
-      { text: "Relation-", x: 35, y: 36 },
+      { text: "Relation-", x: 35, y: 20 },
     ];
   }
   return [];
@@ -154,7 +125,7 @@ export default function ClientForm() {
   const [measurementDrawing, setMeasurementDrawing] = useState<string>(""); // Base64 canvas URL fallback (Page 1)
   const [measurementDrawings, setMeasurementDrawings] = useState<string[]>([]); // Multi-page drawings
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(10);
+  const [totalPages, setTotalPages] = useState(3);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<
     "left" | "right"
@@ -362,7 +333,7 @@ export default function ClientForm() {
 
       const loadedDrawings = client.measurementDrawings || [];
       const finalDrawings = [...loadedDrawings];
-      while (finalDrawings.length < 10) {
+      while (finalDrawings.length < 3) {
         finalDrawings.push("");
       }
 
@@ -378,7 +349,7 @@ export default function ClientForm() {
         setMeasurementDrawing(client.measurementDrawing || "");
         setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
-        setTotalPages(finalDrawings.length > 0 ? finalDrawings.length : 10);
+        setTotalPages(Math.max(3, loadedDrawings.length));
         setCurrentPage(1);
 
         setSuitStatus("Pending");
@@ -394,7 +365,7 @@ export default function ClientForm() {
         setMeasurementDrawing(client.measurementDrawing || "");
         setMeasurementDrawings(finalDrawings);
         setStrokes(client.strokes || []);
-        setTotalPages(finalDrawings.length);
+        setTotalPages(Math.max(3, loadedDrawings.length));
         setCurrentPage(1);
         setSuitStatus(client.suitStatus || "Pending");
         setInitialStatus(client.suitStatus || "Pending");
@@ -815,10 +786,10 @@ export default function ClientForm() {
     const defaultTextItems = getPageDefaultText(currentPage);
     if (defaultTextItems.length > 0) {
       ctx.save();
-      const fontSize = Math.max(16, Math.round(25 * scaleX));
-      ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
+      const fontSize = Math.max(36, Math.round(45 * scaleX));
+      ctx.font = `900 ${fontSize}px system-ui, -apple-system, sans-serif`;
       ctx.fillStyle = "#1A1A1A";
-      ctx.textBaseline = "alphabetic";
+      ctx.textBaseline = "middle";
       defaultTextItems.forEach((item) => {
         ctx.fillText(item.text, item.x * scaleX, item.y * scaleY);
       });
