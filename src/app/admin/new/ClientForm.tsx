@@ -815,8 +815,8 @@ export default function ClientForm() {
     const defaultTextItems = getPageDefaultText(currentPage);
     if (defaultTextItems.length > 0) {
       ctx.save();
-      const fontSize = Math.max(26, Math.round(40 * scaleX));
-      ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+      const fontSize = Math.max(16, Math.round(25 * scaleX));
+      ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
       ctx.fillStyle = "#1A1A1A";
       ctx.textBaseline = "alphabetic";
       defaultTextItems.forEach((item) => {
