@@ -50,6 +50,8 @@ export default async function ClientGalleryPage(props: PageProps) {
       clientId={client._id}
       clientName={client.name}
       clientNo={client.clientNo}
+      contactNo={client.contactNo || ''}
+      alternativeNo={client.alternativeNo || ''}
       images={client.images || []}
       handoverImages={client.handoverImages || []}
       username={username}
