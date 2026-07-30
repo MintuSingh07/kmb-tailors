@@ -804,7 +804,7 @@ export default function ClientForm() {
     const defaultTextItems = getPageDefaultText(currentPage);
     if (defaultTextItems.length > 0) {
       ctx.save();
-      const fontSize = Math.max(28, Math.round(34 * scaleX));
+      const fontSize = Math.max(15, Math.round(22 * scaleX));
       ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
       ctx.fillStyle = "#1A1A1A";
       ctx.textBaseline = "middle";
