@@ -490,102 +490,106 @@ export default function GalleryView({
           onClick={() => setSelectedImage(null)}
           className="fixed inset-0 bg-[#0A0A0A]/95 z-50 flex items-center justify-center p-4 sm:p-6 cursor-zoom-out animate-in fade-in duration-200"
         >
-          {/* Zoom Control Bar (top center) */}
+          {/* Top Controls Header Bar */}
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full z-50 select-none shadow-xl"
+            className="absolute top-4 sm:top-6 left-4 right-4 sm:left-6 sm:right-6 flex items-center justify-between z-50 select-none pointer-events-none"
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setZoomScale((prev) => Math.max(1, prev - 0.5));
-                if (zoomScale <= 1.5) setPanPosition({ x: 0, y: 0 }); // reset pan if zooming back to 1x
-              }}
-              className="p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Zoom Out"
-              disabled={zoomScale <= 1}
-            >
-              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
-              </svg>
-            </button>
-            <span className="text-white text-xs font-black min-w-10 text-center tracking-wider font-mono">
-              {Math.round(zoomScale * 100)}%
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setZoomScale((prev) => Math.min(4, prev + 0.5));
-              }}
-              className="p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Zoom In"
-              disabled={zoomScale >= 4}
-            >
-              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-              </svg>
-            </button>
-            {zoomScale > 1 && (
+            {/* Left: Delete Button */}
+            <div className="flex items-center gap-2 pointer-events-auto">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setZoomScale(1);
-                  setPanPosition({ x: 0, y: 0 });
+                  handleDeleteImage(selectedImage);
+                  setSelectedImage(null);
                 }}
-                className="p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer border-l border-white/20 pl-2.5 ml-1"
-                title="Reset Zoom"
+                className="h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95 border border-white/20"
+                title="Delete Photo"
               >
-                <span className="text-[9px] font-black tracking-widest uppercase">Reset</span>
+                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </button>
-            )}
-          </div>
+            </div>
 
-          {/* Delete Button top-left */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteImage(selectedImage);
-              setSelectedImage(null);
-            }}
-            className="absolute top-6 left-6 h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center shadow-lg cursor-pointer z-50 transition-all select-none hover:scale-110 active:scale-95 border border-white/20"
-            title="Delete Photo"
-          >
-            <svg className="h-4.5 w-4.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+            {/* Center: Zoom Control Bar */}
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-xl pointer-events-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomScale((prev) => Math.max(1, prev - 0.5));
+                  if (zoomScale <= 1.5) setPanPosition({ x: 0, y: 0 });
+                }}
+                className="p-1 sm:p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Zoom Out"
+                disabled={zoomScale <= 1}
+              >
+                <svg className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+                </svg>
+              </button>
+              <span className="text-white text-[10px] sm:text-xs font-black min-w-8 sm:min-w-10 text-center tracking-wider font-mono">
+                {Math.round(zoomScale * 100)}%
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomScale((prev) => Math.min(4, prev + 0.5));
+                }}
+                className="p-1 sm:p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Zoom In"
+                disabled={zoomScale >= 4}
+              >
+                <svg className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+                </svg>
+              </button>
+              {zoomScale > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setZoomScale(1);
+                    setPanPosition({ x: 0, y: 0 });
+                  }}
+                  className="p-1 sm:p-1.5 rounded-full hover:bg-white/15 text-white transition-colors cursor-pointer border-l border-white/20 pl-2 sm:pl-2.5 ml-0.5 sm:ml-1"
+                  title="Reset Zoom"
+                >
+                  <span className="text-[9px] font-black tracking-widest uppercase">Reset</span>
+                </button>
+              )}
+            </div>
 
-          {/* Top-right action controls (Share + Close) */}
-          <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (selectedImage) {
-                  sharePhotoOnWhatsApp({
-                    imageUrl: selectedImage,
-                    phoneNo: contactNo || alternativeNo,
-                    clientName: clientName,
-                    title: `Client ${clientNo} Photo`,
-                  });
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
-              title="Share on WhatsApp"
-            >
-              <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-              </svg>
-              <span className="hidden sm:inline">Share WhatsApp</span>
-            </button>
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
-              title="Close Fullscreen View"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Right: WhatsApp Share & Close */}
+            <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (selectedImage) {
+                    sharePhotoOnWhatsApp({
+                      imageUrl: selectedImage,
+                      phoneNo: contactNo || alternativeNo,
+                      clientName: clientName,
+                      title: `Client ${clientNo} Photo`,
+                    });
+                  }
+                }}
+                className="h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95 border border-white/20"
+                title="Share on WhatsApp"
+              >
+                <svg className="h-4.5 w-4.5 sm:h-5 sm:w-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="h-9 w-9 sm:h-11 sm:w-11 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer flex items-center justify-center border border-white/20 shadow-lg hover:scale-110 active:scale-95"
+                title="Close Fullscreen View"
+              >
+                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Full Screen Image Wrapper with Pan and Zoom */}
