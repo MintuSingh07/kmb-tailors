@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Ruler } from 'lucide-react';
@@ -38,6 +38,12 @@ export default function GalleryView({
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [isPanningImage, setIsPanningImage] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+
+  // Touch pinch gesture tracking refs
+  const touchStartDistRef = useRef<number | null>(null);
+  const touchStartScaleRef = useRef<number>(1);
+  const touchPanStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchCenterStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Helper function to compress large camera photos client-side before sending to server
   const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.7): Promise<string> => {
@@ -185,8 +191,87 @@ export default function GalleryView({
     }
   };
 
+  // Pinch-to-zoom & touch panning event handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchStartDistRef.current = dist;
+      touchStartScaleRef.current = zoomScale;
+      touchPanStartRef.current = { ...panPosition };
+      touchCenterStartRef.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+    } else if (e.touches.length === 1 && zoomScale > 1) {
+      setIsPanningImage(true);
+      setPanStart({
+        x: e.touches[0].clientX - panPosition.x,
+        y: e.touches[0].clientY - panPosition.y,
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStartDistRef.current !== null && touchStartDistRef.current > 0) {
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scaleFactor = currentDist / touchStartDistRef.current;
+      const newScale = Math.min(5, Math.max(1, touchStartScaleRef.current * scaleFactor));
+      setZoomScale(newScale);
+
+      const currentCenter = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+      const dx = currentCenter.x - touchCenterStartRef.current.x;
+      const dy = currentCenter.y - touchCenterStartRef.current.y;
+
+      if (newScale > 1) {
+        setPanPosition({
+          x: touchPanStartRef.current.x + dx,
+          y: touchPanStartRef.current.y + dy,
+        });
+      } else {
+        setPanPosition({ x: 0, y: 0 });
+      }
+    } else if (e.touches.length === 1 && isPanningImage && zoomScale > 1) {
+      const dx = e.touches[0].clientX - panStart.x;
+      const dy = e.touches[0].clientY - panStart.y;
+      setPanPosition({ x: dx, y: dy });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      touchStartDistRef.current = null;
+    }
+    if (e.touches.length === 0) {
+      setIsPanningImage(false);
+      if (zoomScale <= 1) {
+        setPanPosition({ x: 0, y: 0 });
+      }
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    const zoomDelta = -e.deltaY * 0.003;
+    setZoomScale((prev) => {
+      const newScale = Math.min(5, Math.max(1, prev + zoomDelta));
+      if (newScale <= 1) {
+        setPanPosition({ x: 0, y: 0 });
+      }
+      return newScale;
+    });
+  };
+
   // Stylus, touch and mouse panning event handlers for zoomed image
   const handleImagePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
     if (zoomScale <= 1) return;
     setIsPanningImage(true);
     setPanStart({ x: e.clientX - panPosition.x, y: e.clientY - panPosition.y });
@@ -196,6 +281,7 @@ export default function GalleryView({
   };
 
   const handleImagePointerMove = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
     if (!isPanningImage) return;
     const dx = e.clientX - panStart.x;
     const dy = e.clientY - panStart.y;
@@ -203,6 +289,7 @@ export default function GalleryView({
   };
 
   const handleImagePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
     setIsPanningImage(false);
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
@@ -504,13 +591,18 @@ export default function GalleryView({
           {/* Full Screen Image Wrapper with Pan and Zoom */}
           <div 
             onClick={(e) => e.stopPropagation()} 
-            className="relative w-full h-full max-w-5xl max-h-[85vh] select-none flex items-center justify-center overflow-hidden"
+            onWheel={handleWheel}
+            className="relative w-full h-full max-w-5xl max-h-[85vh] select-none flex items-center justify-center overflow-hidden touch-none"
           >
             <div 
               onPointerDown={handleImagePointerDown}
               onPointerMove={handleImagePointerMove}
               onPointerUp={handleImagePointerUp}
-              className="relative w-full h-full select-none transition-transform duration-100 ease-out origin-center"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
+              className="relative w-full h-full select-none transition-transform duration-75 ease-out origin-center touch-none"
               style={{ 
                 transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomScale})`,
                 cursor: zoomScale > 1 ? (isPanningImage ? 'grabbing' : 'grab') : 'default'
@@ -521,7 +613,7 @@ export default function GalleryView({
                 alt="Fullscreen View"
                 fill
                 sizes="100vw"
-                className="object-contain pointer-events-none"
+                className="object-contain pointer-events-none select-none"
                 priority
               />
             </div>
